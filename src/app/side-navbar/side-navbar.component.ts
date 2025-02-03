@@ -11,14 +11,13 @@ interface MenuItem {
 @Component({
   selector: 'app-side-navbar',
   standalone: false,
-
   templateUrl: './side-navbar.component.html',
   styleUrl: './side-navbar.component.scss'
 })
 export class SideNavbarComponent {
   menuItems: MenuItem[] = [
     { icon: 'home', route: '/home', tooltip: 'Homepage' },
-    // { icon: 'description', route: '/documents', tooltip: 'Documents' },
+    { icon: 'resultpage', route: '/resultpage', tooltip: 'Results' },
     // Add additional menu items here
   ];
 

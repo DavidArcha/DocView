@@ -1,50 +1,54 @@
 <div class="wrapper">
-    <!-- Background Section -->
-    <div class="background">
-      <div class="background-content">
-        <h1 class="title">GROUP</h1>
-        <div class="search-container">
-          <input type="text" placeholder="Global Search" />
-          <button>Search</button>
-        </div>
+  <!-- Background Section -->
+  <div class="background">
+    <div class="background-content">
+      <h1 class="title">GROUP</h1>
+      <div class="search-container">
+        <form [formGroup]="globelSearchForm" (ngSubmit)="onSearch()">
+          <input type="text" id="txtSearch" formControlName="searchKey" placeholder="Search documents..."
+            aria-label="Search documents" (keyup.enter)="onSearch()" #searchText>
+          <button type="submit" [disabled]="!globelSearchForm.get('searchKey')?.value || isLoading">Search</button>
+          <button type="button" (click)="onClear()">Clear</button>
+        </form>
+        <div *ngIf="isLoading" class="loading-indicator">Loading...</div>
       </div>
-    </div>
-  
-    <!-- Content Section -->
-    <div class="content-section">
-      <div class="left-column">
-        <h2>Überblick</h2>
-        <p>
-          Dies ist das zentrale Archivierungssystem der Group und ermöglicht
-          Nutzern die Verwaltung, Bearbeitung und Veröffentlichung historischer
-          Unterlagen. Zudem können neue Archiveinlagen angelegt und
-          Bestellanfragen effizient bearbeitet werden.
-        </p>
-        <p>
-          Das System erfasst eine Vielzahl an Dokumenten, darunter
-          Betriebsanleitungen, Ersatzteillisten, Reparaturanleitungen, Prospekte,
-          technische Zeichnungen und interne Akten. Zudem umfasst das Archiv über
-          sechs Kilometer an physischen Druckschriften sowie eine umfangreiche
-          Sammlung digitalisierter Inhalte, darunter Fotos, Filme, Tondokumente,
-          Werbematerialien und Artefakte.
-        </p>
-      </div>
-      <div class="right-column">
-        <p>
-          Ein zentraler Aspekt von <b>Group</b> ist die kontinuierliche Pflege der
-          Archivbestände. Nutzer können Inhalte aktualisieren, neue Dokumente
-          hinzufügen und Archivierungsrichtlinien umsetzen. Leistungsstarke Such-
-          und Filterfunktionen ermöglichen einen schnellen Zugriff auf relevante
-          Informationen.
-        </p>
-      </div>
-    </div>
-  
-    <!-- Links Section -->
-    <div class="links-section">
-      <a href="#">Group Archiv</a>
-      <a href="#">Group Classic</a>
-      <a href="#">Group</a>
     </div>
   </div>
-  
+
+  <!-- Content Section -->
+  <div class="content-section">
+    <div class="left-column">
+      <h2>Überblick</h2>
+      <p>
+        This is the Group's central archiving system and enables
+        Users can manage, edit and publish historical data
+        Documents. In addition, new archive deposits can be created and
+        Order requests are processed efficiently.
+      </p>
+      <p>
+        The system captures a variety of documents, including:
+        Operating instructions, spare parts lists, repair instructions, brochures,
+        technical drawings and internal files. The archive also includes over
+        six kilometers of physical publications as well as an extensive one
+        Collection of digitized content, including photos, films, audio documents,
+        Promotional materials and artifacts.
+      </p>
+    </div>
+    <div class="right-column">
+      <p>
+        A central aspect of Group is the continuous maintenance of the
+        Archive holdings. Users can update content, new documents
+        add and implement archiving policies. Powerful search
+        and filter functions enable quick access to relevant ones
+        Information.
+      </p>
+    </div>
+  </div>
+
+  <!-- Links Section -->
+  <div class="links-section">
+    <a href="#">Group Archiv</a>
+    <a href="#">Group Classic</a>
+    <a href="#">Group</a>
+  </div>
+</div>

@@ -5,10 +5,14 @@
     </div>
 
     <!-- Search Box Section -->
-    <div class="search-box">
-        <input type="text" [(ngModel)]="searchQuery" placeholder="Search documents..." aria-label="Search documents"
-            (keyup.enter)="onSearch()">
-        <button (click)="onSearch()">Search</button>
+    <div class="search-box" *ngIf="showSearchBox">
+        <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+            <input type="text" id="txtSearch" formControlName="searchKey" placeholder="Search documents..."
+                aria-label="Search documents" (keyup.enter)="onSearch()" #searchText>
+            <button type="submit" [disabled]="!searchForm.get('searchKey')?.value || isLoading">Search</button>
+            <button type="button" (click)="onClear()">Clear</button>
+        </form>
+        <div *ngIf="isLoading" class="loading-indicator">Loading...</div>
     </div>
 
     <!-- Language Dropdown Section -->
