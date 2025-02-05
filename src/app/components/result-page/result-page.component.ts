@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ColDef, GridApi } from 'ag-grid-community';
+import { CustomButtonsComponent } from '../../Shared/components/custom-buttons/custom-buttons.component';
 
 @Component({
   selector: 'app-result-page',
@@ -40,7 +41,14 @@ export class ResultPageComponent implements OnInit {
       {
         headerName: 'Download',
         field: 'download',
-        checkboxSelection: true
+        checkboxSelection: true,
+        cellStyle: { display: 'flex', justifyContent: 'center' },
+      },
+      {
+        headerName: 'Show PDF',
+        field: 'showPDF',
+        cellRenderer: CustomButtonsComponent,
+        cellStyle: { display: 'flex', justifyContent: 'center' },
       }
     ];
   }
