@@ -5,7 +5,6 @@ import { ColDef, GridApi } from 'ag-grid-community';
 @Component({
   selector: 'app-result-page',
   standalone: false,
-
   templateUrl: './result-page.component.html',
   styleUrl: './result-page.component.scss'
 })
@@ -43,7 +42,7 @@ export class ResultPageComponent implements OnInit {
         field: 'download',
         checkboxSelection: true
       }
-  ];
+    ];
   }
 
   onGridReady(params: any): void {

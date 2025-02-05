@@ -8,6 +8,7 @@
                  [rowData]="rowData" 
                  [columnDefs]="columnDefs"
                  rowSelection="multiple"
+                 [suppressRowClickSelection]="true"
                  (gridReady)="onGridReady($event)"
                  (selectionChanged)="onSelectionChanged()"
                  class="ag-theme-alpine">
