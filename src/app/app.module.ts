@@ -18,6 +18,7 @@ import { SimpleSearchComponent } from './Shared/components/simple-search/simple-
 import { LanguageService } from './Shared/services/language.service';
 import { HomepageComponent } from './components/HomePage/homepage.component';
 import { HeaderComponent } from './components/header/header.component';
+import { CustomButtonsComponent } from './Shared/components/custom-buttons/custom-buttons.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { HeaderComponent } from './components/header/header.component';
     NotFoundComponent,
     DashboardComponent,
     SimpleSearchComponent,
-    ResultPageComponent
+    ResultPageComponent,
+    CustomButtonsComponent
   ],
   imports: [
     BrowserModule,
