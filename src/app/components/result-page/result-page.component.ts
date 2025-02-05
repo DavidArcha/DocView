@@ -48,6 +48,14 @@ export class ResultPageComponent implements OnInit {
         headerName: 'Show PDF',
         field: 'showPDF',
         cellRenderer: CustomButtonsComponent,
+        cellRendererParams: { buttonText: 'PDF', action: 'pdf' },
+        cellStyle: { display: 'flex', justifyContent: 'center' },
+      },
+      {
+        headerName: 'Show Excel',
+        field: 'showExcel',
+        cellRenderer: CustomButtonsComponent,
+        cellRendererParams: { buttonText: 'Excel', action: 'excel' },
         cellStyle: { display: 'flex', justifyContent: 'center' },
       }
     ];
