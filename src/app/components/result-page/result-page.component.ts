@@ -52,7 +52,11 @@ export class ResultPageComponent implements OnInit {
 
   onSelectionChanged(): void {
     const selectedNodes = this.gridApi.getSelectedNodes();
-    this.selectedRows = selectedNodes.map(node => node.data);
+    this.selectedRows = selectedNodes.map(node => ({
+      orderno: node.data.orderno,
+      ordertrackno: node.data.ordertrackno,
+      perid: node.data.perid
+    }));
   }
 
   checkAll(): void {
