@@ -7,10 +7,11 @@
     <!-- Search Box Section -->
     <div class="search-box" *ngIf="showSearchBox">
         <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
-            <input type="text" id="txtSearch" formControlName="searchKey" placeholder="Search documents..."
+            <input type="text" id="txtSearch" formControlName="searchKey" placeholder="Search"
                 aria-label="Search documents" (keyup.enter)="onSearch()" #searchText>
-            <button type="submit" [disabled]="!searchForm.get('searchKey')?.value || isLoading">Search</button>
-            <button type="button" (click)="onClear()">Clear</button>
+            <button type="submit"
+                [disabled]="!searchForm.get('searchKey')?.value || isLoading">{{'common-tags.search'|translate}}</button>
+            <button type="button" (click)="onClear()">{{'common-tags.clear'|translate}}</button>
         </form>
         <div *ngIf="isLoading" class="loading-indicator">Loading...</div>
     </div>

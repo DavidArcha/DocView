@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { LanguageService } from '../services/language.service';
-import { SearchService } from '../services/search.service';
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter } from 'rxjs/operators';
+import { LanguageService } from '../../Shared/services/language.service';
+import { SearchService } from '../../Shared/services/search.service';
 
 @Component({
   selector: 'app-header',
@@ -15,8 +15,8 @@ export class HeaderComponent implements OnInit {
   searchForm!: FormGroup;
   searchQuery: string = '';
   languages = [
-    { code: 'EN', label: 'English' },
-    { code: 'DU', label: 'Dutch' }
+    { code: 'en', label: 'English' },
+    { code: 'de', label: 'Dutch' }
   ];
   selectedLanguage: string;
   searchEnabled: boolean = false;
@@ -29,7 +29,7 @@ export class HeaderComponent implements OnInit {
     private searchService: SearchService
   ) {
     // Initialize selected language (default is 'EN' if not set)
-    this.selectedLanguage = this.languageService.getCurrentLanguage();
+    this.selectedLanguage = this.languageService.getCurrentLang();
   }
 
   ngOnInit(): void {
@@ -68,17 +68,6 @@ export class HeaderComponent implements OnInit {
   onSearch(): void {
     const searchQuery = this.searchForm.get('searchKey')?.value;
     if (searchQuery) {
-      this.isLoading = true;
-      this.searchService.search(searchQuery).subscribe({
-        next: (results) => {
-          console.log('Search results:', results);
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Search error:', error);
-          this.isLoading = false;
-        }
-      });
       this.searchService.enableSearch(searchQuery);
     }
   }

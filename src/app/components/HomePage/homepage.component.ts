@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SearchService } from '../services/search.service';
+import { SearchService } from '../../Shared/services/search.service';
 
 @Component({
   selector: 'app-homepage',
@@ -33,18 +33,7 @@ export class HomepageComponent implements OnInit {
     const searchQuery = this.globelSearchForm.get('searchKey')?.value;
     if (searchQuery) {
       this.isLoading = true;
-      this.router.navigate(['/resultpage']);
-      // this.searchService.search(searchQuery).subscribe({
-      //   next: (results) => {
-      //     console.log('Search results:', results);
-      //     this.isLoading = false;
-      //     this.router.navigate(['/resultpage']);
-      //   },
-      //   error: (error) => {
-      //     console.error('Search error:', error);
-      //     this.isLoading = false;
-      //   }
-      // });
+      this.router.navigate(['/resultpage']);    
       this.searchService.enableSearch(searchQuery);
     }
   }
