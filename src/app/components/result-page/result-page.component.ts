@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ColDef, GridApi } from 'ag-grid-community';
+import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { CustomButtonsComponent } from '../../Shared/components/custom-buttons/custom-buttons.component';
 
 @Component({
@@ -18,8 +19,12 @@ export class ResultPageComponent implements OnInit {
   public paginationPageSize = 10;
   public paginatinonSizeSelector: number[] | boolean = [5, 10, 20, 50, 100];
   public selectedRows: any[] = [];
+  isControlCollapsed: boolean = false;
+  // Icons
+  faArrowLeft = faArrowLeft;
+  faArrowRight = faArrowRight;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
     this.http
       .get('/assets/json/orders-list.json')
       .subscribe((data: any) => {
@@ -89,5 +94,11 @@ export class ResultPageComponent implements OnInit {
   clearSelection(): void {
     this.gridApi.deselectAll();
     this.selectedRows = [];
+  }
+
+
+  toggleControlContainer(): void {
+    this.isControlCollapsed = !this.isControlCollapsed;
+    this.cdr.detectChanges();
   }
 }

@@ -19,6 +19,7 @@ import { LanguageService } from './Shared/services/language.service';
 import { HomepageComponent } from './components/HomePage/homepage.component';
 import { HeaderComponent } from './components/header/header.component';
 import { CustomButtonsComponent } from './Shared/components/custom-buttons/custom-buttons.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   declarations: [
@@ -41,6 +42,7 @@ import { CustomButtonsComponent } from './Shared/components/custom-buttons/custo
     CommonModule,
     RouterOutlet,
     AgGridModule,
+    FontAwesomeModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
