@@ -1,15 +1,16 @@
-<!-- <app-simple-search></app-simple-search> -->
 <div>
-    <button (click)="checkAll()">Check All</button>
-    <button (click)="downloadPdf()" [disabled]="selectedRows.length === 0">Download PDF</button>
-    <button (click)="clearSelection()">Clear Selection</button>
+    <div>
+        <app-simple-search></app-simple-search>
+    </div>
+    <div>
+        <div>
+            <button (click)="checkAll()">Check All</button>
+            <button (click)="downloadPdf()" [disabled]="selectedRows.length === 0">Download PDF</button>
+            <button (click)="clearSelection()">Clear Selection</button>
+        </div>
+        <ag-grid-angular style="height: 400px; width: 100%;" [rowData]="rowData" [columnDefs]="columnDefs"
+            rowSelection="multiple" [suppressRowClickSelection]="true" (gridReady)="onGridReady($event)"
+            (selectionChanged)="onSelectionChanged()" class="ag-theme-alpine">
+        </ag-grid-angular>
+    </div>
 </div>
-<ag-grid-angular style="height: 400px; width: 100%;" 
-                 [rowData]="rowData" 
-                 [columnDefs]="columnDefs"
-                 rowSelection="multiple"
-                 [suppressRowClickSelection]="true"
-                 (gridReady)="onGridReady($event)"
-                 (selectionChanged)="onSelectionChanged()"
-                 class="ag-theme-alpine">
-</ag-grid-angular>
