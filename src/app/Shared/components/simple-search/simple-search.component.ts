@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { SearchService } from '../../services/search.service';
+import { LanguageService } from '../../services/language.service';
 
 interface SystemField {
   id: number;
@@ -16,16 +17,20 @@ interface SystemField {
 export class SimpleSearchComponent implements OnInit {
   systemFields: SystemField[] = [];
   selectedField: string = '';
-  selectedLanguage: string = 'en'; // Default language
+  selectedLanguage: string = 'de'; // Default language
 
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
-    private changeDtr: ChangeDetectorRef
+    private changeDtr: ChangeDetectorRef,
+    private languageService: LanguageService,
   ) { }
 
   ngOnInit(): void {
-    this.loadSystemFieldsByLang(this.selectedLanguage);
+    this.languageService.language$.subscribe(lang => {
+      this.selectedLanguage = lang;
+      this.loadSystemFieldsByLang(lang);
+    });
   }
 
   loadSystemFieldsByLang(lang: string): void {
