@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { filter } from 'rxjs/operators';
@@ -16,47 +16,48 @@ export class HeaderComponent implements OnInit {
   searchQuery: string = '';
   languages = [
     { code: 'en', label: 'English' },
-    { code: 'de', label: 'Dutch' }
+    { code: 'de', label: 'German' } // Corrected label to 'German'
   ];
   selectedLanguage: string;
-  searchEnabled: boolean = false;
   isLoading: boolean = false;
   showSearchBox: boolean = true;
 
   constructor(
     private router: Router,
     private languageService: LanguageService,
-    private searchService: SearchService
+    private searchService: SearchService, private changeDtr: ChangeDetectorRef
   ) {
-    // Initialize selected language (default is 'EN' if not set)
+    // Initialize selected language (default is 'DE' if not set)
     this.selectedLanguage = this.languageService.getCurrentLang();
   }
 
   ngOnInit(): void {
     this.initialForm();
     this.searchService.searchEnabled$.subscribe(enabled => {
-      this.searchEnabled = enabled;
+      this.showSearchBox = enabled;
+      this.changeDtr.detectChanges();
     });
     this.searchService.searchQuery$.subscribe(query => {
       this.searchForm.get('searchKey')?.setValue(query);
+      this.changeDtr.detectChanges();
     });
-
-    // Check the initial route and show/hide the search box
-    this.showSearchBox = this.router.url !== '/home';
-    this.searchEnabled = this.router.url !== '/home';
-
+    this.updateVisibilitySearchBox();
     // Check the current route and show/hide the search box on navigation
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      this.showSearchBox = event.url !== '/home';
-      this.searchEnabled = event.url !== '/home';
+      this.updateVisibilitySearchBox();
     });
   }
 
-  onLogoClick(): void {
-    // Navigate to the home/dashboard route when the logo is clicked
-    this.router.navigate(['/']);
+  updateVisibilitySearchBox() {
+    this.showSearchBox = this.router.url !== '/home';
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.selectedLanguage = localStorage.getItem('selectedLanguage') || 'de';
+    }, 100);
   }
 
   initialForm() {

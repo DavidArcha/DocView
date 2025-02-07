@@ -1,7 +1,7 @@
 <div class="simple-search">
     <label for="systemFieldDropdown">Select a System Field:</label>
     <select id="systemFieldDropdown" [(ngModel)]="selectedField">
-        <option *ngFor="let field of systemFields" [value]="field.fieldName">
+        <option *ngFor="let field of systemFields" [value]="field.id">
             {{ field.fieldName }}
         </option>
     </select>

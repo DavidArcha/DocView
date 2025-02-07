@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { SearchService } from '../../services/search.service';
+import { LanguageService } from '../../services/language.service';
 
 interface SystemField {
   id: number;
@@ -10,24 +11,40 @@ interface SystemField {
 @Component({
   selector: 'app-simple-search',
   standalone: false,
-
   templateUrl: './simple-search.component.html',
   styleUrl: './simple-search.component.scss'
 })
 export class SimpleSearchComponent implements OnInit {
   systemFields: SystemField[] = [];
   selectedField: string = '';
+  selectedLanguage: string = 'de'; // Default language
 
-  constructor(private http: HttpClient,private searchService: SearchService) { }
+  constructor(
+    private http: HttpClient,
+    private searchService: SearchService,
+    private changeDtr: ChangeDetectorRef,
+    private languageService: LanguageService,
+  ) { }
 
   ngOnInit(): void {
-    this.loadSystemFields();
+    this.languageService.language$.subscribe(lang => {
+      this.selectedLanguage = lang;
+      this.loadSystemFieldsByLang(lang);
+    });
   }
 
-  loadSystemFields(): void {
-    this.searchService.getSystemFields().subscribe({
-      next: (fields) => this.systemFields = fields,
-      error: (err) => console.error('Error loading fields:', err)
+  loadSystemFieldsByLang(lang: string): void {
+    console.log(lang);
+    this.searchService.getSystemFieldsByLang(lang).subscribe({
+      next: (fields) => {
+        if (fields.length > 0) {
+          this.systemFields = fields;          
+          this.selectedField = fields[0].id.toString();
+          console.log(this.selectedField);
+          this.changeDtr.detectChanges(); // Trigger change detection
+        }
+      },
+      error: console.error
     });
   }
 }

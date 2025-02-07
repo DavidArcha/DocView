@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, retry, throwError } from 'rxjs';
-import { RestAPICallUrl } from '../../../assets/common/apicalls';
+import { RestAPICallUrl } from '../Common/apicalls';
 
 interface SystemField {
   id: number;
@@ -43,6 +43,11 @@ export class SearchService {
 
   getSystemFields(): Observable<SystemField[]> {
     let url = this.apiUrl + RestAPICallUrl.getSyatemFileds;
+    return this.http.get<SystemField[]>(url);
+  }
+
+  getSystemFieldsByLang(lang: string): Observable<SystemField[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSystemFieldsbyLang}/${lang}`;
     return this.http.get<SystemField[]>(url);
   }
 }

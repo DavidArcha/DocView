@@ -4,9 +4,9 @@ import { HomepageComponent } from './components/HomePage/homepage.component';
 import { ResultPageComponent } from './components/result-page/result-page.component';
 
 const routes: Routes = [
+  { path: '', redirectTo: '/home', pathMatch: 'full' }, // Default route
   { path: 'home', component: HomepageComponent },
   { path: 'resultpage', component: ResultPageComponent },
-  { path: '', redirectTo: '/home', pathMatch: 'full' }, // Default route
 ];
 
 @NgModule({

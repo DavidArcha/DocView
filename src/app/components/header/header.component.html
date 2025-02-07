@@ -1,6 +1,6 @@
 <header class="header">
     <!-- Logo Section -->
-    <div class="logo" (click)="onLogoClick()">
+    <div class="logo">
         <img src="../../assets/Header/logo.jpg" alt="Document Viewer Logo" />
     </div>
 
@@ -18,7 +18,7 @@
 
     <!-- Language Dropdown Section -->
     <div class="language-dropdown">
-        <select [value]="selectedLanguage" (change)="onLanguageChange($event)">
+        <select [(ngModel)]="selectedLanguage" (change)="onLanguageChange($event)">
             <option *ngFor="let lang of languages" [value]="lang.code">
                 {{ lang.label }}
             </option>
