@@ -3,5 +3,30 @@
         "home": "Heim",
         "search": "Suchen",
         "clear": "klar"
-    }
+    },
+    "DD-Match": [
+        "gleich",
+        "ungleich",
+        "leer",
+        "nicht leer"
+    ],
+    "DD-State": [
+        "Ausstehend",
+        "Initial",
+        "In Bearbeitung",
+        "Überprüft",
+        "Genehmigt"
+    ],
+    "DD-Date": [
+        "gleich",
+        "ungleich",
+        "leer",
+        "nicht leer",
+        "Beginn am",
+        "Beginn nach",
+        "Endet am",
+        "zwischen",
+        "nicht zwischen",
+        "Enthält Datum"
+    ]
 }

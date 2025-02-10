@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, Observable, retry, throwError } from 'rxjs';
-import { RestAPICallUrl } from '../Common/apicalls';
+import { BehaviorSubject, catchError, Observable, of, retry, throwError } from 'rxjs';
+import { RestAPICallUrl } from '../common/apicalls';
+import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
 
 interface SystemField {
   id: number;
@@ -49,5 +50,10 @@ export class SearchService {
   getSystemFieldsByLang(lang: string): Observable<SystemField[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getSystemFieldsbyLang}/${lang}`;
     return this.http.get<SystemField[]>(url);
+  }
+
+  getDropdownData(): Observable<any> {
+    // In a more complex scenario, you could load this data from an assets JSON file using HttpClient.
+    return of(DROPDOWN_DATA);
   }
 }

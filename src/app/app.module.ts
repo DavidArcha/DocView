@@ -20,6 +20,8 @@ import { HomepageComponent } from './components/HomePage/homepage.component';
 import { HeaderComponent } from './components/header/header.component';
 import { CustomButtonsComponent } from './Shared/components/custom-buttons/custom-buttons.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { LocalizedDropdownComponent } from './Shared/components/localized-dropdown/localized-dropdown.component';
+import { MultilevelAccordionComponent } from './Shared/components/multilevel-accordion/multilevel-accordion.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,9 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     DashboardComponent,
     SimpleSearchComponent,
     ResultPageComponent,
-    CustomButtonsComponent
+    CustomButtonsComponent,
+    LocalizedDropdownComponent,
+    MultilevelAccordionComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,7 @@
+<div class="form-group">
+  <select class="form-control" [ngModel]="selectedValue" (ngModelChange)="onValueChange($event)">
+    <option *ngFor="let option of options" [value]="option.key">
+      {{ option[selectedLanguage] }}
+    </option>
+  </select>
+</div>
