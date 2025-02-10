@@ -87,49 +87,77 @@ export class SimpleSearchComponent implements OnInit {
     // Simulate a 1.5-second delay.
     return of(data).pipe(delay(1500));
   }
+
+
   /**
-   * When a field is selected from the accordion, we add a new row to the table.
-   * We extend the row with additional properties.
-   */
+     * When a field is selected from the accordion, add a new row.
+     * Here we pre-select the operator using the first operator option (if any)
+     * and then also pre-populate the value column based on that default operator.
+     */
   onFieldSelected(event: { parent: string, field: string }): void {
     const operatorOptions = this.getOperatorOptions(event.field);
-    // Optionally assign a default operator if you want the first option to be selected immediately:
+    // Pre-select the default operator using the key from the first operator option.
     const defaultOperator = operatorOptions.length > 0 ? operatorOptions[0].key : '';
+
+    // Pre-populate the value based on the default operator.
+    let defaultValue = null;
+    if (defaultOperator === 'equals') {
+      if (this.dropdownData && this.dropdownData.state && this.dropdownData.state.length > 0) {
+        defaultValue = this.dropdownData.state[0].key; // Assumes dropdownData.state is an array of option objects.
+      }
+    } else if (defaultOperator === 'Start-On') {
+      defaultValue = new Date().toISOString().substring(0, 10);
+    }
+    // For operators such as 'yes', 'no', or 'empty', we leave defaultValue as null.
+
     this.selectedFields.push({
       parent: event.parent,
       field: event.field,
-      operator: defaultOperator, // now it will show the first option by default
+      operator: defaultOperator, // Use the key (e.g., "equals")
       operatorOptions: operatorOptions,
-      value: null
+      value: defaultValue
     });
   }
 
 
   /**
- * Return the operator dropdown options based on the selected field.
- */
+    * Returns the operator dropdown options based on the selected field.
+    */
   getOperatorOptions(field: string): any[] {
     switch (field.toLowerCase()) {
       case 'age':
-        return this.dropdownData.match || [];
+        return this.dropdownData.match; // e.g., match options for Age
       case 'types':
-        return this.dropdownData.state || [];
+        return this.dropdownData.state; // e.g., state options for Types
       case 'name':
-        return this.dropdownData.conditions || [];
+        return this.dropdownData.conditions; // conditions options for name
       case 'date':
-        return this.dropdownData.date || [];
+        return this.dropdownData.date; // date options for date (assumed to exist)
       default:
         return [];
     }
   }
 
   /**
-* Handler when the operator value changes in a table row.
-*/
+   * When the operator value changes in a table row, update the operator and set the default value if needed.
+   */
   onOperatorChange(newOperator: string, index: number): void {
     this.selectedFields[index].operator = newOperator;
-    // Optionally, you might want to reset the value if operator changes.
-    this.selectedFields[index].value = null;
+    // Optionally, reset or auto-populate the value based on the new operator.
+    if (newOperator === 'equals') {
+      if (this.dropdownData && this.dropdownData.state && this.dropdownData.state.length > 0) {
+        this.selectedFields[index].value = this.dropdownData.state[0].key;
+      } else {
+        this.selectedFields[index].value = null;
+      }
+    } else if (newOperator === 'Start-On') {
+      this.selectedFields[index].value = new Date().toISOString().substring(0, 10);
+    } else if (newOperator === 'yes' || newOperator === 'no' || newOperator === 'empty') {
+      this.selectedFields[index].value = null;
+    } else {
+      // For any other operators, you might want to set a default value or clear it.
+      this.selectedFields[index].value = null;
+    }
   }
 
   // Delete a row from the selected fields table.
