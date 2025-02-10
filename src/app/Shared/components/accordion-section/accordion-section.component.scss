@@ -1,5 +1,5 @@
 .accordion-section {
-    margin-left: 20px; // Indentation for subsections
+    margin-left: 20px; // Indentation for nested levels
 
     .section-header {
         cursor: pointer;
@@ -23,7 +23,6 @@
         margin-right: 5px;
         transition: transform 0.3s ease;
 
-        // Rotate the arrow when expanded
         &.expanded {
             transform: rotate(90deg);
         }
@@ -52,7 +51,6 @@
         }
     }
 
-    // Simple fade-in animation for content
     @keyframes fadeIn {
         from {
             opacity: 0;

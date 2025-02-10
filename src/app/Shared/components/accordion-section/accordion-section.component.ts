@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { AccordionSection } from '../../common/accordion-section.model';
+import { delay, Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-accordion-section',
@@ -10,19 +11,12 @@ import { AccordionSection } from '../../common/accordion-section.model';
 })
 export class AccordionSectionComponent implements OnChanges {
   @Input() section!: AccordionSection;
-  // The parent's path used to build the full path (e.g., "Category > SubCat-1")
   @Input() parentPath: string = '';
-  // This flag is received from the global control.
-  @Input() expandAll: boolean = false;
-
-  // Local expanded state; starts collapsed by default.
+  // Removed individual loading state since global loading is handled above.
   public isExpanded: boolean = false;
 
-  // When the expandAll flag changes, update this section’s state.
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['expandAll'] && !changes['expandAll'].firstChange) {
-      this.isExpanded = this.expandAll;
-    }
+    // Here you can also listen for changes to inputs if needed.
   }
 
   toggleSection(): void {
@@ -30,8 +24,9 @@ export class AccordionSectionComponent implements OnChanges {
   }
 
   onFieldClick(field: string): void {
-    // Build the full path. If there's a parentPath, include it.
-    const currentPath = this.parentPath ? `${this.parentPath} > ${this.section.title}` : this.section.title;
+    const currentPath = this.parentPath
+      ? `${this.parentPath} > ${this.section.title}`
+      : this.section.title;
     console.log('Field Path:', `${currentPath} > ${field}`);
     console.log('Selected Field:', field);
   }

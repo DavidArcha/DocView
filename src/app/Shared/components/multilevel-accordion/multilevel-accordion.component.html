@@ -1,10 +1,13 @@
 <div class="accordion-container">
-    <button class="global-control" (click)="toggleExpandAll()">
-        {{ expandAll ? 'Collapse All' : 'Expand All' }}
-    </button>
+    <!-- Global loader displayed only once until the entire accordion data is loaded -->
+    <div *ngIf="isLoading" class="global-loading">
+        <span class="spinner"></span>
+        <span>Loading Accordion...</span>
+    </div>
 
-    <!-- Render each top-level section -->
-    <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
-        [expandAll]="expandAll">
-    </app-accordion-section>
+    <!-- Render the accordion only when data is loaded -->
+    <ng-container *ngIf="!isLoading">
+        <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''">
+        </app-accordion-section>
+    </ng-container>
 </div>
