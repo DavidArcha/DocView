@@ -12,20 +12,18 @@ import { delay, Observable, of } from 'rxjs';
 export class MultilevelAccordionComponent implements OnInit {
   public sections: AccordionSection[] = [];
   public isLoading: boolean = true; // Global loading flag
-  // Global flag to control expand/collapse all.
-  public expandAll: boolean = false;
+
+  // Array to store selected fields.
+  public selectedFields: Array<{ parent: string, field: string }> = [];
 
   ngOnInit() {
     this.loadAccordionData();
   }
 
   loadAccordionData(): void {
-    // Set loading flag to true before the API call.
     this.isLoading = true;
-    // Simulate an API call with a delay. Replace this with your actual API service.
     this.fetchAccordionData().subscribe(data => {
       this.sections = data;
-      // Once data is loaded, remove the loader.
       this.isLoading = false;
     });
   }
@@ -36,9 +34,20 @@ export class MultilevelAccordionComponent implements OnInit {
     // Simulate a 1.5-second delay.
     return of(data).pipe(delay(1500));
   }
+  // Called whenever any nested accordion emits a fieldSelected event.
+  onFieldSelected(event: { parent: string, field: string }): void {
+    // Add the selected field to the list.
+    this.selectedFields.push(event);
+  }
 
+  // Delete a row from the selected fields table.
+  onDeleteSelectedField(index: number): void {
+    this.selectedFields.splice(index, 1);
+  }
 
-  toggleExpandAll(): void {
-    this.expandAll = !this.expandAll;
+  // Handler for the search button (adjust the logic as needed).
+  onSearchSelectedField(selected: { parent: string, field: string }): void {
+    // For demonstration, we just show an alert.
+    alert(`Search clicked for ${selected.parent} > ${selected.field}`);
   }
 }

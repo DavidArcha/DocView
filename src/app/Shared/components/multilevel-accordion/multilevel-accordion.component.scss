@@ -1,7 +1,10 @@
+/* multi-level-accordion.component.scss */
 .accordion-container {
-    max-height: 600px;
+    height: 400px;
+    /* Fixed height for scrolling; change to max-height if desired */
     overflow-y: auto;
     padding: 10px;
+    border: 1px solid #ddd;
 }
 
 .global-loading {
@@ -25,5 +28,30 @@
 @keyframes spin {
     to {
         transform: rotate(360deg);
+    }
+}
+
+.selected-fields-table {
+    margin-top: 20px;
+    max-height: 200px;
+    /* Limits the visible height of the table */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 5px;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
     }
 }
