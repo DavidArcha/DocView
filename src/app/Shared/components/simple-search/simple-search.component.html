@@ -1,17 +1,4 @@
 <div class="simple-search">
-    <br />
-    <app-localized-dropdown [options]="dropdownData.conditions" [selectedLanguage]="selectedLanguage"
-        [(selectedValue)]="selectedCondition">
-    </app-localized-dropdown>
-    <br />
-    <app-localized-dropdown [options]="dropdownData.match" [selectedLanguage]="selectedLanguage"
-        [(selectedValue)]="selectedMatch">
-    </app-localized-dropdown>
-    <br />
-    <app-localized-dropdown [options]="dropdownData.state" [selectedLanguage]="selectedLanguage"
-        [(selectedValue)]="selectedState">
-    </app-localized-dropdown>
-    <br />
     <div class="accordion-container">
         <!-- Global loader for the entire accordion -->
         <div *ngIf="isLoading" class="global-loading">
@@ -26,7 +13,6 @@
             </app-accordion-section>
         </ng-container>
     </div>
-    <!-- Selected Fields Table -->
     <!-- Selected Fields Table -->
     <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
         <table>

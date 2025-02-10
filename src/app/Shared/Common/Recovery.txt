@@ -43,3 +43,16 @@
         </div>
     </div>
 
+  <br />
+    <app-localized-dropdown [options]="dropdownData.conditions" [selectedLanguage]="selectedLanguage"
+        [(selectedValue)]="selectedCondition">
+    </app-localized-dropdown>
+    <br />
+    <app-localized-dropdown [options]="dropdownData.match" [selectedLanguage]="selectedLanguage"
+        [(selectedValue)]="selectedMatch">
+    </app-localized-dropdown>
+    <br />
+    <app-localized-dropdown [options]="dropdownData.state" [selectedLanguage]="selectedLanguage"
+        [(selectedValue)]="selectedState">
+    </app-localized-dropdown>
+    <br />
