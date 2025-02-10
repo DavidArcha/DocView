@@ -1,31 +1,21 @@
+// dropdown-data.constant.ts
 export const DROPDOWN_DATA = {
-    conditions: [
-        { en: 'Yes', de: 'Ja' },
-        { en: 'No', de: 'Nein' }
-    ],
     match: [
-        { en: 'equals', de: 'gleich' },
-        { en: 'not equals', de: 'ungleich' },
-        { en: 'empty', de: 'leer' },
-        { en: 'not empty', de: 'nicht leer' }
+        { key: 'equals', en: 'Equals', de: 'Gleich' },
+        { key: 'empty', en: 'Empty', de: 'Leer' },
+        { key: 'yes', en: 'Yes', de: 'Ja' },
+        { key: 'no', en: 'No', de: 'Nein' }
     ],
     state: [
-        { en: 'Pending', de: 'Ausstehend' },
-        { en: 'Initial', de: 'Initial' },
-        { en: 'In Process', de: 'In Bearbeitung' },
-        { en: 'Reviewed', de: 'Überprüft' },
-        { en: 'Approved', de: 'Genehmigt' }
+        { key: 'active', en: 'Active', de: 'Aktiv' },
+        { key: 'inactive', en: 'Inactive', de: 'Inaktiv' }
+    ],
+    conditions: [
+        { key: 'contains', en: 'Contains', de: 'Enthält' },
+        { key: 'startsWith', en: 'Starts With', de: 'Beginnt mit' }
     ],
     date: [
-        { en: 'equals', de: 'gleich' },
-        { en: 'not equals', de: 'ungleich' },
-        { en: 'empty', de: 'leer' },
-        { en: 'not empty', de: 'nicht leer' },
-        { en: 'Start-On', de: 'Beginn am' },
-        { en: 'Start-after', de: 'Beginn nach' },
-        { en: 'Ends on', de: 'Endet am' },
-        { en: 'between', de: 'zwischen' },
-        { en: 'not between', de: 'nicht zwischen' },
-        { en: 'Contains date', de: 'Enthält Datum' }
+        { key: 'Start-On', en: 'Start On', de: 'Startet am' },
+        { key: 'End-On', en: 'End On', de: 'Endet am' }
     ]
 };
