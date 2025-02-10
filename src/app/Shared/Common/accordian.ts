@@ -1,37 +1,48 @@
-export const accordionData = [
+export const accordionDataTypes = [
+  {
+  "sections": [
     {
-      title: "Division 1",
-      children: [
+      "title": "System Fields",
+      "fields": ["Name", "Age", "Address", "Date"],
+      "subsections": []
+    },
+    {
+      "title": "Data Fields",
+      "fields": ["Height", "Weight", "Width", "Radius"],
+      "subsections": []
+    },
+    {
+      "title": "Division",
+      "fields": [],
+      "subsections": [
         {
-          title: "SubDev-1",
-          details: ["CatLog", "Areas", "Area-Code", "Description"]
+          "title": "Devision-1",
+          "fields": ["Area", "Pin Code", "History"],
+          "subsections": []
         },
         {
-          title: "SubDev-2",
-          details: ["CatLog", "Areas", "Area-Code", "Description"]
-        },
-        {
-          title: "SubDev-3",
-          details: ["CatLog", "Areas", "Area-Code", "Description"]
+          "title": "Devision-2",
+          "fields": ["Area", "Pin Code", "History"],
+          "subsections": []
         }
       ]
     },
     {
-      title: "Division 2",
-      children: [
+      "title": "Category",
+      "fields": ["Types", "Selection", "CatLog", "Description"],
+      "subsections": [
         {
-          title: "SubDev-1",
-          details: ["CatLog", "Areas", "Area-Code", "Description"]
+          "title": "SubCat-1",
+          "fields": ["Area", "Pin Code", "History"],
+          "subsections": []
         },
         {
-          title: "SubDev-2",
-          details: ["CatLog", "Areas", "Area-Code", "Description"]
-        },
-        {
-          title: "SubDev-3",
-          details: ["CatLog", "Areas", "Area-Code", "Description"]
+          "title": "SubCat-2",
+          "fields": ["Area", "Pin Code", "History"],
+          "subsections": []
         }
       ]
     }
-  ];
-  
+  ]
+}
+];

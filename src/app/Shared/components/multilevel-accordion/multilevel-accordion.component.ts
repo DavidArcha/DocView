@@ -1,5 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { accordionData } from '../../common/accordian';
+import { AccordionSection } from '../../common/accordion-section.model';
+import { accordionDataTypes } from '../../common/accordian';
 
 @Component({
   selector: 'app-multilevel-accordion',
@@ -8,32 +9,16 @@ import { accordionData } from '../../common/accordian';
   styleUrl: './multilevel-accordion.component.scss'
 })
 export class MultilevelAccordionComponent implements OnInit {
-  data = accordionData;
-  expandedState: { [key: string]: boolean } = {};
+  @Input() sections: AccordionSection[] = [];
+
+  // Global flag to control expand/collapse all.
+  public expandAll: boolean = false;
 
   ngOnInit(): void {
-    this.initializeState(this.data, '');
+    this.sections = accordionDataTypes[0].sections;
   }
 
-  // Initialize the state object
-  initializeState(items: any[], parentKey: string): void {
-    items.forEach((item, index) => {
-      const key = parentKey ? `${parentKey}-${index}` : `${index}`;
-      this.expandedState[key] = false;
-
-      if (item.children) {
-        this.initializeState(item.children, key);
-      }
-    });
-  }
-
-  // Toggle the expanded state
-  toggleItem(key: string): void {
-    this.expandedState[key] = !this.expandedState[key];
-  }
-
-  // Helper function to get state key
-  getStateKey(parentKey: string, index: number): string {
-    return parentKey ? `${parentKey}-${index}` : `${index}`;
+  toggleExpandAll(): void {
+    this.expandAll = !this.expandAll;
   }
 }

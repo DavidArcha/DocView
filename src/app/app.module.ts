@@ -22,6 +22,7 @@ import { CustomButtonsComponent } from './Shared/components/custom-buttons/custo
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LocalizedDropdownComponent } from './Shared/components/localized-dropdown/localized-dropdown.component';
 import { MultilevelAccordionComponent } from './Shared/components/multilevel-accordion/multilevel-accordion.component';
+import { AccordionSectionComponent } from './Shared/components/accordion-section/accordion-section.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { MultilevelAccordionComponent } from './Shared/components/multilevel-acc
     ResultPageComponent,
     CustomButtonsComponent,
     LocalizedDropdownComponent,
-    MultilevelAccordionComponent
+    MultilevelAccordionComponent,
+    AccordionSectionComponent
   ],
   imports: [
     BrowserModule,

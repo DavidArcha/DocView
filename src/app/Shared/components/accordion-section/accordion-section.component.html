@@ -1,0 +1,26 @@
+<div class="accordion-section">
+    <!-- Section header with an arrow indicator -->
+    <div class="section-header" (click)="toggleSection()" tabindex="0" role="button" [attr.aria-expanded]="isExpanded"
+        [title]="section.title">
+        <span class="arrow-indicator" [class.expanded]="isExpanded">&#9656;</span>
+        <span class="section-title">{{ section.title }}</span>
+    </div>
+
+    <!-- Section content shown only when expanded -->
+    <div class="section-content" *ngIf="isExpanded">
+        <!-- Render the fields if any -->
+        <ul class="fields-list" *ngIf="section.fields && section.fields.length > 0">
+            <li *ngFor="let field of section.fields" (click)="onFieldClick(field)" tabindex="0" role="button"
+                [title]="field">
+                {{ field }}
+            </li>
+        </ul>
+
+        <!-- Recursively render subsections -->
+        <div class="subsections" *ngIf="section.subsections && section.subsections.length > 0">
+            <app-accordion-section *ngFor="let sub of section.subsections" [section]="sub"
+                [parentPath]="parentPath ? parentPath + ' > ' + section.title : section.title" [expandAll]="expandAll">
+            </app-accordion-section>
+        </div>
+    </div>
+</div>
