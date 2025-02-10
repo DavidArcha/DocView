@@ -1,23 +1,33 @@
 <div class="simple-search">
-    <label for="systemFieldDropdown">Select a System Field:</label>
-    <select id="systemFieldDropdown" [(ngModel)]="selectedField">
-        <option *ngFor="let field of systemFields" [value]="field.id">
-            {{ field.fieldName }}
-        </option>
-    </select>
-    <br />
-    <!-- <app-localized-dropdown [options]="dropdownData.conditions" [selectedLanguage]="selectedLanguage"
-        [(selectedValue)]="selectedCondition">
-    </app-localized-dropdown>
-    <br /> -->
-    <app-localized-dropdown [options]="dropdownData.match" [selectedLanguage]="selectedLanguage"
-        [(selectedValue)]="selectedMatch">
-    </app-localized-dropdown>
-    <br />
-    <app-localized-dropdown [options]="dropdownData.state" [selectedLanguage]="selectedLanguage"
-        [(selectedValue)]="selectedState">
-    </app-localized-dropdown>
-    <br />
-    <app-multilevel-accordion></app-multilevel-accordion>
+    <div class="accordion-container">
+        <!-- Global loader for the entire accordion -->
+        <div *ngIf="isLoading" class="global-loading">
+            <span class="spinner"></span>
+            <span>Loading Accordion...</span>
+        </div>
 
+        <!-- Render the accordion when data is loaded -->
+        <ng-container *ngIf="!isLoading">
+            <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
+                (fieldSelected)="onFieldSelected($event)">
+            </app-accordion-section>
+        </ng-container>
+    </div>
+    <!-- Selected Fields Table -->
+    <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
+        <table>
+            <tbody>
+                <tr *ngFor="let selected of selectedFields; let i = index">
+                    <td class="parent">{{ selected.parent }}</td>
+                    <td class="field">{{ selected.field }}</td>
+                    <td class="operator"></td>
+                    <td class="value"></td>
+                    <td>
+                        <button (click)="onSearchSelectedField(selected)">Search</button>
+                        <button (click)="onDeleteSelectedField(i)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>

@@ -1,0 +1,28 @@
+ <select id="systemFieldDropdown" [(ngModel)]="selectedField">
+        <option *ngFor="let field of systemFields" [value]="field.id">
+            {{ field.fieldName }}
+        </option>
+    </select>
+
+
+        <label for="systemFieldDropdown">Select a System Field:</label>
+    <select id="systemFieldDropdown" [(ngModel)]="selectedField">
+        <option *ngFor="let field of systemFields" [value]="field.id">
+            {{ field.fieldName }}
+        </option>
+    </select>
+    <br />
+    <!-- <app-localized-dropdown [options]="dropdownData.conditions" [selectedLanguage]="selectedLanguage"
+        [(selectedValue)]="selectedCondition">
+    </app-localized-dropdown>
+    <br /> -->
+    <app-localized-dropdown [options]="dropdownData.match" [selectedLanguage]="selectedLanguage"
+        [(selectedValue)]="selectedMatch">
+    </app-localized-dropdown>
+    <br />
+    <app-localized-dropdown [options]="dropdownData.state" [selectedLanguage]="selectedLanguage"
+        [(selectedValue)]="selectedState">
+    </app-localized-dropdown>
+    <br />
+    <app-multilevel-accordion></app-multilevel-accordion>
+
