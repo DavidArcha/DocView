@@ -228,4 +228,14 @@ export class SimpleSearchComponent implements OnInit {
       field => field.operator && field.operator !== 'empty' && field.operator !== 'yes' && field.operator !== 'no'
     );
   }
+
+  onGroupFieldTitleClicked(fields: any[]): void {
+    this.selectedFields = fields.map(field => ({
+      parent: field.parent,
+      field: field.field,
+      operator: field.operator,
+      operatorOptions: this.getOperatorOptions(field.field),
+      value: field.value
+    }));
+  }
 }

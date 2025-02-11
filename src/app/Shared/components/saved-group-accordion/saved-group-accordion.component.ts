@@ -9,6 +9,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export class SavedGroupAccordionComponent {
   @Input() groups: any[] = [];
   @Output() fieldSelected = new EventEmitter<any>();
+  @Output() groupFieldTitleClicked = new EventEmitter<any>(); // Add this line
 
   expandedGroups: Set<string> = new Set();
   expandedFields: Set<string> = new Set();
@@ -40,6 +41,7 @@ export class SavedGroupAccordionComponent {
 
   onGroupFieldTitleClick(fieldGroup: any) {
     console.log('Fields in Group:', fieldGroup.fields);
+    this.groupFieldTitleClicked.emit(fieldGroup.fields); // Emit the fields array
   }
 
   onGroupFieldTitleRightClick(event: MouseEvent, fieldGroup: any) {

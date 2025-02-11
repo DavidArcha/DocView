@@ -9,7 +9,8 @@
 
     <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
     <div *ngIf="showGroupDataOutside">
-        <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onFieldSelected($event)">
+        <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onFieldSelected($event)"
+            (groupFieldTitleClicked)="onGroupFieldTitleClicked($event)">
         </app-saved-group-accordion>
     </div>
 
