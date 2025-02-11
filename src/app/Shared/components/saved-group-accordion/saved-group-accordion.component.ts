@@ -13,6 +13,10 @@ export class SavedGroupAccordionComponent {
   expandedGroups: Set<string> = new Set();
   expandedFields: Set<string> = new Set();
 
+  contextMenuVisible: boolean = false;
+  contextMenuPosition = { x: 0, y: 0 };
+  selectedFieldGroup: any = null;
+
   toggleGroup(title: string) {
     if (this.expandedGroups.has(title)) {
       this.expandedGroups.delete(title);
@@ -36,6 +40,27 @@ export class SavedGroupAccordionComponent {
 
   onGroupFieldTitleClick(fieldGroup: any) {
     console.log('Fields in Group:', fieldGroup.fields);
+  }
+
+  onGroupFieldTitleRightClick(event: MouseEvent, fieldGroup: any) {
+    event.preventDefault();
+    this.contextMenuVisible = true;
+    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    this.selectedFieldGroup = fieldGroup;
+  }
+
+  onEditGroupFieldTitle() {
+    if (this.selectedFieldGroup) {
+      console.log('Edit Group Field Title:', this.selectedFieldGroup.title);
+    }
+    this.contextMenuVisible = false;
+  }
+
+  onDeleteGroupFieldTitle() {
+    if (this.selectedFieldGroup) {
+      console.log('Delete Group Field Title:', this.selectedFieldGroup.title);
+    }
+    this.contextMenuVisible = false;
   }
 
   onGroupRightClick(event: MouseEvent, group: any) {
