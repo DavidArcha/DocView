@@ -6,6 +6,7 @@ import { AccordionSection } from '../../common/accordion-section.model';
 import { delay, Observable, of } from 'rxjs';
 import { accordionDataTypes } from '../../common/accordian';
 import { ResultPageService } from '../../services/result-page.service';
+import { searchGroupFields } from '../../common/search_groupfields';
 
 interface SystemField {
   id: number;
@@ -50,7 +51,10 @@ export class SimpleSearchComponent implements OnInit {
   public selectedFields: SelectedField[] = [];
   public searchName: string = ''; // New property for the name
   jsonData: any;
+
+  public showGroupDataOutside: boolean = false;
   
+  public savedGroupFields = searchGroupFields; 
   constructor(
     private http: HttpClient,
     private searchService: SearchService,

@@ -1,4 +1,18 @@
 <div class="simple-search">
+    <!-- Add the checkbox here -->
+    <div class="toggle-group-data">
+        <label>
+            <input type="checkbox" [(ngModel)]="showGroupDataOutside" />
+            Show Group Data
+        </label>
+    </div>
+
+    <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
+    <div *ngIf="showGroupDataOutside">
+        <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onFieldSelected($event)">
+        </app-saved-group-accordion>
+    </div>
+
     <div class="accordion-container">
         <!-- Global loader for the entire accordion -->
         <div *ngIf="isLoading" class="global-loading">
@@ -8,6 +22,7 @@
 
         <!-- Render the accordion when data is loaded -->
         <ng-container *ngIf="!isLoading">
+
             <!-- Render the accordion sections -->
             <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
                 (fieldSelected)="onFieldSelected($event)">
