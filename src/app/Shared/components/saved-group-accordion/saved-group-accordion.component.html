@@ -15,7 +15,7 @@
                     <a href="#" (click)="onGroupFieldTitleClick(fieldGroup); $event.preventDefault();">{{ fieldGroup.title }}</a>
                 </div>
                 <div *ngIf="expandedFields.has(fieldGroup.title)" class="fields">
-                    <div *ngFor="let field of fieldGroup.fields" class="field" (click)="onFieldClick(field)"
+                    <div *ngFor="let field of fieldGroup.fields" class="field"
                         [title]="field.field + ' ' + field.operator">
                         <span class="save-icon">💾</span>
                         <a href="#" (click)="onFieldClick(field); $event.preventDefault();">{{ field.field }}</a>

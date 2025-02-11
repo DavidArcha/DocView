@@ -53,8 +53,8 @@ export class SimpleSearchComponent implements OnInit {
   jsonData: any;
 
   public showGroupDataOutside: boolean = false;
-  
-  public savedGroupFields = searchGroupFields; 
+
+  public savedGroupFields = searchGroupFields;
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
@@ -124,13 +124,30 @@ export class SimpleSearchComponent implements OnInit {
     }
     // For operators such as 'yes', 'no', or 'empty', we leave defaultValue as null.
 
-    this.selectedFields.push({
-      parent: event.parent,
-      field: event.field,
-      operator: defaultOperator, // Use the key (e.g., "equals")
-      operatorOptions: operatorOptions,
-      value: defaultValue
-    });
+    // Check if the field already exists in the selectedFields array
+    const existingFieldIndex = this.selectedFields.findIndex(
+      field => field.parent === event.parent && field.field === event.field
+    );
+
+    if (existingFieldIndex !== -1) {
+      // Update the existing field
+      this.selectedFields[existingFieldIndex] = {
+        parent: event.parent,
+        field: event.field,
+        operator: defaultOperator,
+        operatorOptions: operatorOptions,
+        value: defaultValue
+      };
+    } else {
+      // Add the new field
+      this.selectedFields.push({
+        parent: event.parent,
+        field: event.field,
+        operator: defaultOperator,
+        operatorOptions: operatorOptions,
+        value: defaultValue
+      });
+    }
   }
 
   /**
@@ -237,5 +254,28 @@ export class SimpleSearchComponent implements OnInit {
       operatorOptions: this.getOperatorOptions(field.field),
       value: field.value
     }));
+  }
+
+  // New method for handling field selection from app-saved-group-accordion
+  onSavedGroupFieldSelected(event: { parent: string, field: string, operator: string, value: any }): void {
+    this.selectedFields = [];
+    const operatorOptions = this.getOperatorOptions(event.field);
+    const defaultOperator = operatorOptions.length > 0 ? operatorOptions[0].key : '';
+    let defaultValue = null;
+
+    if (defaultOperator === 'equals') {
+      if (this.dropdownData && this.dropdownData.state && this.dropdownData.state.length > 0) {
+        defaultValue = this.dropdownData.state[0].key;
+      }
+    } else if (defaultOperator === 'Start-On') {
+      defaultValue = new Date().toISOString().substring(0, 10);
+    }
+    this.selectedFields.push({
+      parent: event.parent,
+      field: event.field,
+      operator: event.operator,
+      operatorOptions: operatorOptions,
+      value: event.value,
+    });
   }
 }
