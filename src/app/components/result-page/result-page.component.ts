@@ -3,6 +3,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ColDef, GridApi } from 'ag-grid-community';
 import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { CustomButtonsComponent } from '../../Shared/components/custom-buttons/custom-buttons.component';
+import { ResultPageService } from '../../Shared/services/result-page.service';
 
 @Component({
   selector: 'app-result-page',
@@ -24,13 +25,22 @@ export class ResultPageComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faArrowRight = faArrowRight;
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef,
+    private resultPageService: ResultPageService // Inject the service
+  ) {
     this.http
       .get('/assets/json/orders-list.json')
       .subscribe((data: any) => {
         this.rowData = data;
         console.log(data);
       });
+
+    this.resultPageService.data$.subscribe(data => {
+      console.log('Received data:', data);
+      // Handle the received data here
+    });
   }
 
   ngOnInit(): void {

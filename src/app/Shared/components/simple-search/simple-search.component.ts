@@ -5,6 +5,7 @@ import { LanguageService } from '../../services/language.service';
 import { AccordionSection } from '../../common/accordion-section.model';
 import { delay, Observable, of } from 'rxjs';
 import { accordionDataTypes } from '../../common/accordian';
+import { ResultPageService } from '../../services/result-page.service';
 
 interface SystemField {
   id: number;
@@ -16,6 +17,13 @@ interface SelectedField {
   field: string;
   operator: string;
   operatorOptions: any[];
+  value: any;
+}
+
+interface SearchField {
+  parent: string;
+  field: string;
+  operator: string;
   value: any;
 }
 
@@ -46,6 +54,7 @@ export class SimpleSearchComponent implements OnInit {
     private searchService: SearchService,
     private changeDtr: ChangeDetectorRef,
     private languageService: LanguageService,
+    private resultPageService: ResultPageService // Inject the service
   ) { }
 
   ngOnInit(): void {
@@ -88,7 +97,6 @@ export class SimpleSearchComponent implements OnInit {
     return of(data).pipe(delay(1500));
   }
 
-
   /**
      * When a field is selected from the accordion, add a new row.
      * Here we pre-select the operator using the first operator option (if any)
@@ -118,7 +126,6 @@ export class SimpleSearchComponent implements OnInit {
       value: defaultValue
     });
   }
-
 
   /**
     * Returns the operator dropdown options based on the selected field.
@@ -166,9 +173,38 @@ export class SimpleSearchComponent implements OnInit {
   }
 
   // Handler for the search button (adjust the logic as needed).
-  onSearchSelectedField(selected: { parent: string, field: string }): void {
-    // For demonstration, we just show an alert.
-    alert(`Search clicked for ${selected.parent} > ${selected.field}`);
+  sendTableContent(): void {
+    const dataToSend: SearchField[] = this.selectedFields.map(field => ({
+      parent: field.parent,
+      field: field.field,
+      operator: field.operator,
+      value: this.getDefaultValue(field.operator, field.value)
+    }));
+    this.resultPageService.sendData(dataToSend);
+  }
+
+  onSearchSelectedField(selected: { parent: string, field: string, operator: string, operatorOptions: any[], value: any }): void {
+    const dataToSend: SearchField = {
+      parent: selected.parent,
+      field: selected.field,
+      operator: selected.operator,
+      value: this.getDefaultValue(selected.operator, selected.value)
+    };
+    this.resultPageService.sendData([dataToSend]);
+  }
+
+  getDefaultValue(operator: string, currentValue: any): any {
+    if (currentValue !== null && currentValue !== undefined) {
+      return currentValue;
+    }
+    if (operator === 'equals') {
+      return this.dropdownData.state && this.dropdownData.state.length > 0 ? this.dropdownData.state[0].key : null;
+    } else if (operator === 'Start-On') {
+      return new Date().toISOString().substring(0, 10);
+    } else if (operator === 'yes' || operator === 'no' || operator === 'empty') {
+      return null;
+    }
+    return null;
   }
 
   hasValueColumn(): boolean {
