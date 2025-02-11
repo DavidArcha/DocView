@@ -48,7 +48,9 @@ export class SimpleSearchComponent implements OnInit {
 
   // Now each selected field row contains additional properties.
   public selectedFields: SelectedField[] = [];
+  public searchName: string = ''; // New property for the name
   jsonData: any;
+  
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
@@ -180,7 +182,17 @@ export class SimpleSearchComponent implements OnInit {
       operator: field.operator,
       value: this.getDefaultValue(field.operator, field.value)
     }));
-    this.resultPageService.sendData(dataToSend);
+    const payload = {
+      name: this.searchName,
+      fields: dataToSend
+    };
+    console.log('Data to send:', payload);
+    this.resultPageService.sendData(payload);
+    this.searchService.saveSearchData(payload).subscribe(response => {
+      console.log('Data saved successfully:', response);
+    }, error => {
+      console.error('Error saving data:', error);
+    });
   }
 
   onSearchSelectedField(selected: { parent: string, field: string, operator: string, operatorOptions: any[], value: any }): void {

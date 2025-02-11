@@ -1,0 +1,40 @@
+:host {
+    display: block;
+}
+
+.accordion-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.group-title,
+.field-title {
+    cursor: pointer;
+    padding: 5px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.group-title:hover,
+.field-title:hover {
+    background-color: #f5f5f5;
+}
+
+.group-fields {
+    padding-left: 20px;
+}
+
+.fields {
+    padding-left: 40px;
+}
+
+.expanded {
+    transform: rotate(90deg);
+}
+
+.save-icon {
+    margin-left: 5px;
+}

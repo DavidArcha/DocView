@@ -8,6 +8,7 @@
 
         <!-- Render the accordion when data is loaded -->
         <ng-container *ngIf="!isLoading">
+            <!-- Render the accordion sections -->
             <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
                 (fieldSelected)="onFieldSelected($event)">
             </app-accordion-section>
@@ -48,8 +49,8 @@
                 </tr>
             </tbody>
         </table>
-        <!-- Add the new button here -->
+        <!-- Add the textbox and the new button here -->
+        <input type="text" [(ngModel)]="searchName" placeholder="Enter name" />
         <button (click)="sendTableContent()">Send Table Content</button>
     </div>
-
 </div>
