@@ -34,6 +34,10 @@ export class SavedGroupAccordionComponent {
     console.log('Selected Field:', field);
   }
 
+  onGroupFieldTitleClick(fieldGroup: any) {
+    console.log('Fields in Group:', fieldGroup.fields);
+  }
+
   onGroupRightClick(event: MouseEvent, group: any) {
     event.preventDefault();
     console.log('Right-click on:', group.title);

@@ -1,23 +1,24 @@
 <div class="accordion-container">
     <div *ngFor="let group of groups" class="group">
-        <div class="group-title" (click)="toggleGroup(group.groupTitle)"
-            (contextmenu)="onGroupRightClick($event, group)">
-            <span [class.expanded]="expandedGroups.has(group.groupTitle)">&#9656;</span>
-            <span class="save-icon">💾</span>
+        <div class="group-title">
+            <span [class.expanded]="expandedGroups.has(group.groupTitle)"
+                (click)="toggleGroup(group.groupTitle)">&#9656;</span>
+            <span class="save-icon" (click)="toggleGroup(group.groupTitle)">💾</span>
             {{ group.groupTitle }}
         </div>
         <div *ngIf="expandedGroups.has(group.groupTitle)" class="group-fields">
             <div *ngFor="let fieldGroup of group.groupFields" class="field-group">
-                <div class="field-title" (click)="toggleField(fieldGroup.title)">
-                    <span [class.expanded]="expandedFields.has(fieldGroup.title)">&#9656;</span>
-                    <span class="save-icon">💾</span>
-                    {{ fieldGroup.title }}
+                <div class="field-title">
+                    <span [class.expanded]="expandedFields.has(fieldGroup.title)"
+                        (click)="toggleField(fieldGroup.title)">&#9656;</span>
+                    <span class="save-icon" (click)="toggleField(fieldGroup.title)">💾</span>
+                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup); $event.preventDefault();">{{ fieldGroup.title }}</a>
                 </div>
                 <div *ngIf="expandedFields.has(fieldGroup.title)" class="fields">
                     <div *ngFor="let field of fieldGroup.fields" class="field" (click)="onFieldClick(field)"
                         [title]="field.field + ' ' + field.operator">
                         <span class="save-icon">💾</span>
-                        {{ field.field }}
+                        <a href="#" (click)="onFieldClick(field); $event.preventDefault();">{{ field.field }}</a>
                     </div>
                 </div>
             </div>

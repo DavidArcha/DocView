@@ -34,7 +34,6 @@ export class ResultPageComponent implements OnInit {
       .get('/assets/json/orders-list.json')
       .subscribe((data: any) => {
         this.rowData = data;
-        console.log(data);
       });
 
     this.resultPageService.data$.subscribe(data => {
