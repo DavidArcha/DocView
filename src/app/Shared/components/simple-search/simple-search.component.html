@@ -29,7 +29,9 @@
                 (fieldSelected)="onFieldSelected($event)">
             </app-accordion-section>
         </ng-container>
-    </div>
+    </div>  <app-localized-dropdown [options]="dropdownData.match" [selectedLanguage]="selectedLanguage"
+    [(selectedValue)]="selectedMatch">
+</app-localized-dropdown>
     <!-- Selected Fields Table -->
     <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
         <table>

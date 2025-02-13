@@ -4,29 +4,7 @@
         "search": "Search",
         "clear": "Clear"
     },
-    "DD-Match": [
-        "equals",
-        "not equals",
-        "empty",
-        "not empty"
-    ],
-    "DD-State": [
-        "Pending",
-        "Initial",
-        "In Process",
-        "Reviewed",
-        "Approved"
-    ],
-    "DD-Date": [
-        "equals",
-        "not equals",
-        "empty",
-        "not empty",
-        "Start-On",
-        "Start-after",
-        "Ends on",
-        "between",
-        "not between",
-        "Contains date"
-    ]
+    "DROPDOWN": {
+        "PLACEHOLDER": "Select"
+    }
 }

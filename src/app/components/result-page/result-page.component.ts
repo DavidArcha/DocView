@@ -25,6 +25,10 @@ export class ResultPageComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faArrowRight = faArrowRight;
 
+  // Dropdown related fields
+  selectedMatch: any;
+  selectedLanguage: string = 'de';
+
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
@@ -104,7 +108,6 @@ export class ResultPageComponent implements OnInit {
     this.gridApi.deselectAll();
     this.selectedRows = [];
   }
-
 
   toggleControlContainer(): void {
     this.isControlCollapsed = !this.isControlCollapsed;

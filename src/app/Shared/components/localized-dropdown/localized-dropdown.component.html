@@ -1,5 +1,7 @@
 <div class="form-group">
   <select class="form-control" [ngModel]="selectedValue" (ngModelChange)="onValueChange($event)">
+    <!-- Use the translation pipe on the placeholder key -->
+    <option value="">{{ placeholder | translate }}</option>
     <option *ngFor="let option of options" [value]="option.key">
       {{ option[selectedLanguage] }}
     </option>

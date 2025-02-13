@@ -1,6 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { LanguageService } from '../../services/language.service';
-import { Subscription } from 'rxjs';
+import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-localized-dropdown',
@@ -9,34 +7,48 @@ import { Subscription } from 'rxjs';
   styleUrl: './localized-dropdown.component.scss'
 })
 export class LocalizedDropdownComponent implements OnChanges {
-  // Array of option objects (e.g., [{ en: 'Yes', de: 'Ja' }, { en: 'No', de: 'Nein' }])
   @Input() options: any[] = [];
-
-  // Currently selected language, e.g., 'en' or 'de'
   @Input() selectedLanguage: string = 'de';
-
-  // The current selected value of the dropdown (using two-way binding)
   @Input() selectedValue: any;
+  @Input() placeholder: string = 'Select'; // new placeholder input
+
   @Output() selectedValueChange: EventEmitter<any> = new EventEmitter<any>();
 
+  private previousSelectedValue: any;
+
   ngOnChanges(changes: SimpleChanges): void {
-    // When options change, update the default value if none is set.
+    // Only set a default if options are available and no value has been set,
+    // but if a placeholder is provided, leave the value empty
     if (changes['options'] && this.options && this.options.length > 0) {
-      this.setDefaultValue();
+      if (this.selectedValue === undefined || this.selectedValue === null) {
+        if (this.placeholder) {
+          // If a placeholder is defined, use an empty string so the placeholder option shows.
+          this.selectedValue = '';
+        } else {
+          // Otherwise, fallback to first option (if desired).
+          this.selectedValue = this.options[0].key;
+          this.selectedValueChange.emit(this.selectedValue);
+        }
+      }
+    }
+    if (changes['selectedLanguage'] && !changes['selectedLanguage'].firstChange) {
+      this.updateSelectedValueForLanguage();
     }
   }
-  /**
-  * If no value is currently selected, set the default to the first option's key.
-  */
-  private setDefaultValue(): void {
-    if ((this.selectedValue === undefined || this.selectedValue === null) && this.options.length > 0) {
-      this.selectedValue = this.options[0].key;
-      this.selectedValueChange.emit(this.selectedValue);
+
+  private updateSelectedValueForLanguage(): void {
+    if (this.previousSelectedValue) {
+      const matchingOption = this.options.find(option => option.key === this.previousSelectedValue);
+      if (matchingOption) {
+        this.selectedValue = matchingOption.key;
+        this.selectedValueChange.emit(this.selectedValue);
+      }
     }
   }
 
   onValueChange(newValue: any): void {
+    this.previousSelectedValue = newValue;
     this.selectedValue = newValue;
     this.selectedValueChange.emit(newValue);
   }
-} 
+}

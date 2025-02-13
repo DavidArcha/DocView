@@ -24,6 +24,7 @@ import { LocalizedDropdownComponent } from './Shared/components/localized-dropdo
 import { MultilevelAccordionComponent } from './Shared/components/multilevel-accordion/multilevel-accordion.component';
 import { AccordionSectionComponent } from './Shared/components/accordion-section/accordion-section.component';
 import { SavedGroupAccordionComponent } from './Shared/components/saved-group-accordion/saved-group-accordion.component';
+import { TextsurveyComponent } from './Shared/components/textsurvey/textsurvey.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { SavedGroupAccordionComponent } from './Shared/components/saved-group-ac
     LocalizedDropdownComponent,
     MultilevelAccordionComponent,
     AccordionSectionComponent,
-    SavedGroupAccordionComponent
+    SavedGroupAccordionComponent,
+    TextsurveyComponent
   ],
   imports: [
     BrowserModule,
