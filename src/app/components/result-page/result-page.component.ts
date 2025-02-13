@@ -51,59 +51,37 @@ export class ResultPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.columnDefs = [
-      { headerName: 'Order Number', field: 'orderno' },
-      { headerName: 'Track Number', field: 'ordertrackno' },
-      { headerName: 'Date', field: 'labeldate' },
-      { headerName: 'Customer Number', field: 'custno' },
-      { headerName: 'Period ID', field: 'perid' },
-      { headerName: 'Catalog', field: 'catlog' },
-      { headerName: 'Description', field: 'description' },
-      { headerName: 'Label Number', field: 'labelnumber' },
-      {
-        headerName: 'Download',
-        field: 'download',
-        checkboxSelection: true,
-        cellStyle: { display: 'flex', justifyContent: 'center' },
-      },
-      {
-        headerName: 'Show PDF',
-        field: 'showPDF',
-        cellRenderer: CustomButtonsComponent,
-        cellRendererParams: { buttonText: 'PDF', action: 'pdf' },
-        cellStyle: { display: 'flex', justifyContent: 'center' },
-      },
-      {
-        headerName: 'Show Excel',
-        field: 'showExcel',
-        cellRenderer: CustomButtonsComponent,
-        cellRendererParams: { buttonText: 'Excel', action: 'excel' },
-        cellStyle: { display: 'flex', justifyContent: 'center' },
-      }
-    ];
 
-    this.route.url.subscribe(url => {
-      const path = url[1]?.path;
-      if (path === 'TextSurvey') {
-        this.selectedComponent = 'TextSurvey';
-        this.isControlCollapsed = true;
-      } else if (path === 'SimpleSearch') {
-        this.selectedComponent = 'SimpleSearch';
-        this.isControlCollapsed = true;
-      } else {
-        this.selectedComponent = '';
+    // First, check if there is a saved component & collapse state in local storage
+    const savedComponent = localStorage.getItem('selectedComponent');
+    const savedCollapse = localStorage.getItem('isControlCollapsed');
+
+    if (savedComponent) {
+      this.selectedComponent = savedComponent;
+      this.isControlCollapsed = savedCollapse === 'true';
+    }
+
+    // Listen to route changes to update the component being displayed.
+    // When switching components, we want the container to open by default.
+    this.route.url.subscribe(urlSegments => {
+      const pathSegment = urlSegments[1]?.path;
+      let newComponent = '';
+      if (pathSegment === 'TextSurvey') {
+        newComponent = 'TextSurvey';
+      } else if (pathSegment === 'SimpleSearch') {
+        newComponent = 'SimpleSearch';
+      }
+
+      // If a new component is selected (or no component is selected)
+      if (newComponent && newComponent !== this.selectedComponent) {
+        this.displayComponent(newComponent);
       }
     });
 
-    const savedSelection = localStorage.getItem('selectedComponent');
-    if (savedSelection) {
-      this.selectedComponent = savedSelection;
-    }
-
-    const savedCollapseState = localStorage.getItem('isControlCollapsed');
-    if (savedCollapseState) {
-      this.isControlCollapsed = JSON.parse(savedCollapseState);
-    }
+    // const savedSelection = localStorage.getItem('selectedComponent');
+    // if (savedSelection) {
+    //   this.selectedComponent = savedSelection;
+    // }
   }
 
   ngOnChanges(): void {
@@ -140,16 +118,25 @@ export class ResultPageComponent implements OnInit {
     this.selectedRows = [];
   }
 
+  /**
+   * Toggle the collapse state and save the state in local storage.
+   * This ensures that if the user refreshes, the container retains the last state.
+   */
   toggleControlContainer(): void {
     this.isControlCollapsed = !this.isControlCollapsed;
+    localStorage.setItem('isControlCollapsed', this.isControlCollapsed.toString());
     this.cdr.detectChanges();
-    localStorage.setItem('isControlCollapsed', JSON.stringify(this.isControlCollapsed));
   }
 
-  displayComponent(component: string): void {
+   /**
+   * Called when switching to a new component (e.g. SS to TS).
+   * Sets the container to open (not collapsed) and updates local storage.
+   */
+   displayComponent(component: string): void {
     this.selectedComponent = component;
+    // Open the container on component switch
     this.isControlCollapsed = false;
     localStorage.setItem('selectedComponent', component);
-    localStorage.setItem('isControlCollapsed', JSON.stringify(this.isControlCollapsed));
+    localStorage.setItem('isControlCollapsed', 'false');
   }
 }
