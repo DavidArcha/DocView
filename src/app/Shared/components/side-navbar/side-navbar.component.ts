@@ -18,7 +18,8 @@ export class SideNavbarComponent {
   menuItems: MenuItem[] = [
     { icon: 'home', route: '/home', tooltip: 'Homepage' },
     { icon: 'resultpage', route: '/resultpage', tooltip: 'Results' },
-    // Add additional menu items here
+    { icon: 'ss', route: '/resultpage/SimpleSearch', tooltip: 'Simple Search' },
+    { icon: 'ts', route: '/resultpage/TextSurvey', tooltip: 'Text Survey' }
   ];
 
   activeRoute: string = '';

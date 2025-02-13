@@ -4,6 +4,7 @@ import { ColDef, GridApi } from 'ag-grid-community';
 import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { CustomButtonsComponent } from '../../Shared/components/custom-buttons/custom-buttons.component';
 import { ResultPageService } from '../../Shared/services/result-page.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-result-page',
@@ -28,11 +29,14 @@ export class ResultPageComponent implements OnInit {
   // Dropdown related fields
   selectedMatch: any;
   selectedLanguage: string = 'de';
+  selectedComponent: string = ''; // Default to empty
 
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private resultPageService: ResultPageService // Inject the service
+    private resultPageService: ResultPageService, // Inject the service
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.http
       .get('/assets/json/orders-list.json')
@@ -77,6 +81,27 @@ export class ResultPageComponent implements OnInit {
         cellStyle: { display: 'flex', justifyContent: 'center' },
       }
     ];
+
+    this.route.url.subscribe(url => {
+      const path = url[1]?.path;
+      if (path === 'TextSurvey') {
+        this.selectedComponent = 'TextSurvey';
+      } else if (path === 'SimpleSearch') {
+        this.selectedComponent = 'SimpleSearch';
+      } else {
+        this.selectedComponent = '';
+      }
+      this.isControlCollapsed = false;
+    });
+
+    const savedSelection = localStorage.getItem('selectedComponent');
+    if (savedSelection) {
+      this.selectedComponent = savedSelection;
+    }
+  }
+
+  ngOnChanges(): void {
+    localStorage.setItem('selectedComponent', this.selectedComponent);
   }
 
   onGridReady(params: any): void {
@@ -112,5 +137,11 @@ export class ResultPageComponent implements OnInit {
   toggleControlContainer(): void {
     this.isControlCollapsed = !this.isControlCollapsed;
     this.cdr.detectChanges();
+  }
+
+  displayComponent(component: string): void {
+    this.selectedComponent = component;
+    this.isControlCollapsed = false;
+    localStorage.setItem('selectedComponent', component);
   }
 }
