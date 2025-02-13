@@ -2,6 +2,13 @@ import { ChangeDetectorRef, Component, OnInit, Input } from '@angular/core';
 import { SearchService } from '../../services/search.service';
 import { LanguageService } from '../../services/language.service';
 
+interface SurveySelections {
+  selectedMatch?: string;
+  selectedState?: string;
+  selectedNumber?: string;
+  // add more fields as needed
+}
+
 @Component({
   selector: 'app-textsurvey',
   standalone: false,
@@ -11,17 +18,12 @@ import { LanguageService } from '../../services/language.service';
 export class TextsurveyComponent implements OnInit {
   selectedLanguage: string = 'de'; // default language
 
-  // Use a private property with a getter and setter to persist the selection
-  private _selectedMatch: string = '';
-  get selectedMatch(): string {
-    return this._selectedMatch;
-  }
-  set selectedMatch(value: string) {
-    this._selectedMatch = value;
-    // Persist the value so it survives page refreshes and navigation
-    localStorage.setItem('textsurvey_selectedMatch', value);
-  }
-
+  // Our object holding all selections.
+  surveySelections: SurveySelections = {
+    selectedMatch: '',
+    selectedState: '',
+    selectedNumber: ''
+  };
   dropdownData: any;
 
   constructor(
@@ -31,13 +33,10 @@ export class TextsurveyComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Restore the persisted selection from localStorage if available
-    const savedMatch = localStorage.getItem('textsurvey_selectedMatch');
-    if (savedMatch !== null) {
-      this._selectedMatch = savedMatch;
-    } else {
-      // Ensure an empty string so the placeholder is shown initially
-      this._selectedMatch = '';
+    // Restore the persisted selections from localStorage if available
+    const savedSelections = localStorage.getItem('textsurvey_selections');
+    if (savedSelections) {
+      this.surveySelections = JSON.parse(savedSelections);
     }
 
     // Subscribe to language changes to update the dropdown language
@@ -51,5 +50,37 @@ export class TextsurveyComponent implements OnInit {
       // Trigger change detection if necessary
       this.changeDtr.detectChanges();
     });
+  }
+
+  // Getter and Setter for selectedMatch
+  get selectedMatch(): string {
+    return this.surveySelections.selectedMatch || '';
+  }
+  set selectedMatch(value: string) {
+    this.surveySelections.selectedMatch = value;
+    this.saveSelections();
+  }
+
+  // Getter and Setter for selectedState
+  get selectedState(): string {
+    return this.surveySelections.selectedState || '';
+  }
+  set selectedState(value: string) {
+    this.surveySelections.selectedState = value;
+    this.saveSelections();
+  }
+
+  // Getter and Setter for selectedNumber
+  get selectedNumber(): string {
+    return this.surveySelections.selectedNumber || '';
+  }
+  set selectedNumber(value: string) {
+    this.surveySelections.selectedNumber = value;
+    this.saveSelections();
+  }
+
+  // Persist the entire selections object to localStorage
+  private saveSelections(): void {
+    localStorage.setItem('textsurvey_selections', JSON.stringify(this.surveySelections));
   }
 }
