@@ -86,17 +86,23 @@ export class ResultPageComponent implements OnInit {
       const path = url[1]?.path;
       if (path === 'TextSurvey') {
         this.selectedComponent = 'TextSurvey';
+        this.isControlCollapsed = true;
       } else if (path === 'SimpleSearch') {
         this.selectedComponent = 'SimpleSearch';
+        this.isControlCollapsed = true;
       } else {
         this.selectedComponent = '';
       }
-      this.isControlCollapsed = false;
     });
 
     const savedSelection = localStorage.getItem('selectedComponent');
     if (savedSelection) {
       this.selectedComponent = savedSelection;
+    }
+
+    const savedCollapseState = localStorage.getItem('isControlCollapsed');
+    if (savedCollapseState) {
+      this.isControlCollapsed = JSON.parse(savedCollapseState);
     }
   }
 
@@ -137,11 +143,13 @@ export class ResultPageComponent implements OnInit {
   toggleControlContainer(): void {
     this.isControlCollapsed = !this.isControlCollapsed;
     this.cdr.detectChanges();
+    localStorage.setItem('isControlCollapsed', JSON.stringify(this.isControlCollapsed));
   }
 
   displayComponent(component: string): void {
     this.selectedComponent = component;
     this.isControlCollapsed = false;
     localStorage.setItem('selectedComponent', component);
+    localStorage.setItem('isControlCollapsed', JSON.stringify(this.isControlCollapsed));
   }
 }
