@@ -171,7 +171,8 @@ export class SimpleSearchComponent implements OnInit {
   /**
    * When the operator value changes in a table row, update the operator and set the default value if needed.
    */
-  onOperatorChange(newOperator: string, index: number): void {
+  onOperatorChange(event: { newOperator: string, index: number }): void {
+    const { newOperator, index } = event;
     this.selectedFields[index].operator = newOperator;
     // Optionally, reset or auto-populate the value based on the new operator.
     if (newOperator === 'equals') {

@@ -25,6 +25,7 @@ import { MultilevelAccordionComponent } from './Shared/components/multilevel-acc
 import { AccordionSectionComponent } from './Shared/components/accordion-section/accordion-section.component';
 import { SavedGroupAccordionComponent } from './Shared/components/saved-group-accordion/saved-group-accordion.component';
 import { TextsurveyComponent } from './Shared/components/textsurvey/textsurvey.component';
+import { QueryTableComponent } from './Shared/components/query-table/query-table.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { TextsurveyComponent } from './Shared/components/textsurvey/textsurvey.c
     MultilevelAccordionComponent,
     AccordionSectionComponent,
     SavedGroupAccordionComponent,
-    TextsurveyComponent
+    TextsurveyComponent,
+    QueryTableComponent
   ],
   imports: [
     BrowserModule,

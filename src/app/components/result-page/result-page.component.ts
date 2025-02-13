@@ -23,6 +23,7 @@ export class ResultPageComponent implements OnInit {
   public selectedRows: any[] = [];
   // Control container state
   isControlCollapsed: boolean = false;
+  
   // Icons
   faArrowLeft = faArrowLeft;
   faArrowRight = faArrowRight;
