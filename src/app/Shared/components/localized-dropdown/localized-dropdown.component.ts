@@ -10,41 +10,35 @@ export class LocalizedDropdownComponent implements OnChanges {
   @Input() options: any[] = [];
   @Input() selectedLanguage: string = 'de';
   @Input() selectedValue: any;
-  @Input() placeholder: string = 'Select'; // new placeholder input
+  @Input() placeholder: string = 'DROPDOWN.PLACEHOLDER'; // translation key
 
   @Output() selectedValueChange: EventEmitter<any> = new EventEmitter<any>();
 
   private previousSelectedValue: any;
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Only set a default if options are available and no value has been set,
-    // but if a placeholder is provided, leave the value empty
     if (changes['options'] && this.options && this.options.length > 0) {
+      // When a placeholder is provided, do not auto-select the first option.
+      // Instead, keep the selectedValue as empty so that the placeholder is shown.
       if (this.selectedValue === undefined || this.selectedValue === null) {
-        if (this.placeholder) {
-          // If a placeholder is defined, use an empty string so the placeholder option shows.
-          this.selectedValue = '';
-        } else {
-          // Otherwise, fallback to first option (if desired).
-          this.selectedValue = this.options[0].key;
-          this.selectedValueChange.emit(this.selectedValue);
-        }
-      }
-    }
-    if (changes['selectedLanguage'] && !changes['selectedLanguage'].firstChange) {
-      this.updateSelectedValueForLanguage();
-    }
-  }
-
-  private updateSelectedValueForLanguage(): void {
-    if (this.previousSelectedValue) {
-      const matchingOption = this.options.find(option => option.key === this.previousSelectedValue);
-      if (matchingOption) {
-        this.selectedValue = matchingOption.key;
+        this.selectedValue = '';  // Leave empty to match the placeholder option's value.
         this.selectedValueChange.emit(this.selectedValue);
       }
     }
+    // if (changes['selectedLanguage'] && !changes['selectedLanguage'].firstChange) {
+    //   this.updateSelectedValueForLanguage();
+    // }
   }
+
+  // private updateSelectedValueForLanguage(): void {
+  //   if (this.previousSelectedValue) {
+  //     const matchingOption = this.options.find(option => option.key === this.previousSelectedValue);
+  //     if (matchingOption) {
+  //       this.selectedValue = matchingOption.key;
+  //       this.selectedValueChange.emit(this.selectedValue);
+  //     }
+  //   }
+  // }
 
   onValueChange(newValue: any): void {
     this.previousSelectedValue = newValue;
