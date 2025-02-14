@@ -6,7 +6,8 @@ export interface SelectedField {
   operator: string;
   operatorOptions: any[];
   value: any;
-  operatorTouched?: boolean; // New flag to track whether the operator dropdown has been interacted with
+  operatorTouched?: boolean; // Tracks whether the operator dropdown has been interacted with
+  valueTouched?: boolean | boolean[]; // Tracks whether the value control(s) have been touched
 }
 
 @Component({
@@ -35,7 +36,6 @@ export class QueryTableComponent {
    */
   onOperatorChange(newOperator: string, index: number): void {
     this.operatorChange.emit({ newOperator, index });
-    // Mark this field as touched so that validation errors will appear if still invalid.
     this.selectedFields[index].operatorTouched = true;
   }
 
@@ -50,22 +50,30 @@ export class QueryTableComponent {
 
   /**
    * Called when the user clicks the "Send Table Content" button.
-   * Marks all fields as touched and sets the submitted flag,
-   * then validates each field's operator.
+   * Marks all fields' operator and value controls as touched and sets the submitted flag.
+   * Then validates each field.
    */
   onSendTableContent(): void {
     // Mark all fields as touched so that validation errors appear if needed.
-    this.selectedFields.forEach(field => field.operatorTouched = true);
-    // Set the submitted flag to true.
+    this.selectedFields.forEach(field => {
+      field.operatorTouched = true;
+      const control = this.getValueControl(field);
+      if (control.show) {
+        if (control.dual) {
+          field.valueTouched = [true, true];
+        } else {
+          field.valueTouched = true;
+        }
+      }
+    });
     this.submitted = true;
 
-    // Check if any field has an invalid operator (i.e., still empty or default).
-    const invalidField = this.selectedFields.find(field => !this.isOperatorValid(field));
-    if (invalidField) {
-      alert(`Please select a valid operator for the field "${invalidField.field}".`);
+    const invalidOperator = this.selectedFields.find(field => !this.isOperatorValid(field));
+    if (invalidOperator) {
+      alert(`Please select a valid operator for the field "${invalidOperator.field}".`);
       return;
     }
-    // Proceed with sending the table content.
+    // (Optionally, you can also validate value controls here.)
     this.sendTableContent.emit();
   }
 
@@ -170,7 +178,48 @@ export class QueryTableComponent {
    * Returns false if the operator is empty or still set to the default value.
    */
   isOperatorValid(selected: SelectedField): boolean {
-    // An empty string (or 'select') is treated as invalid.
     return !!selected.operator && selected.operator !== 'select';
+  }
+
+  /**
+   * Marks the value control for a field as touched.
+   * For dual controls, mark the specific index.
+   */
+  markValueTouched(selected: SelectedField, idx?: number): void {
+    const control = this.getValueControl(selected);
+    if (control.show) {
+      if (control.dual) {
+        if (!selected.valueTouched || !Array.isArray(selected.valueTouched)) {
+          selected.valueTouched = [false, false];
+        }
+        if (idx !== undefined) {
+          (selected.valueTouched as boolean[])[idx] = true;
+        }
+      } else {
+        selected.valueTouched = true;
+      }
+    }
+  }
+
+  /**
+   * Checks whether the value control for a field has been touched.
+   * For dual controls, checks the specific index.
+   */
+  isValueTouched(selected: SelectedField, idx?: number): boolean {
+    const control = this.getValueControl(selected);
+    if (!control.show) {
+      return false;
+    }
+    if (control.dual) {
+      if (!selected.valueTouched || !Array.isArray(selected.valueTouched)) {
+        return false;
+      }
+      if (idx === undefined) {
+        return false;
+      }
+      return (selected.valueTouched as boolean[])[idx];
+    } else {
+      return !!selected.valueTouched;
+    }
   }
 }

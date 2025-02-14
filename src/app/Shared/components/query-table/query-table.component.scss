@@ -21,13 +21,12 @@
     }
 }
 
-/* Highlight inputs with an error */
 .error {
     border: 1px solid red;
 }
 
-/* (Optional) You can add additional styling for error messages, for example: */
-.error-message {
+.operator-error,
+.value-error {
     color: red;
     font-size: 0.8rem;
     margin-top: 4px;
