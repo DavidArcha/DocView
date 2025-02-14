@@ -26,6 +26,11 @@ import { AccordionSectionComponent } from './Shared/components/accordion-section
 import { SavedGroupAccordionComponent } from './Shared/components/saved-group-accordion/saved-group-accordion.component';
 import { TextsurveyComponent } from './Shared/components/textsurvey/textsurvey.component';
 import { QueryTableComponent } from './Shared/components/query-table/query-table.component';
+import { VideoPlayerComponent } from './Shared/components/video-player/video-player.component';
+import { VgCoreModule } from '@videogular/ngx-videogular/core';
+import { VgControlsModule } from '@videogular/ngx-videogular/controls';
+import { VgOverlayPlayModule } from '@videogular/ngx-videogular/overlay-play';
+import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 
 @NgModule({
   declarations: [
@@ -43,7 +48,8 @@ import { QueryTableComponent } from './Shared/components/query-table/query-table
     AccordionSectionComponent,
     SavedGroupAccordionComponent,
     TextsurveyComponent,
-    QueryTableComponent
+    QueryTableComponent,
+    VideoPlayerComponent
   ],
   imports: [
     BrowserModule,
@@ -55,6 +61,11 @@ import { QueryTableComponent } from './Shared/components/query-table/query-table
     RouterOutlet,
     AgGridModule,
     FontAwesomeModule,
+    VgCoreModule,
+    VgControlsModule,
+    VgOverlayPlayModule,
+    VgBufferingModule,
+    
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
