@@ -111,18 +111,10 @@ export class SimpleSearchComponent implements OnInit {
   onFieldSelected(event: { parent: string, field: string }): void {
     const operatorOptions = this.getOperatorOptions(event.field);
     // Pre-select the default operator using the key from the first operator option.
-    const defaultOperator = operatorOptions.length > 0 ? operatorOptions[0].key : '';
+    const defaultOperator = '';
 
     // Pre-populate the value based on the default operator.
     let defaultValue = null;
-    if (defaultOperator === 'equals') {
-      if (this.dropdownData && this.dropdownData.state && this.dropdownData.state.length > 0) {
-        defaultValue = this.dropdownData.state[0].key; // Assumes dropdownData.state is an array of option objects.
-      }
-    } else if (defaultOperator === 'Start-On') {
-      defaultValue = new Date().toISOString().substring(0, 10);
-    }
-    // For operators such as 'yes', 'no', or 'empty', we leave defaultValue as null.
 
     // Check if the field already exists in the selectedFields array
     const existingFieldIndex = this.selectedFields.findIndex(
@@ -155,14 +147,10 @@ export class SimpleSearchComponent implements OnInit {
     */
   getOperatorOptions(field: string): any[] {
     switch (field.toLowerCase()) {
-      case 'age':
-        return this.dropdownData.match; // e.g., match options for Age
-      case 'types':
-        return this.dropdownData.state; // e.g., state options for Types
-      case 'name':
-        return this.dropdownData.conditions; // conditions options for name
-      case 'date':
-        return this.dropdownData.date; // date options for date (assumed to exist)
+      case 'copy':
+        return this.dropdownData.boolOperations;
+      case 'current':
+        return this.dropdownData.boolOperations;
       default:
         return [];
     }
@@ -174,21 +162,6 @@ export class SimpleSearchComponent implements OnInit {
   onOperatorChange(event: { newOperator: string, index: number }): void {
     const { newOperator, index } = event;
     this.selectedFields[index].operator = newOperator;
-    // Optionally, reset or auto-populate the value based on the new operator.
-    if (newOperator === 'equals') {
-      if (this.dropdownData && this.dropdownData.state && this.dropdownData.state.length > 0) {
-        this.selectedFields[index].value = this.dropdownData.state[0].key;
-      } else {
-        this.selectedFields[index].value = null;
-      }
-    } else if (newOperator === 'Start-On') {
-      this.selectedFields[index].value = new Date().toISOString().substring(0, 10);
-    } else if (newOperator === 'yes' || newOperator === 'no' || newOperator === 'empty') {
-      this.selectedFields[index].value = null;
-    } else {
-      // For any other operators, you might want to set a default value or clear it.
-      this.selectedFields[index].value = null;
-    }
   }
 
   // Delete a row from the selected fields table.
@@ -231,14 +204,6 @@ export class SimpleSearchComponent implements OnInit {
     if (currentValue !== null && currentValue !== undefined) {
       return currentValue;
     }
-    if (operator === 'equals') {
-      return this.dropdownData.state && this.dropdownData.state.length > 0 ? this.dropdownData.state[0].key : null;
-    } else if (operator === 'Start-On') {
-      return new Date().toISOString().substring(0, 10);
-    } else if (operator === 'yes' || operator === 'no' || operator === 'empty') {
-      return null;
-    }
-    return null;
   }
 
   hasValueColumn(): boolean {

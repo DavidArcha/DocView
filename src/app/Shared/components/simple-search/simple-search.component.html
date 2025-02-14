@@ -23,7 +23,6 @@
 
         <!-- Render the accordion when data is loaded -->
         <ng-container *ngIf="!isLoading">
-
             <!-- Render the accordion sections -->
             <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
                 (fieldSelected)="onFieldSelected($event)">

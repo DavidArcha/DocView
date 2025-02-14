@@ -6,24 +6,12 @@
         <td class="field">{{ selected.field }}</td>
         <!-- Operator column with localized dropdown -->
         <td class="operator">
-          <app-localized-dropdown [options]="selected.operatorOptions"
-            [selectedLanguage]="selectedLanguage" [(selectedValue)]="selected.operator"
-            (selectedValueChange)="onOperatorChange($event, i)">
+          <app-localized-dropdown [options]="selected.operatorOptions" [selectedLanguage]="selectedLanguage"
+            [(selectedValue)]="selected.operator" (selectedValueChange)="onOperatorChange($event, i)">
           </app-localized-dropdown>
         </td>
         <!-- Value column: display only if an operator that requires a value is selected -->
         <td class="value">
-          <!-- Example: if operator is 'equals', display a localized dropdown using the state options -->
-          <ng-container *ngIf="selected.operator === 'equals'">
-            <app-localized-dropdown [options]="dropdownData.state" [selectedLanguage]="selectedLanguage"
-              [(selectedValue)]="selected.value">
-            </app-localized-dropdown>
-          </ng-container>
-          <!-- If operator is 'Start-On', display a date picker -->
-          <ng-container *ngIf="selected.operator === 'Start-On'">
-            <input type="date" [(ngModel)]="selected.value" />
-          </ng-container>
-          <!-- If operator is not one that requires a value, nothing is displayed -->
         </td>
         <td>
           <button (click)="onSearchSelectedField(selected)">Search</button>

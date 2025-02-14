@@ -1,0 +1,22 @@
+.selected-fields-table {
+    margin-top: 20px;
+    max-height: 200px;
+    /* Limits the visible height of the table */
+    overflow-y: auto;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+}
