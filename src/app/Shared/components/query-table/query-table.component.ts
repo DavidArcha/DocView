@@ -65,6 +65,10 @@ export class QueryTableComponent {
    * Return control configuration based on the selected operator and field type.
    */
   getValueControl(selected: SelectedField): any {
+    // If no valid operator is selected (empty string or "select"), then don't show a value control.
+    if (!selected.operator || selected.operator === 'select') {
+      return { show: false };
+    }
     const noValueOperators = ['empty', 'not_empty', 'yes', 'no'];
     if (noValueOperators.includes(selected.operator)) {
       return { show: false };
