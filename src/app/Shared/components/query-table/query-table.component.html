@@ -1,3 +1,4 @@
+<!-- query-table.component.html -->
 <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
   <table>
     <tbody>
@@ -10,8 +11,32 @@
             [(selectedValue)]="selected.operator" (selectedValueChange)="onOperatorChange($event, i)">
           </app-localized-dropdown>
         </td>
-        <!-- Value column: display only if an operator that requires a value is selected -->
+        <!-- Value column: dynamic control rendering -->
         <td class="value">
+          <ng-container *ngIf="getValueControl(selected) as control">
+            <ng-container *ngIf="control.show">
+              <ng-container *ngIf="control.dual; else singleControl">
+                <!-- Dual controls -->
+                <input [type]="control.type" [(ngModel)]="selected.value[0]" placeholder="Value 1"
+                  [ngClass]="{'error': !validateField(selected, 0)}" />
+                <input [type]="control.type" [(ngModel)]="selected.value[1]" placeholder="Value 2"
+                  [ngClass]="{'error': !validateField(selected, 1)}" />
+              </ng-container>
+              <ng-template #singleControl>
+                <ng-container *ngIf="control.type === 'dropdown'; else otherControl">
+                  <select [(ngModel)]="selected.value" [ngClass]="{'error': !validateField(selected)}">
+                    <option *ngFor="let option of control.options" [value]="option.key">
+                      {{ option[selectedLanguage] }}
+                    </option>
+                  </select>
+                </ng-container>
+                <ng-template #otherControl>
+                  <input [type]="control.type" [(ngModel)]="selected.value" placeholder="Enter value"
+                    [ngClass]="{'error': !validateField(selected)}" />
+                </ng-template>
+              </ng-template>
+            </ng-container>
+          </ng-container>
         </td>
         <td>
           <button (click)="onSearchSelectedField(selected)">Search</button>
@@ -20,7 +45,7 @@
       </tr>
     </tbody>
   </table>
-  <!-- Add the textbox and the new button here -->
+  <!-- Additional content -->
   <input type="text" [(ngModel)]="searchName" placeholder="Enter name" />
   <button (click)="onSendTableContent()">Send Table Content</button>
 </div>

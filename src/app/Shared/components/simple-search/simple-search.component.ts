@@ -110,19 +110,14 @@ export class SimpleSearchComponent implements OnInit {
      */
   onFieldSelected(event: { parent: string, field: string }): void {
     const operatorOptions = this.getOperatorOptions(event.field);
-    // Pre-select the default operator using the key from the first operator option.
+    // Default operator left empty (or you could pre-select the first option)
     const defaultOperator = '';
-
-    // Pre-populate the value based on the default operator.
     let defaultValue = null;
-
     // Check if the field already exists in the selectedFields array
     const existingFieldIndex = this.selectedFields.findIndex(
       field => field.parent === event.parent && field.field === event.field
     );
-
     if (existingFieldIndex !== -1) {
-      // Update the existing field
       this.selectedFields[existingFieldIndex] = {
         parent: event.parent,
         field: event.field,
@@ -131,7 +126,6 @@ export class SimpleSearchComponent implements OnInit {
         value: defaultValue
       };
     } else {
-      // Add the new field
       this.selectedFields.push({
         parent: event.parent,
         field: event.field,
@@ -143,25 +137,44 @@ export class SimpleSearchComponent implements OnInit {
   }
 
   /**
-    * Returns the operator dropdown options based on the selected field.
-    */
+   * Returns the operator dropdown options based on the selected field.
+   */
   getOperatorOptions(field: string): any[] {
-    switch (field.toLowerCase()) {
-      case 'copy':
-        return this.dropdownData.boolOperations;
-      case 'current':
-        return this.dropdownData.boolOperations;
-      default:
-        return [];
+    const fieldLower = field.toLowerCase();
+    if (['copy', 'current', 'deleted'].includes(fieldLower)) {
+      return this.dropdownData.boolOperations;
+    } else if (['edit', 'state', 'user', 'brand'].includes(fieldLower)) {
+      return this.dropdownData.tOperations;
+    } else if (fieldLower === 'date') {
+      return this.dropdownData.dateOperations;
+    } else if (fieldLower === 'version') {
+      return this.dropdownData.numberOperations;
+    } else if (['input', 'visual', 'description'].includes(fieldLower)) {
+      return this.dropdownData.stringOperations;
+    } else {
+      return [];
     }
   }
 
   /**
-   * When the operator value changes in a table row, update the operator and set the default value if needed.
+   * When the operator value changes, update the operator and reset the value.
    */
   onOperatorChange(event: { newOperator: string, index: number }): void {
-    const { newOperator, index } = event;
-    this.selectedFields[index].operator = newOperator;
+    const field = this.selectedFields[event.index];
+    field.operator = event.newOperator;
+    // Define operators that require dual controls
+    const dualOperators = ['between', 'not_between', 'similar', 'contains_date'];
+    // Define operators that require no additional value
+    const noValueOperators = ['empty', 'not_empty', 'yes', 'no'];
+
+    if (dualOperators.includes(event.newOperator)) {
+      // Initialize as an array for two controls
+      field.value = ['', ''];
+    } else if (noValueOperators.includes(event.newOperator)) {
+      field.value = null;
+    } else {
+      field.value = '';
+    }
   }
 
   // Delete a row from the selected fields table.
