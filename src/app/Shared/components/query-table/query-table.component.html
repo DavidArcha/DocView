@@ -1,4 +1,3 @@
-<!-- query-table.component.html -->
 <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
   <table>
     <tbody>
@@ -25,6 +24,7 @@
               <ng-template #singleControl>
                 <ng-container *ngIf="control.type === 'dropdown'; else otherControl">
                   <select [(ngModel)]="selected.value" [ngClass]="{'error': !validateField(selected)}">
+                    <option value="">Select</option>
                     <option *ngFor="let option of control.options" [value]="option.key">
                       {{ option[selectedLanguage] }}
                     </option>

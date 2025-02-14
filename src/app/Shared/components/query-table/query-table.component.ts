@@ -46,7 +46,7 @@ export class QueryTableComponent {
    */
   getFieldType(selected: SelectedField): string {
     const field = selected.field.toLowerCase();
-    if (['copy', 'current', 'deleted'].includes(field)) {
+    if (['copy', 'current', 'delete'].includes(field)) {
       return 'bool';
     } else if (['edit', 'state', 'user', 'brand'].includes(field)) {
       return 't';
@@ -96,43 +96,47 @@ export class QueryTableComponent {
   }
 
   /**
-   * Simple validation: check if value(s) exist and conform to expected type.
-   * For numeric fields, check for numbers; for text, disallow special characters.
-   */
+  * Validate the field's value(s) based on the control type.
+  * - For numbers, only digits are allowed.
+  * - For text, only alphanumeric characters and spaces are allowed.
+  */
   validateField(selected: SelectedField, idx?: number): boolean {
     const control = this.getValueControl(selected);
     if (!control.show) {
       return true;
     }
 
+    let value;
     if (control.dual) {
-      // Ensure idx is defined before using it
       if (idx === undefined) {
-        return false; // or handle as needed
-      }
-      const value = selected.value ? selected.value[idx] : '';
-      if (!value) {
         return false;
       }
-      if (control.type === 'number' && isNaN(value)) {
-        return false;
-      }
-      if (control.type === 'text' && /[^a-zA-Z0-9 ]/.test(value)) {
-        return false;
-      }
-      return true;
+      value = selected.value ? selected.value[idx] : '';
     } else {
-      const value = selected.value;
-      if (!value) {
-        return false;
-      }
-      if (control.type === 'number' && isNaN(value)) {
-        return false;
-      }
-      if (control.type === 'text' && /[^a-zA-Z0-9 ]/.test(value)) {
-        return false;
-      }
-      return true;
+      value = selected.value;
     }
+
+    // If the value is a string, trim it.
+    if (typeof value === 'string') {
+      value = value.trim();
+    }
+
+    // Field is required
+    if (!value) {
+      return false;
+    }
+
+    if (control.type === 'number') {
+      // Check if value contains only digits
+      return /^[0-9]+$/.test(value);
+    }
+
+    if (control.type === 'text') {
+      // Allow alphanumerics and spaces only.
+      return /^[a-zA-Z0-9 ]+$/.test(value);
+    }
+
+    // For date or dropdown, assume valid if not empty.
+    return true;
   }
 }

@@ -141,7 +141,7 @@ export class SimpleSearchComponent implements OnInit {
    */
   getOperatorOptions(field: string): any[] {
     const fieldLower = field.toLowerCase();
-    if (['copy', 'current', 'deleted'].includes(fieldLower)) {
+    if (['copy', 'current', 'delete'].includes(fieldLower)) {
       return this.dropdownData.boolOperations;
     } else if (['edit', 'state', 'user', 'brand'].includes(fieldLower)) {
       return this.dropdownData.tOperations;
