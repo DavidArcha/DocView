@@ -3,11 +3,11 @@ export const searchGroupFields = [
         groupTitle: "Saved Groups",
         groupFields: [
             {
-                "title": "Testing123",
-                "fields": [{ parent: "System Fields", field: "Name", operator: "contains", value: "" },
-                { parent: "System Fields", field: "Age", operator: "equals", value: "active" },
-                { parent: "System Fields", field: "Date", operator: "Start-On", value: "2025-02-11" },
-                { parent: "Data Fields", field: "Width", operator: "", value: "" }],
+                "title": "Copy of Testing",
+                "fields": [{ parent: "System Fields", field: "Copy", operator: "yes", value: "" },
+                { parent: "System Fields", field: "Copy", operator: "no", value: "" },
+                { parent: "System Fields", field: "Date", operator: "equals", value: "11-02-2025" },
+                ]
             },
             {
                 "title": "Testing345",
