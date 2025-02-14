@@ -44,7 +44,6 @@ export class QueryTableComponent {
   }
 
   onDeleteSelectedField(index: number): void {
-    this.selectedFields.splice(index, 1);
     this.deleteSelectedField.emit(index);
   }
 

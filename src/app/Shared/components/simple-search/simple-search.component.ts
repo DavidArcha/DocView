@@ -110,31 +110,18 @@ export class SimpleSearchComponent implements OnInit {
      */
   onFieldSelected(event: { parent: string, field: string }): void {
     const operatorOptions = this.getOperatorOptions(event.field);
-    // Default operator left empty (or you could pre-select the first option)
     const defaultOperator = '';
-    let defaultValue = null;
-    // Check if the field already exists in the selectedFields array
-    const existingFieldIndex = this.selectedFields.findIndex(
-      field => field.parent === event.parent && field.field === event.field
-    );
-    if (existingFieldIndex !== -1) {
-      this.selectedFields[existingFieldIndex] = {
-        parent: event.parent,
-        field: event.field,
-        operator: defaultOperator,
-        operatorOptions: operatorOptions,
-        value: defaultValue
-      };
-    } else {
-      this.selectedFields.push({
-        parent: event.parent,
-        field: event.field,
-        operator: defaultOperator,
-        operatorOptions: operatorOptions,
-        value: defaultValue
-      });
-    }
+    const defaultValue = null;
+    // Always add a new field, even if it is a duplicate.
+    this.selectedFields.push({
+      parent: event.parent,
+      field: event.field,
+      operator: defaultOperator,
+      operatorOptions: operatorOptions,
+      value: defaultValue
+    });
   }
+
 
   /**
    * Returns the operator dropdown options based on the selected field.
