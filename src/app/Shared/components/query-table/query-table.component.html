@@ -4,11 +4,15 @@
       <tr *ngFor="let selected of selectedFields; let i = index">
         <td class="parent">{{ selected.parent }}</td>
         <td class="field">{{ selected.field }}</td>
-        <!-- Operator column with localized dropdown -->
+        <!-- Operator column -->
         <td class="operator">
           <app-localized-dropdown [options]="selected.operatorOptions" [selectedLanguage]="selectedLanguage"
             [(selectedValue)]="selected.operator" (selectedValueChange)="onOperatorChange($event, i)">
           </app-localized-dropdown>
+          <!-- Display error message only if the field has been touched -->
+          <div class="operator-error" *ngIf="selected.operatorTouched && !isOperatorValid(selected)">
+            Please select one option.
+          </div>
         </td>
         <!-- Value column: dynamic control rendering -->
         <td class="value">
@@ -17,14 +21,15 @@
               <ng-container *ngIf="control.dual; else singleControl">
                 <!-- Dual controls -->
                 <input [type]="control.type" [(ngModel)]="selected.value[0]" placeholder="Value 1"
-                  [ngClass]="{'error': !validateField(selected, 0)}" />
+                  [ngClass]="{'error': submitted && !validateField(selected, 0)}" />
                 <input [type]="control.type" [(ngModel)]="selected.value[1]" placeholder="Value 2"
-                  [ngClass]="{'error': !validateField(selected, 1)}" />
+                  [ngClass]="{'error': submitted && !validateField(selected, 1)}" />
               </ng-container>
               <ng-template #singleControl>
                 <ng-container *ngIf="control.type === 'dropdown'; else otherControl">
-                  <select [(ngModel)]="selected.value" [ngClass]="{'error': !validateField(selected)}">
-                    <option value="">Select</option>
+                  <select [(ngModel)]="selected.value" [ngClass]="{'error': submitted && !validateField(selected)}">
+                    <!-- Localized default option -->
+                    <option value="">{{ selectedLanguage === 'de' ? 'Bitte wählen' : 'Select' }}</option>
                     <option *ngFor="let option of control.options" [value]="option.key">
                       {{ option[selectedLanguage] }}
                     </option>
@@ -32,7 +37,7 @@
                 </ng-container>
                 <ng-template #otherControl>
                   <input [type]="control.type" [(ngModel)]="selected.value" placeholder="Enter value"
-                    [ngClass]="{'error': !validateField(selected)}" />
+                    [ngClass]="{'error': submitted && !validateField(selected)}" />
                 </ng-template>
               </ng-template>
             </ng-container>

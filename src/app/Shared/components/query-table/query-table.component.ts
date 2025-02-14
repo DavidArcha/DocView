@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 
-interface SelectedField {
+export interface SelectedField {
   parent: string;
   field: string;
   operator: string;
   operatorOptions: any[];
   value: any;
+  operatorTouched?: boolean; // New flag to track whether the operator dropdown has been interacted with
 }
 
 @Component({
@@ -25,8 +26,17 @@ export class QueryTableComponent {
   @Output() deleteSelectedField = new EventEmitter<number>();
   @Output() sendTableContent = new EventEmitter<void>();
 
+  // Global flag to indicate the user has attempted to submit.
+  submitted: boolean = false;
+
+  /**
+   * Called when the operator dropdown value changes.
+   * Emits the change and marks the field as touched.
+   */
   onOperatorChange(newOperator: string, index: number): void {
     this.operatorChange.emit({ newOperator, index });
+    // Mark this field as touched so that validation errors will appear if still invalid.
+    this.selectedFields[index].operatorTouched = true;
   }
 
   onSearchSelectedField(selected: SelectedField): void {
@@ -34,19 +44,37 @@ export class QueryTableComponent {
   }
 
   onDeleteSelectedField(index: number): void {
+    this.selectedFields.splice(index, 1);
     this.deleteSelectedField.emit(index);
   }
 
+  /**
+   * Called when the user clicks the "Send Table Content" button.
+   * Marks all fields as touched and sets the submitted flag,
+   * then validates each field's operator.
+   */
   onSendTableContent(): void {
+    // Mark all fields as touched so that validation errors appear if needed.
+    this.selectedFields.forEach(field => field.operatorTouched = true);
+    // Set the submitted flag to true.
+    this.submitted = true;
+
+    // Check if any field has an invalid operator (i.e., still empty or default).
+    const invalidField = this.selectedFields.find(field => !this.isOperatorValid(field));
+    if (invalidField) {
+      alert(`Please select a valid operator for the field "${invalidField.field}".`);
+      return;
+    }
+    // Proceed with sending the table content.
     this.sendTableContent.emit();
   }
 
   /**
-   * Determine the “data type” of the field based on its name.
+   * Determines the data type of the field (used to select the appropriate value control).
    */
   getFieldType(selected: SelectedField): string {
     const field = selected.field.toLowerCase();
-    if (['copy', 'current', 'delete'].includes(field)) {
+    if (['copy', 'current', 'deleted'].includes(field)) {
       return 'bool';
     } else if (['edit', 'state', 'user', 'brand'].includes(field)) {
       return 't';
@@ -62,17 +90,19 @@ export class QueryTableComponent {
   }
 
   /**
-   * Return control configuration based on the selected operator and field type.
+   * Returns the configuration for the value control based on the operator and field type.
    */
   getValueControl(selected: SelectedField): any {
-    // If no valid operator is selected (empty string or "select"), then don't show a value control.
+    // If no operator is selected (empty or 'select'), do not display the value control.
     if (!selected.operator || selected.operator === 'select') {
       return { show: false };
     }
+
     const noValueOperators = ['empty', 'not_empty', 'yes', 'no'];
     if (noValueOperators.includes(selected.operator)) {
       return { show: false };
     }
+
     const dualOperators = ['between', 'not_between', 'similar', 'contains_date'];
     const fieldType = this.getFieldType(selected);
     let control: any = {};
@@ -83,7 +113,6 @@ export class QueryTableComponent {
       control.type = 'dropdown';
       control.options = this.dropdownData.brandValues;
     } else {
-      // Map field type to control type
       if (fieldType === 'date') {
         control.type = 'date';
       } else if (fieldType === 'number') {
@@ -96,10 +125,10 @@ export class QueryTableComponent {
   }
 
   /**
-  * Validate the field's value(s) based on the control type.
-  * - For numbers, only digits are allowed.
-  * - For text, only alphanumeric characters and spaces are allowed.
-  */
+   * Validates the value(s) in the value control.
+   * - For numbers, only digits are allowed.
+   * - For text, only alphanumeric characters and spaces are allowed.
+   */
   validateField(selected: SelectedField, idx?: number): boolean {
     const control = this.getValueControl(selected);
     if (!control.show) {
@@ -116,27 +145,32 @@ export class QueryTableComponent {
       value = selected.value;
     }
 
-    // If the value is a string, trim it.
     if (typeof value === 'string') {
       value = value.trim();
     }
 
-    // Field is required
     if (!value) {
       return false;
     }
 
     if (control.type === 'number') {
-      // Check if value contains only digits
       return /^[0-9]+$/.test(value);
     }
 
     if (control.type === 'text') {
-      // Allow alphanumerics and spaces only.
       return /^[a-zA-Z0-9 ]+$/.test(value);
     }
 
-    // For date or dropdown, assume valid if not empty.
+    // For date or dropdown controls, assume valid if not empty.
     return true;
+  }
+
+  /**
+   * Validates the operator selection.
+   * Returns false if the operator is empty or still set to the default value.
+   */
+  isOperatorValid(selected: SelectedField): boolean {
+    // An empty string (or 'select') is treated as invalid.
+    return !!selected.operator && selected.operator !== 'select';
   }
 }
