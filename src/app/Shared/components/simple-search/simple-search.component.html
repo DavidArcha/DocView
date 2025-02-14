@@ -35,4 +35,11 @@
         (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)"
         (sendTableContent)="sendTableContent()">
     </app-query-table>
+
+    <!-- New Buttons -->
+    <div class="table-actions">
+        <button (click)="clearTable()">Clear</button>
+        <button (click)="storeTable()">Store</button>
+        <button (click)="searchTable()">Search</button>
+    </div>
 </div>

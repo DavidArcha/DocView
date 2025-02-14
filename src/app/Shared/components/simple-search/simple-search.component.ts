@@ -74,6 +74,12 @@ export class SimpleSearchComponent implements OnInit {
     });
 
     this.loadAccordionData();
+
+    // Load table data from localStorage if available
+    const stored = localStorage.getItem('selectedFields');
+    if (stored) {
+      this.selectedFields = JSON.parse(stored);
+    }
   }
 
   loadSystemFieldsByLang(lang: string): void {
@@ -90,17 +96,11 @@ export class SimpleSearchComponent implements OnInit {
 
   loadAccordionData(): void {
     this.isLoading = true;
-    this.fetchAccordionData().subscribe(data => {
-      this.sections = data;
+    const data: AccordionSection[] = accordionDataTypes[0].sections;
+    of(data).pipe(delay(1500)).subscribe(sections => {
+      this.sections = sections;
       this.isLoading = false;
     });
-  }
-
-  fetchAccordionData(): Observable<AccordionSection[]> {
-    // Sample data based on your JSON structure.
-    const data: AccordionSection[] = accordionDataTypes[0].sections;
-    // Simulate a 1.5-second delay.
-    return of(data).pipe(delay(1500));
   }
 
   /**
@@ -120,6 +120,7 @@ export class SimpleSearchComponent implements OnInit {
       operatorOptions: operatorOptions,
       value: defaultValue
     });
+    this.updateLocalStorage();
   }
 
 
@@ -162,11 +163,14 @@ export class SimpleSearchComponent implements OnInit {
     } else {
       field.value = '';
     }
+
+    this.updateLocalStorage();
   }
 
   // Delete a row from the selected fields table.
   onDeleteSelectedField(index: number): void {
     this.selectedFields.splice(index, 1);
+    this.updateLocalStorage();
   }
 
   // Handler for the search button (adjust the logic as needed).
@@ -243,5 +247,62 @@ export class SimpleSearchComponent implements OnInit {
       operatorOptions: operatorOptions,
       value: event.value,
     });
+  }
+
+  // Save updated table data to localStorage
+  updateLocalStorage(): void {
+    localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
+  }
+
+  // New button: Clear
+  clearTable(): void {
+    this.selectedFields = [];
+    localStorage.removeItem('selectedFields');
+  }
+
+  // New button: Search
+  searchTable(): void {
+    if (this.selectedFields.length === 0) {
+      alert("No fields to search.");
+      return;
+    }
+    const dataToSend = this.selectedFields.map(field => ({
+      parent: field.parent,
+      field: field.field,
+      operator: field.operator,
+      value: field.value
+    }));
+    const payload = {
+      name: this.searchName, // Use searchName input or any logic you prefer
+      fields: dataToSend
+    };
+    console.log("Search Payload Prepared: ", payload);
+    // Optionally, store payload in a property or call a service later.
+  }
+  // New button: Store
+  storeTable(): void {
+    if (this.selectedFields.length === 0) {
+      alert("No fields to store.");
+      return;
+    }
+    // Prepare payload like sendTableContent but with payload name from first field
+    const dataToSend = this.selectedFields.map(field => ({
+      parent: field.parent,
+      field: field.field,
+      operator: field.operator,
+      value: field.value
+    }));
+    const payload = {
+      // Name is taken from the first field's field value
+      name: this.selectedFields[0].field,
+      fields: dataToSend
+    };
+    // Call the service to store (or simply log)
+    console.log("Store Payload: ", payload);
+    // this.resultPageService.sendData(payload).subscribe(response => {
+    //   console.log("Data stored successfully:", response);
+    // }, error => {
+    //   console.error("Error storing data:", error);
+    // });
   }
 }
