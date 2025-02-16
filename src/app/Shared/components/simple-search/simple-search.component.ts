@@ -7,6 +7,8 @@ import { delay, Observable, of } from 'rxjs';
 import { accordionDataTypes } from '../../common/accordian';
 import { ResultPageService } from '../../services/result-page.service';
 import { searchGroupFields } from '../../common/search_groupfields';
+import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
+import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
 
 interface SystemField {
   id: number;
@@ -52,7 +54,7 @@ export class SimpleSearchComponent implements OnInit {
   public searchName: string = ''; // New property for the name
   jsonData: any;
 
-  public showGroupDataOutside: boolean = false;
+  private _showGroupDataOutside: boolean = false;
 
   public savedGroupFields = searchGroupFields;
   constructor(
@@ -64,6 +66,10 @@ export class SimpleSearchComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Load the checkbox state from localStorage
+    const showGroupDataOutside = localStorage.getItem('showGroupDataOutside');
+    this.showGroupDataOutside = showGroupDataOutside === 'true';
+
     this.languageService.language$.subscribe(lang => {
       this.selectedLanguage = lang;
       this.loadSystemFieldsByLang(lang);
@@ -80,6 +86,15 @@ export class SimpleSearchComponent implements OnInit {
     if (stored) {
       this.selectedFields = JSON.parse(stored);
     }
+  }
+
+  set showGroupDataOutside(value: boolean) {
+    this._showGroupDataOutside = value;
+    localStorage.setItem('showGroupDataOutside', value.toString());
+  }
+
+  get showGroupDataOutside(): boolean {
+    return this._showGroupDataOutside;
   }
 
   loadSystemFieldsByLang(lang: string): void {
@@ -129,18 +144,19 @@ export class SimpleSearchComponent implements OnInit {
    */
   getOperatorOptions(field: string): any[] {
     const fieldLower = field.toLowerCase();
-    if (['copy', 'current', 'delete'].includes(fieldLower)) {
-      return this.dropdownData.boolOperations;
-    } else if (['edit', 'state', 'user', 'brand'].includes(fieldLower)) {
-      return this.dropdownData.tOperations;
-    } else if (fieldLower === 'date') {
-      return this.dropdownData.dateOperations;
-    } else if (fieldLower === 'version') {
-      return this.dropdownData.numberOperations;
-    } else if (['input', 'visual', 'description'].includes(fieldLower)) {
-      return this.dropdownData.stringOperations;
-    } else {
-      return [];
+    switch (FieldTypeMapping[fieldLower]) {
+      case FieldType.Bool:
+        return this.dropdownData.boolOperations;
+      case FieldType.Text:
+        return this.dropdownData.tOperations;
+      case FieldType.Date:
+        return this.dropdownData.dateOperations;
+      case FieldType.Number:
+        return this.dropdownData.numberOperations;
+      case FieldType.Dropdown:
+        return this.dropdownData.stringOperations;
+      default:
+        return [];
     }
   }
 
@@ -150,15 +166,10 @@ export class SimpleSearchComponent implements OnInit {
   onOperatorChange(event: { newOperator: string, index: number }): void {
     const field = this.selectedFields[event.index];
     field.operator = event.newOperator;
-    // Define operators that require dual controls
-    const dualOperators = ['between', 'not_between', 'similar', 'contains_date'];
-    // Define operators that require no additional value
-    const noValueOperators = ['empty', 'not_empty', 'yes', 'no'];
 
-    if (dualOperators.includes(event.newOperator)) {
-      // Initialize as an array for two controls
+    if (DualOperators.includes(event.newOperator as OperatorType)) {
       field.value = ['', ''];
-    } else if (noValueOperators.includes(event.newOperator)) {
+    } else if (NoValueOperators.includes(event.newOperator as OperatorType)) {
       field.value = null;
     } else {
       field.value = '';
@@ -171,27 +182,6 @@ export class SimpleSearchComponent implements OnInit {
   onDeleteSelectedField(index: number): void {
     this.selectedFields.splice(index, 1);
     this.updateLocalStorage();
-  }
-
-  // Handler for the search button (adjust the logic as needed).
-  sendTableContent(): void {
-    const dataToSend: SearchField[] = this.selectedFields.map(field => ({
-      parent: field.parent,
-      field: field.field,
-      operator: field.operator,
-      value: this.getDefaultValue(field.operator, field.value)
-    }));
-    const payload = {
-      name: this.searchName,
-      fields: dataToSend
-    };
-    console.log('Data to send:', payload);
-    this.resultPageService.sendData(payload);
-    this.searchService.saveSearchData(payload).subscribe(response => {
-      console.log('Data saved successfully:', response);
-    }, error => {
-      console.error('Error saving data:', error);
-    });
   }
 
   onSearchSelectedField(selected: { parent: string, field: string, operator: string, operatorOptions: any[], value: any }): void {
@@ -230,16 +220,6 @@ export class SimpleSearchComponent implements OnInit {
   onSavedGroupFieldSelected(event: { parent: string, field: string, operator: string, value: any }): void {
     this.selectedFields = [];
     const operatorOptions = this.getOperatorOptions(event.field);
-    const defaultOperator = operatorOptions.length > 0 ? operatorOptions[0].key : '';
-    let defaultValue = null;
-
-    if (defaultOperator === 'equals') {
-      if (this.dropdownData && this.dropdownData.state && this.dropdownData.state.length > 0) {
-        defaultValue = this.dropdownData.state[0].key;
-      }
-    } else if (defaultOperator === 'Start-On') {
-      defaultValue = new Date().toISOString().substring(0, 10);
-    }
     this.selectedFields.push({
       parent: event.parent,
       field: event.field,
@@ -274,7 +254,8 @@ export class SimpleSearchComponent implements OnInit {
     }));
     const payload = {
       name: this.searchName, // Use searchName input or any logic you prefer
-      fields: dataToSend
+      fields: dataToSend,
+      showGroupDataOutside: this.showGroupDataOutside // Include the checkbox state
     };
     console.log("Search Payload Prepared: ", payload);
     // Optionally, store payload in a property or call a service later.

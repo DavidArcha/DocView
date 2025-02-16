@@ -32,8 +32,7 @@
     <!-- Use the QueryTable component here -->
     <app-query-table [selectedFields]="selectedFields" [dropdownData]="dropdownData"
         [selectedLanguage]="selectedLanguage" [searchName]="searchName" (operatorChange)="onOperatorChange($event)"
-        (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)"
-        (sendTableContent)="sendTableContent()">
+        (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)">
     </app-query-table>
 
     <!-- New Buttons -->

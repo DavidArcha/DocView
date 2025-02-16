@@ -27,7 +27,6 @@ export class QueryTableComponent {
   @Output() operatorChange = new EventEmitter<{ newOperator: string, index: number }>();
   @Output() searchSelectedField = new EventEmitter<SelectedField>();
   @Output() deleteSelectedField = new EventEmitter<number>();
-  @Output() sendTableContent = new EventEmitter<void>();
 
   // Global flag to indicate the user has attempted to submit.
   submitted: boolean = false;
@@ -43,28 +42,6 @@ export class QueryTableComponent {
 
   onDeleteSelectedField(index: number): void {
     this.deleteSelectedField.emit(index);
-  }
-
-  onSendTableContent(): void {
-    this.selectedFields.forEach(field => {
-      field.operatorTouched = true;
-      const control = this.getValueControl(field);
-      if (control.show) {
-        if (control.dual) {
-          field.valueTouched = [true, true];
-        } else {
-          field.valueTouched = true;
-        }
-      }
-    });
-    this.submitted = true;
-
-    const invalidOperator = this.selectedFields.find(field => !this.isOperatorValid(field));
-    if (invalidOperator) {
-      alert(`Please select a valid operator for the field "${invalidOperator.field}".`);
-      return;
-    }
-    this.sendTableContent.emit();
   }
 
   getFieldType(selected: SelectedField): FieldType {
