@@ -11,31 +11,4 @@
             (fieldSelected)="onFieldSelected($event)">
         </app-accordion-section>
     </ng-container>
-
-    <!-- Selected Fields Table -->
-    <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
-        <table>
-            <thead>
-                <tr>
-                    <th>Parent</th>
-                    <th>Field</th>
-                    <th></th>
-                    <th></th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let selected of selectedFields; let i = index">
-                    <td>{{ selected.parent }}</td>
-                    <td>{{ selected.field }}</td>
-                    <td></td>
-                    <td></td>
-                    <td>
-                        <button (click)="onSearchSelectedField(selected)">Search</button>
-                        <button (click)="onDeleteSelectedField(i)">Delete</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
 </div>

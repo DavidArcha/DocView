@@ -40,14 +40,4 @@ export class MultilevelAccordionComponent implements OnInit {
     this.selectedFields.push(event);
   }
 
-  // Delete a row from the selected fields table.
-  onDeleteSelectedField(index: number): void {
-    this.selectedFields.splice(index, 1);
-  }
-
-  // Handler for the search button (adjust the logic as needed).
-  onSearchSelectedField(selected: { parent: string, field: string }): void {
-    // For demonstration, we just show an alert.
-    alert(`Search clicked for ${selected.parent} > ${selected.field}`);
-  }
 }
