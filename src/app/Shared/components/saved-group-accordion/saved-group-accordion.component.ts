@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-saved-group-accordion',
@@ -6,17 +6,22 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   templateUrl: './saved-group-accordion.component.html',
   styleUrl: './saved-group-accordion.component.scss'
 })
-export class SavedGroupAccordionComponent {
+export class SavedGroupAccordionComponent implements OnInit {
   @Input() groups: any[] = [];
   @Output() fieldSelected = new EventEmitter<any>();
-  @Output() groupFieldTitleClicked = new EventEmitter<any>(); // Add this line
+  @Output() groupFieldTitleClicked = new EventEmitter<any>();
 
   expandedGroups: Set<string> = new Set();
   expandedFields: Set<string> = new Set();
+  selectedFieldGroup: any = null;
+  selectedField: any = null;
 
   contextMenuVisible: boolean = false;
   contextMenuPosition = { x: 0, y: 0 };
-  selectedFieldGroup: any = null;
+
+  ngOnInit() {
+    this.restoreState();
+  }
 
   toggleGroup(title: string) {
     if (this.expandedGroups.has(title)) {
@@ -24,6 +29,7 @@ export class SavedGroupAccordionComponent {
     } else {
       this.expandedGroups.add(title);
     }
+    this.saveState();
   }
 
   toggleField(title: string) {
@@ -32,16 +38,18 @@ export class SavedGroupAccordionComponent {
     } else {
       this.expandedFields.add(title);
     }
+    this.saveState();
   }
 
   onFieldClick(field: any) {
+    this.selectedField = field;
     this.fieldSelected.emit(field);
-    console.log('Selected Field:', field);
+    this.saveState();
   }
 
   onGroupFieldTitleClick(fieldGroup: any) {
-    console.log('Fields in Group:', fieldGroup.fields);
-    this.groupFieldTitleClicked.emit(fieldGroup.fields); // Emit the fields array
+    this.groupFieldTitleClicked.emit(fieldGroup.fields);
+    this.saveState();
   }
 
   onGroupFieldTitleRightClick(event: MouseEvent, fieldGroup: any) {
@@ -68,5 +76,26 @@ export class SavedGroupAccordionComponent {
   onGroupRightClick(event: MouseEvent, group: any) {
     event.preventDefault();
     console.log('Right-click on:', group.title);
+  }
+
+  private saveState() {
+    const state = {
+      expandedGroups: Array.from(this.expandedGroups),
+      expandedFields: Array.from(this.expandedFields),
+      selectedFieldGroup: this.selectedFieldGroup,
+      selectedField: this.selectedField
+    };
+    localStorage.setItem('savedGroupAccordionState', JSON.stringify(state));
+  }
+
+  private restoreState() {
+    const state = localStorage.getItem('savedGroupAccordionState');
+    if (state) {
+      const parsedState = JSON.parse(state);
+      this.expandedGroups = new Set(parsedState.expandedGroups);
+      this.expandedFields = new Set(parsedState.expandedFields);
+      this.selectedFieldGroup = parsedState.selectedFieldGroup;
+      this.selectedField = parsedState.selectedField;
+    }
   }
 }

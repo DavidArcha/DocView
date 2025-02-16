@@ -5,7 +5,6 @@ export const searchGroupFields = [
             {
                 "title": "Copy of Testing",
                 "fields": [{ parent: "System Fields", field: "Copy", operator: "yes", value: "" },
-                { parent: "System Fields", field: "Copy", operator: "no", value: "" },
                 { parent: "System Fields", field: "Date", operator: "equals", value: "11-02-2025" },
                 ]
             },

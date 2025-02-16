@@ -72,7 +72,7 @@ export class SimpleSearchComponent implements OnInit {
 
     this.languageService.language$.subscribe(lang => {
       this.selectedLanguage = lang;
-      this.loadSystemFieldsByLang(lang);
+      // this.loadSystemFieldsByLang(lang);
     });
 
     this.searchService.getDropdownData().subscribe(data => {
@@ -214,6 +214,7 @@ export class SimpleSearchComponent implements OnInit {
       operatorOptions: this.getOperatorOptions(field.field),
       value: field.value
     }));
+    this.updateLocalStorage();
   }
 
   // New method for handling field selection from app-saved-group-accordion
@@ -227,6 +228,7 @@ export class SimpleSearchComponent implements OnInit {
       operatorOptions: operatorOptions,
       value: event.value,
     });
+    this.updateLocalStorage();
   }
 
   // Save updated table data to localStorage

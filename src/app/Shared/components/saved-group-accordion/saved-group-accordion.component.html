@@ -16,7 +16,8 @@
                 </div>
                 <div *ngIf="expandedFields.has(fieldGroup.title)" class="fields">
                     <div *ngFor="let field of fieldGroup.fields" class="field"
-                        [title]="field.field + ' ' + field.operator">
+                        [title]="field.field + ' ' + field.operator"
+                        [class.selected]="field === selectedField">
                         <span class="save-icon">💾</span>
                         <a href="#" (click)="onFieldClick(field); $event.preventDefault();">{{ field.field }}</a>
                     </div>
