@@ -1,4 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
+import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
 
 export interface SelectedField {
   parent: string;
@@ -30,10 +32,6 @@ export class QueryTableComponent {
   // Global flag to indicate the user has attempted to submit.
   submitted: boolean = false;
 
-  /**
-   * Called when the operator dropdown value changes.
-   * Emits the change and marks the field as touched.
-   */
   onOperatorChange(newOperator: string, index: number): void {
     this.operatorChange.emit({ newOperator, index });
     this.selectedFields[index].operatorTouched = true;
@@ -47,13 +45,7 @@ export class QueryTableComponent {
     this.deleteSelectedField.emit(index);
   }
 
-  /**
-   * Called when the user clicks the "Send Table Content" button.
-   * Marks all fields' operator and value controls as touched and sets the submitted flag.
-   * Then validates each field.
-   */
   onSendTableContent(): void {
-    // Mark all fields as touched so that validation errors appear if needed.
     this.selectedFields.forEach(field => {
       field.operatorTouched = true;
       const control = this.getValueControl(field);
@@ -72,70 +64,36 @@ export class QueryTableComponent {
       alert(`Please select a valid operator for the field "${invalidOperator.field}".`);
       return;
     }
-    // (Optionally, you can also validate value controls here.)
     this.sendTableContent.emit();
   }
 
-  /**
-   * Determines the data type of the field (used to select the appropriate value control).
-   */
-  getFieldType(selected: SelectedField): string {
-    const field = selected.field.toLowerCase();
-    if (['copy', 'current', 'deleted'].includes(field)) {
-      return 'bool';
-    } else if (['edit', 'state', 'user', 'brand'].includes(field)) {
-      return 't';
-    } else if (field === 'date') {
-      return 'date';
-    } else if (field === 'version') {
-      return 'number';
-    } else if (['input', 'visual', 'description'].includes(field)) {
-      return 'string';
-    } else {
-      return 'string';
-    }
+  getFieldType(selected: SelectedField): FieldType {
+    return FieldTypeMapping[selected.field.toLowerCase()] || FieldType.Text;
   }
 
-  /**
-   * Returns the configuration for the value control based on the operator and field type.
-   */
   getValueControl(selected: SelectedField): any {
-    // If no operator is selected (empty or 'select'), do not display the value control.
     if (!selected.operator || selected.operator === 'select') {
       return { show: false };
     }
 
-    const noValueOperators = ['empty', 'not_empty', 'yes', 'no'];
-    if (noValueOperators.includes(selected.operator)) {
+    if (NoValueOperators.includes(selected.operator as OperatorType)) {
       return { show: false };
     }
 
-    const dualOperators = ['between', 'not_between', 'similar', 'contains_date'];
     const fieldType = this.getFieldType(selected);
     let control: any = {};
-    control.dual = dualOperators.includes(selected.operator);
+    control.dual = DualOperators.includes(selected.operator as OperatorType);
     control.show = true;
 
-    if (!control.dual && selected.field.toLowerCase() === 'brand') {
-      control.type = 'dropdown';
+    if (!control.dual && fieldType === FieldType.Text && selected.field.toLowerCase() === 'brand') {
+      control.type = FieldType.Dropdown;
       control.options = this.dropdownData.brandValues;
     } else {
-      if (fieldType === 'date') {
-        control.type = 'date';
-      } else if (fieldType === 'number') {
-        control.type = 'number';
-      } else {
-        control.type = 'text';
-      }
+      control.type = fieldType;
     }
     return control;
   }
 
-  /**
-   * Validates the value(s) in the value control.
-   * - For numbers, only digits are allowed.
-   * - For text, only alphanumeric characters and spaces are allowed.
-   */
   validateField(selected: SelectedField, idx?: number): boolean {
     const control = this.getValueControl(selected);
     if (!control.show) {
@@ -160,30 +118,21 @@ export class QueryTableComponent {
       return false;
     }
 
-    if (control.type === 'number') {
+    if (control.type === FieldType.Number) {
       return /^[0-9]+$/.test(value);
     }
 
-    if (control.type === 'text') {
+    if (control.type === FieldType.Text) {
       return /^[a-zA-Z0-9 ]+$/.test(value);
     }
 
-    // For date or dropdown controls, assume valid if not empty.
     return true;
   }
 
-  /**
-   * Validates the operator selection.
-   * Returns false if the operator is empty or still set to the default value.
-   */
   isOperatorValid(selected: SelectedField): boolean {
     return !!selected.operator && selected.operator !== 'select';
   }
 
-  /**
-   * Marks the value control for a field as touched.
-   * For dual controls, mark the specific index.
-   */
   markValueTouched(selected: SelectedField, idx?: number): void {
     const control = this.getValueControl(selected);
     if (control.show) {
@@ -200,10 +149,6 @@ export class QueryTableComponent {
     }
   }
 
-  /**
-   * Checks whether the value control for a field has been touched.
-   * For dual controls, checks the specific index.
-   */
   isValueTouched(selected: SelectedField, idx?: number): boolean {
     const control = this.getValueControl(selected);
     if (!control.show) {
