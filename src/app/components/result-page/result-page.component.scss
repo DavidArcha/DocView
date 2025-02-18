@@ -41,6 +41,12 @@
     border-right: 1px solid #ccc;
     transition: width 0.3s ease;
     overflow: hidden;
+    height: 100%; // Ensure full height
+}
+
+.control-content {
+    height: 100%; // Make control content take full height
+    overflow-y: auto; // Add scroll if content is too long
 }
 
 .control-container.collapsed {

@@ -113,7 +113,7 @@ export class SimpleSearchComponent implements OnInit {
 
   loadAccordionData(): void {
     this.isLoading = true;
-    const data: AccordionSection[] = accordionDataTypes[0].sections;
+    const data: AccordionSection[] = accordionDataTypes;
     of(data).pipe(delay(1500)).subscribe(sections => {
       this.sections = sections;
       this.isLoading = false;

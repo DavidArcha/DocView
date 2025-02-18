@@ -30,7 +30,7 @@ export class MultilevelAccordionComponent implements OnInit {
 
   fetchAccordionData(): Observable<AccordionSection[]> {
     // Sample data based on your JSON structure.
-    const data: AccordionSection[] = accordionDataTypes[0].sections;
+    const data: AccordionSection[] = accordionDataTypes;
     // Simulate a 1.5-second delay.
     return of(data).pipe(delay(1500));
   }
