@@ -12,14 +12,14 @@
                     <span [class.expanded]="expandedFields.has(fieldGroup.title)"
                         (click)="toggleField(fieldGroup.title)">&#9656;</span>
                     <span class="save-icon" (click)="toggleField(fieldGroup.title)">💾</span>
-                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup); $event.preventDefault();">{{ fieldGroup.title }}</a>
+                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup, $event); $event.preventDefault();">{{ fieldGroup.title }}</a>
                 </div>
                 <div *ngIf="expandedFields.has(fieldGroup.title)" class="fields">
                     <div *ngFor="let field of fieldGroup.fields" class="field"
                         [title]="field.field + ' ' + field.operator"
                         [class.selected]="field === selectedField">
                         <span class="save-icon">💾</span>
-                        <a href="#" (click)="onFieldClick(field); $event.preventDefault();">{{ field.field }}</a>
+                        <a href="#" (click)="onFieldClick(field, $event); $event.preventDefault();">{{ field.field }}</a>
                     </div>
                 </div>
             </div>

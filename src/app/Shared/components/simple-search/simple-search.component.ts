@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { SearchService } from '../../services/search.service';
 import { LanguageService } from '../../services/language.service';
 import { AccordionSection } from '../../common/accordion-section.model';
@@ -9,6 +9,7 @@ import { ResultPageService } from '../../services/result-page.service';
 import { searchGroupFields } from '../../common/search_groupfields';
 import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
+import { SavedGroupAccordionComponent } from '../saved-group-accordion/saved-group-accordion.component';
 
 interface SystemField {
   id: number;
@@ -37,8 +38,9 @@ interface SearchField {
   styleUrl: './simple-search.component.scss'
 })
 export class SimpleSearchComponent implements OnInit {
+  @ViewChild(SavedGroupAccordionComponent) savedGroupAccordion!: SavedGroupAccordionComponent;
   systemFields: SystemField[] = [];
-  selectedField: string = '';
+  selectedField: any = null;
   selectedLanguage: string = 'de'; // Default language
   dropdownData: any;
   // Selected values for each dropdown (for example, conditions and match)
@@ -182,6 +184,11 @@ export class SimpleSearchComponent implements OnInit {
   onDeleteSelectedField(index: number): void {
     this.selectedFields.splice(index, 1);
     this.updateLocalStorage();
+    localStorage.removeItem('savedAccordionState');
+    // Clear the selected field in SavedGroupAccordionComponent
+    if (this.savedGroupAccordion) {
+      this.savedGroupAccordion.clearSelectedField();
+    }
   }
 
   onSearchSelectedField(selected: { parent: string, field: string, operator: string, operatorOptions: any[], value: any }): void {
@@ -240,6 +247,7 @@ export class SimpleSearchComponent implements OnInit {
   clearTable(): void {
     this.selectedFields = [];
     localStorage.removeItem('selectedFields');
+    localStorage.removeItem('savedAccordionState');
   }
 
   // New button: Search
