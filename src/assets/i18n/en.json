@@ -3,5 +3,8 @@
         "home": "Home",
         "search": "Search",
         "clear": "Clear"
+    },
+    "DROPDOWN": {
+        "PLACEHOLDER": "Select"
     }
 }

@@ -1,8 +1,44 @@
 <div class="simple-search">
-    <label for="systemFieldDropdown">Select a System Field:</label>
-    <select id="systemFieldDropdown" [(ngModel)]="selectedField">
-        <option *ngFor="let field of systemFields" [value]="field.id">
-            {{ field.fieldName }}
-        </option>
-    </select>
+    <!-- Add the checkbox here -->
+    <div class="toggle-group-data">
+        <label>
+            <input type="checkbox" [(ngModel)]="showGroupDataOutside" />
+            Show Group Data
+        </label>
+    </div>
+
+    <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
+    <div *ngIf="showGroupDataOutside">
+        <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onSavedGroupFieldSelected($event)"
+            (groupFieldTitleClicked)="onGroupFieldTitleClicked($event)">
+        </app-saved-group-accordion>
+    </div>
+
+    <div class="accordion-container">
+        <!-- Global loader for the entire accordion -->
+        <div *ngIf="isLoading" class="global-loading">
+            <span class="spinner"></span>
+            <span>Loading Accordion...</span>
+        </div>
+
+        <!-- Render the accordion when data is loaded -->
+        <ng-container *ngIf="!isLoading">
+            <!-- Render the accordion sections -->
+            <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
+                (fieldSelected)="onFieldSelected($event)">
+            </app-accordion-section>
+        </ng-container>
+    </div>
+    <!-- Use the QueryTable component here -->
+    <app-query-table [selectedFields]="selectedFields" [dropdownData]="dropdownData"
+        [selectedLanguage]="selectedLanguage" [searchName]="searchName" (operatorChange)="onOperatorChange($event)"
+        (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)">
+    </app-query-table>
+
+    <!-- New Buttons -->
+    <div class="table-actions">
+        <button (click)="clearTable()">Clear</button>
+        <button (click)="storeTable()">Store</button>
+        <button (click)="searchTable()">Search</button>
+    </div>
 </div>

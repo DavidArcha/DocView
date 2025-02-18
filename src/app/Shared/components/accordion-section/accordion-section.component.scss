@@ -1,0 +1,63 @@
+.accordion-section {
+    margin-left: 20px; // Indentation for nested levels
+
+    .section-header {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 5px;
+        background-color: #f1f1f1;
+        border: 1px solid #ddd;
+        margin-bottom: 2px;
+
+        &:hover {
+            background-color: #e0e0e0;
+        }
+
+        &:focus {
+            outline: 2px solid blue;
+        }
+    }
+
+    .arrow-indicator {
+        margin-right: 5px;
+        transition: transform 0.3s ease;
+
+        &.expanded {
+            transform: rotate(90deg);
+        }
+    }
+
+    .section-content {
+        padding-left: 20px;
+        animation: fadeIn 0.3s;
+    }
+
+    .fields-list {
+        list-style-type: none;
+        padding: 0;
+
+        li {
+            padding: 3px 0;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+            &:focus {
+                outline: 2px solid blue;
+            }
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+}

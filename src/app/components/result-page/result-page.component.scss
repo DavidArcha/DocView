@@ -1,6 +1,6 @@
 .page-container {
     display: grid;
-    grid-template-columns: auto 1fr 2fr;
+    grid-template-columns: auto 3fr 3fr;
     height: 100vh;
     transition: grid-template-columns 0.3s ease;
 }

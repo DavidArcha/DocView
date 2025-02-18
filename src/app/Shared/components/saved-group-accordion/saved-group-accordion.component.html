@@ -1,0 +1,36 @@
+<div class="accordion-container">
+    <div *ngFor="let group of groups" class="group">
+        <div class="group-title">
+            <span [class.expanded]="expandedGroups.has(group.groupTitle)"
+                (click)="toggleGroup(group.groupTitle)">&#9656;</span>
+            <span class="save-icon" (click)="toggleGroup(group.groupTitle)">💾</span>
+            {{ group.groupTitle }}
+        </div>
+        <div *ngIf="expandedGroups.has(group.groupTitle)" class="group-fields">
+            <div *ngFor="let fieldGroup of group.groupFields" class="field-group">
+                <div class="field-title" (contextmenu)="onGroupFieldTitleRightClick($event, fieldGroup)">
+                    <span [class.expanded]="expandedFields.has(fieldGroup.title)"
+                        (click)="toggleField(fieldGroup.title)">&#9656;</span>
+                    <span class="save-icon" (click)="toggleField(fieldGroup.title)">💾</span>
+                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup, $event); $event.preventDefault();">{{ fieldGroup.title }}</a>
+                </div>
+                <div *ngIf="expandedFields.has(fieldGroup.title)" class="fields">
+                    <div *ngFor="let field of fieldGroup.fields" class="field"
+                        [title]="field.field + ' ' + field.operator"
+                        [class.selected]="field === selectedField">
+                        <span class="save-icon">💾</span>
+                        <a href="#" (click)="onFieldClick(field, $event); $event.preventDefault();">{{ field.field }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div *ngIf="contextMenuVisible" [ngStyle]="{'top.px': contextMenuPosition.y, 'left.px': contextMenuPosition.x}" class="context-menu">
+    <ul>
+        <li (click)="onEditGroupFieldTitle()">Edit</li>
+        <li (click)="onDeleteGroupFieldTitle()">Delete</li>
+    </ul>
+</div>

@@ -1,0 +1,14 @@
+<div class="accordion-container">
+    <!-- Global loader for the entire accordion -->
+    <div *ngIf="isLoading" class="global-loading">
+        <span class="spinner"></span>
+        <span>Loading Accordion...</span>
+    </div>
+
+    <!-- Render the accordion when data is loaded -->
+    <ng-container *ngIf="!isLoading">
+        <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
+            (fieldSelected)="onFieldSelected($event)">
+        </app-accordion-section>
+    </ng-container>
+</div>
