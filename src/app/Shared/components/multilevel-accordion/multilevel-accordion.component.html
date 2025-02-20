@@ -1,27 +1,35 @@
-<div class="accordion-container">
-    <!-- Only show the search box at the top level if the flag is enabled -->
+<!-- Root container with ARIA role for improved accessibility -->
+<div class="accordion-container" role="tree">
+    <!-- Search Box: visible only on the top level when enabled -->
     <div *ngIf="!parentPath && isSearchItemVisible" class="search-box">
-        <input type="text" placeholder="Search item" [(ngModel)]="searchTerm" />
+        <input type="text" placeholder="Search item" [(ngModel)]="searchTerm" aria-label="Search accordion items" />
+        <!-- Clear button to reset the search term -->
+        <button *ngIf="searchTerm" (click)="clearSearch()" aria-label="Clear search">Clear</button>
     </div>
 
-    <div class="accordion-item" *ngFor="let item of displayedItems">
+    <!-- Loop through each item with a trackBy function for performance -->
+    <div class="accordion-item" *ngFor="let item of displayedItems; trackBy: trackByFn" role="treeitem"
+        [attr.aria-expanded]="item.isOpen">
         <div class="accordion-header">
-            <!-- Display icon only if the item has children -->
+            <!-- Caret Icon: rendered only if the item has children.
+             Clicking toggles expansion (and keyboard support is provided). -->
             <span *ngIf="item.children && item.children.length" class="caret" [class.expanded]="item.isOpen"
-                (click)="toggleItem(item); $event.stopPropagation();">
+                tabindex="0" (click)="toggleItem(item); $event.stopPropagation()"
+                (keydown)="onCaretKeydown($event, item)">
                 &#9656;
             </span>
-            <!-- Clicking on the label logs the item details -->
-            <span class="item-label" (click)="logItem(item)">
+            <!-- Item Label: clicking logs the item details; keyboard support is added -->
+            <span class="item-label" tabindex="0" (click)="logItem(item)" (keydown)="onLabelKeydown($event, item)">
                 {{ item.label }}
             </span>
         </div>
 
-        <!-- Recursively render children if the item is expanded -->
-        <div class="accordion-children" *ngIf="item.isOpen && item.children && item.children.length">
-            <app-multilevel-accordion [items]="item.children" [parentPath]="parentPath ? parentPath + '|' + (pathMode === 'id' ? item.id : item.label) 
-                                      : (pathMode === 'id' ? item.id : item.label)" [pathMode]="pathMode"
-                [isSearchItemVisible]="false"> <!-- Only show search box on top-level -->
+        <!-- Render children recursively if the item is expanded.
+           Note: No animations are applied now. -->
+        <div class="accordion-children" *ngIf="item.isOpen && item.children && item.children.length" role="group">
+            <app-multilevel-accordion [items]="item.children"
+                [parentPath]="parentPath ? parentPath + '|' + (pathMode === 'id' ? item.id : item.label) : (pathMode === 'id' ? item.id : item.label)"
+                [pathMode]="pathMode" [isSearchItemVisible]="false">
             </app-multilevel-accordion>
         </div>
     </div>

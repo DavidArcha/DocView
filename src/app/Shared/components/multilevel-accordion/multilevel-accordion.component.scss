@@ -1,23 +1,35 @@
+/* Container styling with a left border for visual separation */
 .accordion-container {
     border-left: 1px solid #ccc;
     margin-left: 1rem;
     padding-left: 1rem;
 }
 
+/* Search box styling with a clear button */
 .search-box {
     margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .search-box input {
-    width: 100%;
+    flex: 1;
     padding: 0.5rem;
     font-size: 1rem;
 }
 
+.search-box button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Spacing between accordion items */
 .accordion-item {
     margin: 0.25rem 0;
 }
 
+/* Header styling: flex layout with background and border */
 .accordion-header {
     display: flex;
     align-items: center;
@@ -27,22 +39,43 @@
     border-radius: 4px;
 }
 
+/* Caret styling:
+     - Rotates 90° when expanded
+     - Transition for a smooth rotation effect */
 .caret {
     margin-right: 0.5rem;
     font-size: 0.8rem;
     transition: transform 0.2s ease-in-out;
+    outline: none;
 }
 
-/* Rotate the icon 90 degrees when expanded */
 .expanded {
     transform: rotate(90deg);
 }
 
+/* Item label styling with pointer cursor and keyboard focus support */
 .item-label {
     font-weight: 600;
     cursor: pointer;
+    outline: none;
 }
 
+/* Responsive design: adjust padding and font sizes for smaller screens */
+@media (max-width: 600px) {
+    .accordion-header {
+        padding: 0.4rem;
+    }
+
+    .item-label {
+        font-size: 0.9rem;
+    }
+
+    .caret {
+        font-size: 0.7rem;
+    }
+}
+
+/* Spacing for nested children */
 .accordion-children {
     margin-top: 0.25rem;
 }
