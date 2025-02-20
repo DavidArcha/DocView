@@ -1,14 +1,28 @@
 <div class="accordion-container">
-    <!-- Global loader for the entire accordion -->
-    <div *ngIf="isLoading" class="global-loading">
-        <span class="spinner"></span>
-        <span>Loading Accordion...</span>
+    <!-- Only show the search box at the top level if the flag is enabled -->
+    <div *ngIf="!parentPath && isSearchItemVisible" class="search-box">
+        <input type="text" placeholder="Search item" [(ngModel)]="searchTerm" />
     </div>
 
-    <!-- Render the accordion when data is loaded -->
-    <ng-container *ngIf="!isLoading">
-        <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
-            (fieldSelected)="onFieldSelected($event)">
-        </app-accordion-section>
-    </ng-container>
+    <div class="accordion-item" *ngFor="let item of displayedItems">
+        <div class="accordion-header">
+            <!-- Display icon only if the item has children -->
+            <span *ngIf="item.children && item.children.length" class="caret" [class.expanded]="item.isOpen"
+                (click)="toggleItem(item); $event.stopPropagation();">
+                &#9656;
+            </span>
+            <!-- Clicking on the label logs the item details -->
+            <span class="item-label" (click)="logItem(item)">
+                {{ item.label }}
+            </span>
+        </div>
+
+        <!-- Recursively render children if the item is expanded -->
+        <div class="accordion-children" *ngIf="item.isOpen && item.children && item.children.length">
+            <app-multilevel-accordion [items]="item.children" [parentPath]="parentPath ? parentPath + '|' + (pathMode === 'id' ? item.id : item.label) 
+                                      : (pathMode === 'id' ? item.id : item.label)" [pathMode]="pathMode"
+                [isSearchItemVisible]="false"> <!-- Only show search box on top-level -->
+            </app-multilevel-accordion>
+        </div>
+    </div>
 </div>
