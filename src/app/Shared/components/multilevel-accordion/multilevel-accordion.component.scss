@@ -1,11 +1,9 @@
-/* Container styling with a left border for visual separation */
 .accordion-container {
     border-left: 1px solid #ccc;
     margin-left: 1rem;
     padding-left: 1rem;
 }
 
-/* Search box styling with a clear button */
 .search-box {
     margin-bottom: 1rem;
     display: flex;
@@ -24,12 +22,10 @@
     cursor: pointer;
 }
 
-/* Spacing between accordion items */
 .accordion-item {
     margin: 0.25rem 0;
 }
 
-/* Header styling: flex layout with background and border */
 .accordion-header {
     display: flex;
     align-items: center;
@@ -37,11 +33,13 @@
     background-color: #f7f7f7;
     border: 1px solid #ddd;
     border-radius: 4px;
+    transition: background-color 0.2s ease;
 }
 
-/* Caret styling:
-     - Rotates 90° when expanded
-     - Transition for a smooth rotation effect */
+.accordion-header:hover {
+    background-color: #f0f0f0;
+}
+
 .caret {
     margin-right: 0.5rem;
     font-size: 0.8rem;
@@ -49,33 +47,23 @@
     outline: none;
 }
 
-.expanded {
+.caret.expanded {
     transform: rotate(90deg);
 }
 
-/* Item label styling with pointer cursor and keyboard focus support */
 .item-label {
     font-weight: 600;
     cursor: pointer;
     outline: none;
+    padding: 0.2rem 0.5rem;
+    transition: background-color 0.2s ease;
 }
 
-/* Responsive design: adjust padding and font sizes for smaller screens */
-@media (max-width: 600px) {
-    .accordion-header {
-        padding: 0.4rem;
-    }
-
-    .item-label {
-        font-size: 0.9rem;
-    }
-
-    .caret {
-        font-size: 0.7rem;
-    }
+/* The 'selected' class highlights the chosen item */
+.item-label.selected {
+    background-color: #d0d0d0;
 }
 
-/* Spacing for nested children */
 .accordion-children {
     margin-top: 0.25rem;
 }

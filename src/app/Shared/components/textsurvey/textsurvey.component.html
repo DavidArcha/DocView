@@ -1,1 +1,3 @@
-<app-multilevel-accordion [items]="accordionData" [isSearchItemVisible]="true"></app-multilevel-accordion>
+<app-multilevel-accordion [items]="accordionData" [parentKey]="''" [pathMode]="'label'" [isSearchItemVisible]="true"
+    [selectedItemId]="selectedItemKey" (selectedItemChange)="selectedItemKey = $event">
+</app-multilevel-accordion>

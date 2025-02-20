@@ -21,6 +21,8 @@ export class TextsurveyComponent implements OnInit {
   selectedLanguage: string = 'de'; // default language
 
   accordionData: AccordionItem[] = [];
+  // Store the selected unique key here
+  selectedItemKey: string | null = null;
 
 
   constructor(

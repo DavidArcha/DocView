@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { AccordionSection } from '../../common/accordion-section.model';
 import { accordionDataTypes } from '../../common/accordian';
 import { delay, Observable, of } from 'rxjs';
@@ -15,82 +15,118 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MultilevelAccordionComponent {
-  // The accordion data
+  // The array of items for this level of the accordion
   @Input() items: AccordionItem[] = [];
-  // Parent path string to build the full path (for nested accordions)
-  @Input() parentPath: string = '';
-  // Choose whether the path is built using the item's id or label
+
+  /**
+   * The unique key of the parent item. For the top-level accordion, this is an empty string.
+   * For nested accordions, it's the concatenation of all ancestor keys.
+   */
+  @Input() parentKey: string = '';
+
+  /**
+   * Determines whether we build our path/keys using the item.id or the item.label.
+   * - 'id':  use item.id
+   * - 'label': use item.label
+   */
   @Input() pathMode: 'id' | 'label' = 'label';
-  // Controls the visibility of the search textbox at the top level
+
+  // Whether the search box is visible (only at the top level)
   @Input() isSearchItemVisible: boolean = false;
 
-  // Search term entered by the user
+  /**
+   * The unique key of the currently selected item (only one item can be selected at a time).
+   * This is passed down recursively to child accordions so they know which item is selected overall.
+   */
+  @Input() selectedItemId: string | null = null;
+
+  // Emitted when the user selects (clicks on) a different item
+  @Output() selectedItemChange: EventEmitter<string> = new EventEmitter<string>();
+
+  // The text entered by the user in the search box
   searchTerm: string = '';
 
-  // Toggle the expansion state when the caret icon is clicked.
-  // This is only used for items that have children.
+  /**
+   * Builds a unique key for the given item by combining the parentKey and
+   * either the item's id or label (depending on pathMode).
+   */
+  getUniqueKey(item: AccordionItem): string {
+    // Base part of the key is either the item's id or label
+    const base = (this.pathMode === 'id') ? item.id : item.label;
+    // If there's a parentKey, join it with the base. Otherwise, just use the base.
+    return this.parentKey ? `${this.parentKey}|${base}` : base;
+  }
+
+  /**
+   * Toggles the expansion (open/close) of an item when its caret is clicked.
+   */
   toggleItem(item: AccordionItem): void {
     item.isOpen = !item.isOpen;
   }
 
-  // Log the item details (id, label, and computed path) when the label is clicked.
+  /**
+   * Logs the item details and selects it (highlighting it).
+   * We use the unique key rather than just item.id, so only one item can be highlighted.
+   */
   logItem(item: AccordionItem): void {
-    const currentValue = this.pathMode === 'id' ? item.id : item.label;
-    const fullPath = this.parentPath ? `${this.parentPath}|${currentValue}` : currentValue;
-    console.log({ id: item.id, label: item.label, path: fullPath });
+    const uniqueKey = this.getUniqueKey(item);
+    console.log({
+      id: item.id,
+      label: item.label,
+      uniqueKey
+    });
+    // Mark this item as selected
+    this.selectedItemId = uniqueKey;
+    // Notify any parent component that a new item is selected
+    this.selectedItemChange.emit(uniqueKey);
   }
 
-  // Recursively filter items based on the search term.
-  // This logic is kept inside the component for modularity,
-  // but it can be extracted into a separate service if needed.
+  /**
+   * Recursively filters items based on the search term (case-insensitive).
+   * If there's no search term, we return the full list.
+   */
   filterItems(items: AccordionItem[], term: string): AccordionItem[] {
     if (!term) return items;
-    try {
-      return items.reduce((acc: AccordionItem[], item: AccordionItem) => {
-        const lowerTerm = term.toLowerCase();
-        // Filter children recursively
-        const filteredChildren = this.filterItems(item.children, term);
-        // Check if current item's label contains the search term
-        const isMatch = item.label.toLowerCase().includes(lowerTerm);
-        // Include the item if it matches or if any of its children match.
-        if (isMatch || filteredChildren.length > 0) {
-          const newItem: AccordionItem = {
-            ...item,
-            children: filteredChildren,
-            // Auto-expand if there are matching children
-            isOpen: filteredChildren.length > 0
-          };
-          acc.push(newItem);
-        }
-        return acc;
-      }, []);
-    } catch (error) {
-      console.error('Error filtering items:', error);
-      return [];
-    }
+    const lowerTerm = term.toLowerCase();
+    return items.reduce((acc: AccordionItem[], item: AccordionItem) => {
+      const filteredChildren = this.filterItems(item.children, term);
+      const isMatch = item.label.toLowerCase().includes(lowerTerm);
+      if (isMatch || filteredChildren.length > 0) {
+        acc.push({
+          ...item,
+          children: filteredChildren,
+          // Expand if children match
+          isOpen: filteredChildren.length > 0
+        });
+      }
+      return acc;
+    }, []);
   }
 
-  // Return filtered items if a search term is provided; otherwise, return the original items.
+  /**
+   * The items displayed in the template (either the full list or filtered by the searchTerm).
+   */
   get displayedItems(): AccordionItem[] {
     return this.searchTerm ? this.filterItems(this.items, this.searchTerm) : this.items;
   }
 
-  // Clear the search term (used by the clear button).
+  // Clears the search box
   clearSearch(): void {
     this.searchTerm = '';
   }
 
-  // Since color highlighting is not required, we simply return the label.
-  getLabel(label: string): string {
-    return label;
-  }
-
-  // trackBy function for improved performance in ngFor loops.
+  /**
+   * trackBy function for improved performance in *ngFor loops
+   */
   trackByFn(index: number, item: AccordionItem): string {
+    // We can just return item.id or this.getUniqueKey(item).
+    // For large data sets, this helps Angular minimize re-renders.
     return item.id;
   }
 
-  // Enable keyboard support for the caret icon: toggle on Enter or Space.
+  /**
+   * Keyboard support for caret icon: toggle expansion on Enter or Space.
+   */
   onCaretKeydown(event: KeyboardEvent, item: AccordionItem): void {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -98,7 +134,9 @@ export class MultilevelAccordionComponent {
     }
   }
 
-  // Enable keyboard support for the label: log details on Enter or Space.
+  /**
+   * Keyboard support for label: select (log) the item on Enter or Space.
+   */
   onLabelKeydown(event: KeyboardEvent, item: AccordionItem): void {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
