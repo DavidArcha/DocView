@@ -59,7 +59,7 @@ export class SimpleSearchComponent implements OnInit {
   private _showGroupDataOutside: boolean = false;
 
   public savedGroupFields = searchGroupFields;
-  
+
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
@@ -75,14 +75,14 @@ export class SimpleSearchComponent implements OnInit {
 
     this.languageService.language$.subscribe(lang => {
       this.selectedLanguage = lang;
-      // this.loadSystemFieldsByLang(lang);
+      this.loadAccordionData(this.selectedLanguage);
     });
 
     this.searchService.getDropdownData().subscribe(data => {
       this.dropdownData = data;
     });
 
-    this.loadAccordionData();
+    this.loadAccordionData(this.selectedLanguage);
 
     // Load table data from localStorage if available
     const stored = localStorage.getItem('selectedFields');
@@ -105,19 +105,23 @@ export class SimpleSearchComponent implements OnInit {
       next: (fields) => {
         if (fields.length > 0) {
           this.systemFields = fields;
+          this.isLoading = false;
           this.changeDtr.detectChanges(); // Trigger change detection
         }
       },
       error: console.error
     });
   }
-
-  loadAccordionData(): void {
-    this.isLoading = true;
-    const data: AccordionSection[] = accordionDataTypes;
-    of(data).pipe(delay(1500)).subscribe(sections => {
-      this.sections = sections;
-      this.isLoading = false;
+  loadAccordionData(lang: string): void {
+    this.searchService.getAccordionFields(lang).subscribe({
+      next: (fields) => {
+        if (fields.length > 0) {
+          this.sections = fields;
+          this.isLoading = false;
+          this.changeDtr.detectChanges(); // Trigger change detection
+        }
+      },
+      error: console.error
     });
   }
 
