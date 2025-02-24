@@ -60,7 +60,7 @@ export class SavedGroupAccordionComponent implements OnInit {
     event.preventDefault();
     console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
-    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    this.contextMenuPosition = { x: event.clientX-100, y: event.clientY-100 };
     console.log('Context menu position set to:', this.contextMenuPosition);
     this.selectedFieldGroup = fieldGroup;
   }

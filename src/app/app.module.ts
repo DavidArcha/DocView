@@ -32,6 +32,7 @@ import { VgControlsModule } from '@videogular/ngx-videogular/controls';
 import { VgOverlayPlayModule } from '@videogular/ngx-videogular/overlay-play';
 import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { TestingLevelComponent } from './Shared/components/testing-level/testing-level.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     SavedGroupAccordionComponent,
     TextsurveyComponent,
     QueryTableComponent,
-    VideoPlayerComponent
+    VideoPlayerComponent,
+    TestingLevelComponent
   ],
   imports: [
     BrowserModule,
