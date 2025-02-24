@@ -1,0 +1,50 @@
+<div class="dropdown-container">
+    <!-- Dropdown Button -->
+    <button class="dropdown-toggle" (click)="toggleDropdown()">
+        {{ selectedOption }}
+        <span class="arrow" [ngClass]="{ 'open': isOpen }"></span>
+    </button>
+
+    <!-- Dropdown Content -->
+    <div *ngIf="isOpen" class="dropdown-content">
+        <!-- Search Box -->
+        <div class="search-container">
+            <input type="text" placeholder="Search" [(ngModel)]="searchTerm" (input)="updateSearch()"
+                class="search-box" />
+        </div>
+
+        <!-- List View with Multi-Select -->
+        <ul *ngIf="view === 'list'" class="list-view">
+            <li *ngFor="let item of filteredData" class="list-item"
+                [class.selected]="selectedOptions.includes(item.label)" (click)="selectOption(item)">
+                <span *ngIf="multiSelect">
+                    <input type="checkbox" [checked]="selectedOptions.includes(item.label)" />
+                </span>
+                {{ item.label }}
+            </li>
+        </ul>
+
+        <!-- Table View with Multi-Select -->
+        <table *ngIf="view === 'table'" class="table-view">
+            <thead>
+                <tr>
+                    <th *ngIf="multiSelect">Select</th>
+                    <th>Label</th>
+                    <th>Column 1</th>
+                    <th>Column 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of tableData">
+                    <td *ngIf="multiSelect">
+                        <input type="checkbox" [checked]="selectedOptions.includes(item.label)"
+                            (change)="selectOption(item)" />
+                    </td>
+                    <td>{{ item.label }}</td>
+                    <td>{{ item.column1 }}</td>
+                    <td>{{ item.column2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

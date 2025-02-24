@@ -1,0 +1,90 @@
+.dropdown-container {
+    position: relative;
+    width: 250px;
+    border: 1px solid green;
+}
+
+.dropdown-toggle {
+    width: 100%;
+    padding: 10px;
+    background-color: white;
+    border: 1px solid black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.arrow {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid black;
+    transition: transform 0.3s ease;
+    margin-left: auto;
+}
+
+.arrow.open {
+    transform: rotate(180deg);
+}
+
+.dropdown-content {
+    position: absolute;
+    width: 100%;
+    max-width: 250px; // ✅ Prevent horizontal overflow
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.list-view {
+    list-style-type: none; // ✅ Remove bullets
+    padding: 0;
+    margin: 0;
+}
+
+.list-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+}
+
+.list-item:hover {
+    background-color: #f0f0f0;
+}
+
+.list-item.selected {
+    background-color: lightblue;
+    font-weight: bold;
+}
+
+
+.list-item input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Fix Search Box */
+.search-box {
+    width: calc(100% - 10px); // ✅ Fix width overflow issue
+    padding: 8px;
+    border: 1px solid #ccc;
+    margin: 5px;
+}
+
+.table-view th,
+.table-view td {
+    padding: 8px;
+    border: 1px solid black;
+    text-align: left;
+}
+
+.table-view th {
+    background-color: #f2f2f2;
+}

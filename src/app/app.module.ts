@@ -33,6 +33,7 @@ import { VgOverlayPlayModule } from '@videogular/ngx-videogular/overlay-play';
 import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TestingLevelComponent } from './Shared/components/testing-level/testing-level.component';
+import { TableDropdownComponent } from './Shared/components/table-dropdown/table-dropdown.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +53,8 @@ import { TestingLevelComponent } from './Shared/components/testing-level/testing
     TextsurveyComponent,
     QueryTableComponent,
     VideoPlayerComponent,
-    TestingLevelComponent
+    TestingLevelComponent,
+    TableDropdownComponent
   ],
   imports: [
     BrowserModule,

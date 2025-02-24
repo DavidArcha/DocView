@@ -5,6 +5,8 @@ import { LanguageService } from '../../services/language.service';
 import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 import { DualOperators, NoValueOperators, OperatorType } from '../../enums/operator-types.enum';
+import { listDropdownData } from '../../common/list-dropdown';
+import { tableDropdownData } from '../../common/table-dropdown';
 
 @Component({
   selector: 'app-testing-level',
@@ -23,6 +25,9 @@ export class TestingLevelComponent {
   // **Optimized Data Structure for Fast Lookups**
   private labelMap: Map<string, string> = new Map();
   dropdownData: any;
+
+  listData = listDropdownData;
+  tableData = tableDropdownData;
 
   constructor(
     private searchService: SearchService,
