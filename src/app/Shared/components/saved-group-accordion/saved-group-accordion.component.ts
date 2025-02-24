@@ -8,11 +8,8 @@ import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 })
 export class SavedGroupAccordionComponent implements OnInit {
   @Input() groups: any[] = [];
-  // Receive the currently selected field from the parent
   @Input() selectedField: any = null;
-  // Emit when a field is clicked in the accordion
   @Output() fieldSelected = new EventEmitter<any>();
-  // Optional: emit when a field group title is clicked
   @Output() groupFieldTitleClicked = new EventEmitter<any>();
 
   expandedGroups: Set<string> = new Set();
@@ -26,32 +23,31 @@ export class SavedGroupAccordionComponent implements OnInit {
     this.restoreState();
   }
 
-  toggleGroup(groupTitle: string) {
-    if (this.expandedGroups.has(groupTitle)) {
-      this.expandedGroups.delete(groupTitle);
+  toggleGroup(groupId: string) {
+    if (this.expandedGroups.has(groupId)) {
+      this.expandedGroups.delete(groupId);
     } else {
-      this.expandedGroups.add(groupTitle);
+      this.expandedGroups.add(groupId);
     }
     this.saveState();
   }
 
-  toggleField(fieldGroupTitle: string) {
-    if (this.expandedFields.has(fieldGroupTitle)) {
-      this.expandedFields.delete(fieldGroupTitle);
+  toggleField(fieldGroupId: string) {
+    if (this.expandedFields.has(fieldGroupId)) {
+      this.expandedFields.delete(fieldGroupId);
     } else {
-      this.expandedFields.add(fieldGroupTitle);
+      this.expandedFields.add(fieldGroupId);
     }
     this.saveState();
   }
 
-  // When a field title is clicked, notify the parent
   onFieldClick(field: any, event: Event): void {
     event.preventDefault();
     this.selectedField = field;
     this.fieldSelected.emit(field);
     this.saveState();
   }
-  // Optionally, when a group field title is clicked
+
   onGroupFieldTitleClick(fieldGroup: any, event: Event): void {
     event.preventDefault();
     this.groupFieldTitleClicked.emit(fieldGroup.fields);
@@ -67,31 +63,29 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   onEditGroupFieldTitle() {
     if (this.selectedFieldGroup) {
-      console.log('Edit Group Field Title:', this.selectedFieldGroup.title);
+      console.log('Edit Group Field Title:', this.selectedFieldGroup.title.title);
     }
     this.contextMenuVisible = false;
   }
 
   onDeleteGroupFieldTitle() {
     if (this.selectedFieldGroup) {
-      console.log('Delete Group Field Title:', this.selectedFieldGroup.title);
+      console.log('Delete Group Field Title:', this.selectedFieldGroup.title.title);
     }
     this.contextMenuVisible = false;
   }
 
   onGroupRightClick(event: MouseEvent, group: any) {
     event.preventDefault();
-    console.log('Right-click on:', group.title);
+    console.log('Right-click on:', group.groupTitle.title);
   }
 
-  // Save the current state (expanded groups, expanded fields, selected field) to localStorage
   saveState() {
     const state = {
       expandedGroups: Array.from(this.expandedGroups),
       expandedFields: Array.from(this.expandedFields),
       selectedField: this.selectedField
         ? {
-          // If needed, store just enough to identify it, e.g. field name
           field: this.selectedField.field,
           operator: this.selectedField.operator
         }
@@ -100,7 +94,6 @@ export class SavedGroupAccordionComponent implements OnInit {
     localStorage.setItem('savedAccordionState', JSON.stringify(state));
   }
 
-  // Restore from localStorage
   restoreState() {
     const stored = localStorage.getItem('savedAccordionState');
     if (stored) {
@@ -113,7 +106,6 @@ export class SavedGroupAccordionComponent implements OnInit {
           this.expandedFields = new Set<string>(parsed.expandedFields);
         }
         if (parsed.selectedField) {
-          // Re-match the actual field object, or store as-is if you only need the highlight
           this.selectedField = this.findFieldObject(parsed.selectedField);
         }
       } catch (err) {
@@ -122,9 +114,6 @@ export class SavedGroupAccordionComponent implements OnInit {
     }
   }
 
-  // (Optional) If you need the *exact* field object from your array, 
-  // do a lookup in `groups` to find it. 
-  // For example:
   findFieldObject(savedField: { field: string; operator: string }): any {
     for (const g of this.groups) {
       for (const fg of g.groupFields) {
@@ -135,7 +124,6 @@ export class SavedGroupAccordionComponent implements OnInit {
         }
       }
     }
-    // If not found, just return the raw object
     return savedField;
   }
 
