@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, HostListener, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-saved-group-accordion',
@@ -18,6 +18,8 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   contextMenuVisible: boolean = false;
   contextMenuPosition = { x: 0, y: 0 };
+
+  constructor(private elementRef: ElementRef) {}
 
   ngOnInit() {
     this.restoreState();
@@ -56,8 +58,10 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   onGroupFieldTitleRightClick(event: MouseEvent, fieldGroup: any) {
     event.preventDefault();
+    console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
     this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    console.log('Context menu position set to:', this.contextMenuPosition);
     this.selectedFieldGroup = fieldGroup;
   }
 
@@ -130,5 +134,21 @@ export class SavedGroupAccordionComponent implements OnInit {
   clearSelectedField(): void {
     this.selectedField = null;
     this.saveState();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.contextMenuVisible) {
+      console.log('Document click detected, hiding context menu');
+      this.contextMenuVisible = false;
+    }
+  }
+
+  @HostListener('document:contextmenu', ['$event'])
+  onDocumentRightClick(event: MouseEvent) {
+    if (this.contextMenuVisible && !this.elementRef.nativeElement.contains(event.target)) {
+      console.log('Document right-click detected, hiding context menu');
+      this.contextMenuVisible = false;
+    }
   }
 }
