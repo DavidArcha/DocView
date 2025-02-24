@@ -39,9 +39,9 @@ export class TableDropdownComponent {
       }
       this.selectedOption = this.selectedOptions.length > 0 ? this.selectedOptions.join(', ') : 'Select Options....';
     } else {
-      this.selectedOption = option.label; // ✅ Fix: Update selectedOption on single selection
+      this.selectedOption = option.label; // ✅ Fix: Update selected option in single selection
       this.selectedOptions = [option.label];
-      this.isOpen = false; // ✅ Fix: Close dropdown on single select
+      this.isOpen = false; // ✅ Close dropdown on single select
     }
     this.cd.detectChanges(); // ✅ Ensure UI updates correctly
   }

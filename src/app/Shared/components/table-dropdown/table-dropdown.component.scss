@@ -78,13 +78,30 @@
     margin: 5px;
 }
 
+/* Table Styling */
+.table-view {
+    width: 100%;
+    border-collapse: collapse;
+}
+
 .table-view th,
 .table-view td {
-    padding: 8px;
+    padding: 10px;
     border: 1px solid black;
     text-align: left;
 }
 
 .table-view th {
     background-color: #f2f2f2;
+}
+
+/* Highlight selected row */
+.table-view .selected {
+    background-color: lightblue;
+    font-weight: bold;
+}
+
+/* Checkbox alignment */
+.table-view input[type="checkbox"] {
+    margin-right: 8px;
 }
