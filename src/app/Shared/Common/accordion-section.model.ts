@@ -1,5 +1,5 @@
 export interface AccordionSection {
-    title: string;
-    fields: string[];
-    subsections: AccordionSection[];
-  }
+  id: string;
+  label: string;
+  children: AccordionSection[];
+}

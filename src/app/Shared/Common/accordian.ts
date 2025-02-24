@@ -1,6 +1,5 @@
 export const accordionDataTypes =
   [
-    { id: 'w', label: 'world', children: [] },
     {
       id: 'system_fields', label: 'System Fields', children: [
         { id: 'copy', label: 'Copy', children: [] },
