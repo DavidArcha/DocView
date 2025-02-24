@@ -14,7 +14,6 @@ export const tableDropdownData =
         { id: 'division-1', label: 'Devision-1',column1:'Devision-1-C1',column2:'Devision-1-C2' },
         { id: 'input', label: 'Input',column1:'Input-C1',column2:'Input-C2' },
         { id: 'division-2', label: 'Devision-2',column1:'Devision-2-C1',column2:'Devision-2-C2' },
-        { id: 'visual', label: 'Visual',column1:'Visual-C1',column2:'Visual-C2' },
         { id: 'brand', label: 'Brand',column1:'Brand-C1',column2:'Brand-C2' },
         { id: 'description', label: 'Description',column1:'Description-C1',column2:'Description-C2' },
         { id: 'category', label: 'Category',column1:'Category-C1',column2:'Category-C2' },

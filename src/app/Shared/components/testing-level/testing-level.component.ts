@@ -26,9 +26,6 @@ export class TestingLevelComponent {
   private labelMap: Map<string, string> = new Map();
   dropdownData: any;
 
-  listData = listDropdownData;
-  tableData = tableDropdownData;
-
   constructor(
     private searchService: SearchService,
     private changeDtr: ChangeDetectorRef,

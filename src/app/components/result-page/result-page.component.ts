@@ -64,6 +64,8 @@ export class ResultPageComponent implements OnInit {
         newComponent = 'SimpleSearch';
       }else if (secondSegment === 'Test') {
         newComponent = 'Test';
+      }else if (secondSegment === 'TestDD') {
+        newComponent = 'TestDD';
       }
     }
     // This call now restores collapse state on refresh if needed.
@@ -79,6 +81,8 @@ export class ResultPageComponent implements OnInit {
         updatedComponent = 'SimpleSearch';
       } else if (pathSegment === 'Test') {
         updatedComponent = 'Test';
+      } else if (pathSegment === 'TestDD') {
+        updatedComponent = 'TestDD';
       }
       if (updatedComponent !== this.selectedComponent) {
         this.displayComponent(updatedComponent);

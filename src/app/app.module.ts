@@ -34,6 +34,7 @@ import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TestingLevelComponent } from './Shared/components/testing-level/testing-level.component';
 import { TableDropdownComponent } from './Shared/components/table-dropdown/table-dropdown.component';
+import { TestingDropdownComponent } from './Shared/components/testing-dropdown/testing-dropdown.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +55,8 @@ import { TableDropdownComponent } from './Shared/components/table-dropdown/table
     QueryTableComponent,
     VideoPlayerComponent,
     TestingLevelComponent,
-    TableDropdownComponent
+    TableDropdownComponent,
+    TestingDropdownComponent
   ],
   imports: [
     BrowserModule,

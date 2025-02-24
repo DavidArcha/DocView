@@ -72,7 +72,7 @@
 
 /* Fix Search Box */
 .search-box {
-    width: calc(100% - 10px); // ✅ Fix width overflow issue
+    width: calc(100% - 30px); // ✅ Fix width overflow issue
     padding: 8px;
     border: 1px solid #ccc;
     margin: 5px;

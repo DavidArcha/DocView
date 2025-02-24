@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { ListItem, TableItem } from '../../interfaces/table-dropdown.interface';
+import { DropdownService } from '../../services/dropdown.service';
 
 @Component({
   selector: 'app-table-dropdown',
@@ -13,6 +14,7 @@ export class TableDropdownComponent {
   @Input() data: ListItem[] | TableItem[] = [];
   @Input() view: 'list' | 'table' = 'list';
   @Input() multiSelect: boolean = false; // ✅ Multi-Select Toggle
+  @Input() preselected?: ListItem; // ✅ Preselect an item
 
   isOpen = false;
   searchTerm = '';
@@ -20,10 +22,20 @@ export class TableDropdownComponent {
   selectedOption: string = 'Select Options....'; // ✅ Single selection value
   filteredData: ListItem[] = [];
 
-  constructor(private cd: ChangeDetectorRef) { }
+  @Output() selectedValueChange = new EventEmitter<ListItem | ListItem[]>();
+
+  constructor(private cd: ChangeDetectorRef,private dropdownService: DropdownService,) { }
 
   ngOnInit() {
     this.filteredData = this.data;
+
+    // ✅ Prepopulate the dropdown with the preselected value
+    if (this.preselected) {
+      this.selectedOptions = [this.preselected.label];
+      this.selectedOption = this.preselected.label;
+      // ✅ Emit the initial preselected value
+      this.selectedValueChange.emit(this.preselected);
+    }
   }
 
   toggleDropdown() {
@@ -37,13 +49,19 @@ export class TableDropdownComponent {
       } else {
         this.selectedOptions.push(option.label);
       }
-      this.selectedOption = this.selectedOptions.length > 0 ? this.selectedOptions.join(', ') : 'Select Options....';
+
+      // ✅ Emit the multi-selected values
+      const selectedObjects = this.data.filter(item => this.selectedOptions.includes(item.label));
+      this.selectedValueChange.emit(selectedObjects);
     } else {
-      this.selectedOption = option.label; // ✅ Fix: Update selected option in single selection
       this.selectedOptions = [option.label];
-      this.isOpen = false; // ✅ Close dropdown on single select
+      this.selectedOption = option.label;
+      this.isOpen = false;
+
+      // ✅ Emit the single selected value
+      this.selectedValueChange.emit(option);
     }
-    this.cd.detectChanges(); // ✅ Ensure UI updates correctly
+    this.cd.detectChanges();
   }
 
   updateSearch() {

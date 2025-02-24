@@ -20,7 +20,8 @@ export class SideNavbarComponent {
     { icon: 'resultpage', route: '/resultpage', tooltip: 'Results' },
     { icon: 'SS', route: '/resultpage/SimpleSearch', tooltip: 'Simple Search' },
     { icon: 'TS', route: '/resultpage/TextSurvey', tooltip: 'Text Survey' },
-    { icon: 'TC', route: '/resultpage/Test', tooltip: 'Test Component' }
+    { icon: 'TC', route: '/resultpage/Test', tooltip: 'Test Component' },
+    { icon: 'TDD', route: '/resultpage/TestDD', tooltip: 'Test Component' }
   ];
 
   activeRoute: string = '';

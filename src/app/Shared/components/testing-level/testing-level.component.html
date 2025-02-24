@@ -7,14 +7,3 @@
 <app-query-table [selectedFields]="selectedFields" [dropdownData]="dropdownData" [selectedLanguage]="selectedLanguage"
     (operatorChange)="onOperatorChange($event)">
 </app-query-table>
-
-
-<div style="margin-left: 30px;">
-    <h2>Dropdown Component Demo</h2>
-
-    <h3>List View Dropdown</h3>
-    <app-table-dropdown [data]="listData" view="list"></app-table-dropdown>
-
-    <h3>Table View Dropdown</h3>
-    <app-table-dropdown [data]="tableData" view="table"></app-table-dropdown>
-</div>

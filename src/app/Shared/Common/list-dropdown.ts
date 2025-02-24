@@ -14,7 +14,6 @@ export const listDropdownData =
         { id: 'division-1', label: 'Devision-1' },
         { id: 'input', label: 'Input' },
         { id: 'division-2', label: 'Devision-2' },
-        { id: 'visual', label: 'Visual' },
         { id: 'brand', label: 'Brand' },
         { id: 'description', label: 'Description' },
         { id: 'category', label: 'Category' },
