@@ -59,6 +59,7 @@ export class SimpleSearchComponent implements OnInit {
   private _showGroupDataOutside: boolean = false;
 
   public savedGroupFields = searchGroupFields;
+  
   constructor(
     private http: HttpClient,
     private searchService: SearchService,

@@ -1,14 +1,39 @@
-<div class="accordion-container">
-    <!-- Global loader for the entire accordion -->
-    <div *ngIf="isLoading" class="global-loading">
-        <span class="spinner"></span>
-        <span>Loading Accordion...</span>
+<div class="accordion-container" role="tree">
+    <!-- Search box at top-level only -->
+    <div *ngIf="!parentKey && isSearchItemVisible" class="search-box">
+        <input type="text" placeholder="Search item" [(ngModel)]="searchTerm" aria-label="Search accordion items" />
+        <button *ngIf="searchTerm" (click)="clearSearch()" aria-label="Clear search">Clear</button>
     </div>
 
-    <!-- Render the accordion when data is loaded -->
-    <ng-container *ngIf="!isLoading">
-        <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
-            (fieldSelected)="onFieldSelected($event)">
-        </app-accordion-section>
-    </ng-container>
+    <!-- Render each item, computing its uniqueKey -->
+    <div class="accordion-item" *ngFor="let item of displayedItems; trackBy: trackByFn" role="treeitem"
+        [attr.aria-expanded]="item.isOpen">
+
+        <!-- Generate a unique key for the current item -->
+        <ng-container *ngIf="getUniqueKey(item) as uniqueKey">
+
+            <div class="accordion-header" title="{{item.label}}">
+                <!-- Caret icon, shown only if the item has children -->
+                <span *ngIf="item.children?.length" class="caret" [class.expanded]="item.isOpen" tabindex="0"
+                    (click)="toggleItem(item); $event.stopPropagation()" (keydown)="onCaretKeydown($event, item)">
+                    &#9656;
+                </span>
+
+                <!-- Item label, clickable for selection -->
+                <span class="item-label" tabindex="0" (click)="logItem(item)" (keydown)="onLabelKeydown($event, item)"
+                    title="{{item.label}}" [class.selected]="selectedItemId === uniqueKey">
+                    {{ item.label }}
+                </span>
+            </div>
+
+            <!-- Nested children if expanded -->
+            <div class="accordion-children" *ngIf="item.isOpen && item.children?.length" role="group">
+                <app-multilevel-accordion [items]="item.children" [parentKey]="uniqueKey" [pathMode]="pathMode"
+                    [selectedItemId]="selectedItemId" (selectedItemChange)="selectedItemChange.emit($event)"
+                    [isSearchItemVisible]="false">
+                </app-multilevel-accordion>
+            </div>
+
+        </ng-container>
+    </div>
 </div>

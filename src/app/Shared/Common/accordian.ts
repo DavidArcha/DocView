@@ -1,45 +1,55 @@
 export const accordionDataTypes =
   [
+    { id: 'w', label: 'world', children: [] },
     {
-      "title": "System Fields",
-      "fields": ["Copy", "Current", "Edit", "State"],
-      "subsections": []
+      id: 'system_fields', label: 'System Fields', children: [
+        { id: 'copy', label: 'Copy', children: [] },
+        { id: 'current', label: 'Current', children: [] },
+        { id: 'edit', label: 'Edit', children: [] },
+        { id: 'state', label: 'State', children: [] },
+      ]
     },
     {
-      "title": "Data Fields",
-      "fields": ["Date", "User", "Version"],
-      "subsections": []
+      id: 'data_fields', label: 'Data Fields', children: [
+        { id: 'date', label: 'Date', children: [] },
+        { id: 'user', label: 'User', children: [] },
+        { id: 'version', label: 'Version', children: [] },
+      ]
     },
     {
-      "title": "Division",
-      "fields": ["Delete"],
-      "subsections": [
+      id: 'division', label: 'Division', children: [
+        { id: 'delete', label: 'Delete', children: [] },
         {
-          "title": "Devision-1",
-          "fields": ["ID", "Input"],
-          "subsections": []
+          id: 'division-1', label: 'Devision-1', children: [
+            { id: 'id', label: 'ID', children: [] },
+            { id: 'input', label: 'Input', children: [] },
+          ]
         },
         {
-          "title": "Devision-2",
-          "fields": ["Visual", "Brand", "Description"],
-          "subsections": []
+          id: 'division-2', label: 'Devision-2', children: [
+            { id: 'visual', label: 'Visual', children: [] },
+            { id: 'brand', label: 'Brand', children: [] },
+            { id: 'description', label: 'Description', children: [] },
+          ]
         }
       ]
     },
     {
-      "title": "Category",
-      "fields": [],
-      "subsections": [
+      id: 'category', label: 'Category', children: [
         {
-          "title": "SubCat-1",
-          "fields": ["Visual", "Description", "Delete"],
-          "subsections": []
+          id: 'subcat-1', label: 'SubCat-1', children: [
+            { id: 'visual', label: 'Visual', children: [] },
+            { id: 'description', label: 'Description', children: [] },
+            { id: 'delete', label: 'Delete', children: [] },
+          ]
         },
         {
-          "title": "SubCat-2",
-          "fields": ["User", "Copy", "State"],
-          "subsections": []
-        }
+          id: 'subcat-2', label: 'SubCat-2', children: [
+            { id: 'user', label: 'User', children: [] },
+            { id: 'copy', label: 'Copy', children: [] },
+            { id: 'state', label: 'State', children: [] },
+          ]
+        },
       ]
     }
   ]  
