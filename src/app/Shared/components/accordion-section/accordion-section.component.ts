@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { AccordionSection } from '../../common/accordion-section.model';
+import { AccordionItem } from '../../interfaces/accordian-list.interface';
 
 @Component({
   selector: 'app-accordion-section',
@@ -8,9 +9,9 @@ import { AccordionSection } from '../../common/accordion-section.model';
   styleUrls: ['./accordion-section.component.scss']
 })
 export class AccordionSectionComponent implements OnChanges, OnInit {
-  @Input() section!: AccordionSection;
+  @Input() section!: AccordionItem;
   @Input() parentPath: string = '';
-  @Output() fieldSelected = new EventEmitter<{ parent: string, field: string }>();
+  @Output() fieldSelected = new EventEmitter<{ parent: string, field: string, path: string }>();
 
   public isExpanded: boolean = false;
   private storageKey: string = '';
@@ -43,15 +44,12 @@ export class AccordionSectionComponent implements OnChanges, OnInit {
     }
   }
 
-  handleFieldClick(field: string): void {
-    const parentValue = this.parentPath
-      ? `${this.parentPath} > ${this.section.label}`
-      : this.section.label;
-    this.fieldSelected.emit({ parent: parentValue, field });
-    console.log('Field clicked:','Path:', parentValue,'Field:', field);
+  handleFieldClick(fieldId: string) {
+    const fieldPath = this.parentPath ? `${this.parentPath} > ${this.section.id}` : this.section.id;
+    this.fieldSelected.emit({ parent: this.section.id, field: fieldId, path: fieldPath });
   }
 
-  onChildFieldSelected(event: { parent: string, field: string }): void {
+  onChildFieldSelected(event: { parent: string; field: string; path: string }) {
     this.fieldSelected.emit(event);
   }
 }

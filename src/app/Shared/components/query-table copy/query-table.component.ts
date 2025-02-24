@@ -1,8 +1,16 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
-import { SelectedField } from '../../interfaces/selectedFields.interface';
 
+export interface SelectedField {
+  parent: string;
+  field: string;
+  operator: string;
+  operatorOptions: any[];
+  value: any;
+  operatorTouched?: boolean; // Tracks whether the operator dropdown has been interacted with
+  valueTouched?: boolean | boolean[]; // Tracks whether the value control(s) have been touched
+}
 
 @Component({
   selector: 'app-query-table',
@@ -37,7 +45,7 @@ export class QueryTableComponent {
   }
 
   getFieldType(selected: SelectedField): FieldType {
-    return FieldTypeMapping[selected.field.label.toLowerCase()] || FieldType.Text;
+    return FieldTypeMapping[selected.field.toLowerCase()] || FieldType.Text;
   }
 
   getValueControl(selected: SelectedField): any {
@@ -54,7 +62,7 @@ export class QueryTableComponent {
     control.dual = DualOperators.includes(selected.operator as OperatorType);
     control.show = true;
 
-    if (!control.dual && fieldType === FieldType.Text && selected.field.label.toLowerCase() === 'brand') {
+    if (!control.dual && fieldType === FieldType.Text && selected.field.toLowerCase() === 'brand') {
       control.type = FieldType.Dropdown;
       control.options = this.dropdownData.brandValues;
     } else {

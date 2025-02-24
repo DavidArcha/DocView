@@ -10,18 +10,12 @@ import { searchGroupFields } from '../../common/search_groupfields';
 import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
 import { SavedGroupAccordionComponent } from '../saved-group-accordion/saved-group-accordion.component';
+import { AccordionItem } from '../../interfaces/accordian-list.interface';
+import { SelectedField } from '../../interfaces/selectedFields.interface';
 
 interface SystemField {
   id: number;
   fieldName: string;
-}
-
-interface SelectedField {
-  parent: string;
-  field: string;
-  operator: string;
-  operatorOptions: any[];
-  value: any;
 }
 
 interface SearchField {
@@ -130,19 +124,36 @@ export class SimpleSearchComponent implements OnInit {
      * Here we pre-select the operator using the first operator option (if any)
      * and then also pre-populate the value column based on that default operator.
      */
-  onFieldSelected(event: { parent: string, field: string }): void {
+  onFieldSelected(event: { parent: string; field: string; path: string }): void {
+    // Find labels for parent and field
+    const parentLabel = this.getLabelById(event.parent, this.sections);
+    const fieldLabel = this.getLabelById(event.field, this.sections);
     const operatorOptions = this.getOperatorOptions(event.field);
     const defaultOperator = '';
     const defaultValue = null;
-    // Always add a new field, even if it is a duplicate.
-    this.selectedFields.push({
-      parent: event.parent,
-      field: event.field,
-      operator: defaultOperator,
-      operatorOptions: operatorOptions,
-      value: defaultValue
-    });
+
+    if (parentLabel && fieldLabel) {
+      // Replace ID-based data with label-based data. // Always add a new field, even if it is a duplicate.
+      this.selectedFields.push({
+        parent: { id: event.parent, label: parentLabel },
+        field: { id: event.field, label: fieldLabel },
+        operator: defaultOperator,
+        operatorOptions: operatorOptions,
+        value: defaultValue
+      });
+    }
     this.updateLocalStorage();
+  }
+
+  getLabelById(id: string, sections: AccordionItem[]): string | null {
+    for (const section of sections) {
+      if (section.id === id) return section.label;
+      if (section.children && section.children.length > 0) {
+        const foundLabel = this.getLabelById(id, section.children);
+        if (foundLabel) return foundLabel;
+      }
+    }
+    return null; // Return null if no matching ID is found
   }
 
 
@@ -196,17 +207,17 @@ export class SimpleSearchComponent implements OnInit {
     }
   }
 
-  onSearchSelectedField(selected: { parent: string, field: string, operator: string, operatorOptions: any[], value: any }): void {
-    const dataToSend: SearchField = {
-      parent: selected.parent,
-      field: selected.field,
-      operator: selected.operator,
-      value: this.getDefaultValue(selected.operator, selected.value)
-    };
-    this.resultPageService.sendData([dataToSend]);
+  onSearchSelectedField(event:any): void {
+    // const dataToSend: SearchField = {
+    //   parent: event.parent,
+    //   field: selected.field,
+    //   operator: selected.operator,
+    //   value: this.getDefaultValue(selected.operator, selected.value)
+    // };
+    // this.resultPageService.sendData([dataToSend]);
   }
 
-  getDefaultValue(operator: string, currentValue: any): any {
+  getDefaultValue(operator?: string, currentValue?: any): any {
     if (currentValue !== null && currentValue !== undefined) {
       return currentValue;
     }
@@ -233,13 +244,13 @@ export class SimpleSearchComponent implements OnInit {
   onSavedGroupFieldSelected(event: { parent: string, field: string, operator: string, value: any }): void {
     this.selectedFields = [];
     const operatorOptions = this.getOperatorOptions(event.field);
-    this.selectedFields.push({
-      parent: event.parent,
-      field: event.field,
-      operator: event.operator,
-      operatorOptions: operatorOptions,
-      value: event.value,
-    });
+    // this.selectedFields.push({
+    //   parent: event.parent,
+    //   field: event.field,
+    //   operator: event.operator,
+    //   operatorOptions: operatorOptions,
+    //   value: event.value,
+    // });
     this.updateLocalStorage();
   }
 
