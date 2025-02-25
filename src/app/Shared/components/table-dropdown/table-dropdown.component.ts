@@ -124,6 +124,7 @@ export class TableDropdownComponent {
     this.selectedOption = this.translatedSelectText;
     this.preselected = null; // Reset preselected item
     this.selectedValueChange.emit(this.multiSelect ? [] : undefined);
+    this.closeDropdown()
   }
 
   removeItem(itemLabel: string, event: Event) {
@@ -137,6 +138,7 @@ export class TableDropdownComponent {
     // If no items are left, reset to "Select"
     if (this.selectedOptions.length === 0) {
       this.selectedValueChange.emit([]); // Emit empty selection
+      this.closeDropdown();
     }
   }
 }
