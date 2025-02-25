@@ -24,11 +24,15 @@ export class TableDropdownComponent {
 
   @Output() selectedValueChange = new EventEmitter<ListItem | ListItem[]>();
 
+  dropdownId = Math.random().toString(36).substr(2, 9); // Unique ID
+
   constructor(private cd: ChangeDetectorRef,private dropdownService: DropdownService,) { }
 
   ngOnInit() {
     this.filteredData = this.data;
-
+    this.dropdownService.activeDropdown$.subscribe((id) => {
+      this.isOpen = id === this.dropdownId;
+    });
     // ✅ Prepopulate the dropdown with the preselected value
     if (this.preselected) {
       this.selectedOptions = [this.preselected.label];
@@ -40,6 +44,12 @@ export class TableDropdownComponent {
 
   toggleDropdown() {
     this.isOpen = !this.isOpen;
+    this.dropdownService.setActiveDropdown(this.isOpen ? this.dropdownId : null);
+  }
+
+  closeDropdown() {
+    this.isOpen = false;
+    this.dropdownService.setActiveDropdown(null);
   }
 
   selectOption(option: ListItem) {
@@ -60,6 +70,7 @@ export class TableDropdownComponent {
 
       // ✅ Emit the single selected value
       this.selectedValueChange.emit(option);
+      this.closeDropdown();
     }
     this.cd.detectChanges();
   }

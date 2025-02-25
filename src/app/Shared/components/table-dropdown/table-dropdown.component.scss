@@ -5,6 +5,7 @@
 }
 
 .dropdown-toggle {
+    position: relative;
     width: 100%;
     padding: 10px;
     background-color: white;
@@ -14,7 +15,23 @@
     align-items: center;
     cursor: pointer;
     font-size: 16px;
+    z-index: 990;
 }
+
+.dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-width: 250px; // ✅ Prevent horizontal overflow
+    background-color: white;
+    border: 1px solid #ccc;
+    max-height: 300px;
+    overflow: auto;
+    z-index: 1000;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 
 .arrow {
     width: 0;
@@ -30,17 +47,6 @@
     transform: rotate(180deg);
 }
 
-.dropdown-content {
-    position: absolute;
-    width: 100%;
-    max-width: 250px; // ✅ Prevent horizontal overflow
-    background-color: white;
-    border: 1px solid #ccc;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 10;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
 
 .list-view {
     list-style-type: none; // ✅ Remove bullets
