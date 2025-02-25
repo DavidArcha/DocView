@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { listDropdownData } from '../../common/list-dropdown';
 import { tableDropdownData } from '../../common/table-dropdown';
 import { ListItem } from '../../interfaces/table-dropdown.interface';
+import { DROPDOWN_DATA } from '../../common/dropdown-data.constant';
 
 @Component({
   selector: 'app-testing-dropdown',
@@ -12,23 +13,12 @@ import { ListItem } from '../../interfaces/table-dropdown.interface';
 })
 export class TestingDropdownComponent {
 
-  listData = listDropdownData;
-  tableData = tableDropdownData;
+  dropdownOptions = DROPDOWN_DATA; // Use data as is
+  selectedLanguage = 'en'; // Default language
+  selectedValue: string = '';
 
-  // ✅ Define the preselected item
-  preselectedItem = { id: 'user', label: 'User' };
-
-  selectedListValue: ListItem | ListItem[] | null = null;
-  selectedTableValue: ListItem | ListItem[] | null = null;
-
-  // ✅ Function to capture selected value
-  onListSelectionChange(selectedValue: ListItem | ListItem[]) {
-    console.log('List Dropdown Selected:', selectedValue);
-    this.selectedListValue = selectedValue;
-  }
-
-  onTableSelectionChange(selectedValue: ListItem | ListItem[]) {
-    console.log('Table Dropdown Selected:', selectedValue);
-    this.selectedTableValue = selectedValue;
+  onDropdownChange(value: string) {
+    console.log('Selected Value:', value);
+    this.selectedValue = value;
   }
 }
