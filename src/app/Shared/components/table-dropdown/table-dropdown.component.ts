@@ -12,7 +12,7 @@ import { DropdownService } from '../../services/dropdown.service';
 export class TableDropdownComponent {
   @Input() data: ListItem[] | TableItem[] = [];
   @Input() view: 'list' | 'table' = 'list';
-  @Input() multiSelect: boolean = true; // ✅ Multi-Select Toggle
+  @Input() multiSelect: boolean = false; // ✅ Multi-Select Toggle
   @Input() preselected?: any; // ✅ Preselect an item
 
   isOpen = false;
@@ -33,10 +33,12 @@ export class TableDropdownComponent {
       this.isOpen = id === this.dropdownId;
     });
     // Initialize selected values only once
-    if (this.multiSelect && this.preselected) {
-      this.selectedOptions = [...this.preselected.map((item: any) => item.label)];
-    } else if (!this.multiSelect && this.preselected) {
-      this.selectedOption = this.preselected.label;
+    if (this.multiSelect) {
+      this.selectedOptions = Array.isArray(this.preselected)
+        ? this.preselected.map((item: any) => item.label)
+        : []; // Ensure it's an array or set empty array
+    } else {
+      this.selectedOption = this.preselected && this.preselected.label ? this.preselected.label : 'Select';
     }
   }
 
@@ -122,7 +124,14 @@ export class TableDropdownComponent {
   removeItem(itemLabel: string, event: Event) {
     event.stopPropagation(); // Prevents dropdown from toggling
     this.selectedOptions = this.selectedOptions.filter(label => label !== itemLabel);
+
+    // Emit updated selection
     const selectedObjects = this.data.filter(obj => this.selectedOptions.includes(obj.label));
     this.selectedValueChange.emit(selectedObjects);
+
+    // If no items are left, reset to "Select"
+    if (this.selectedOptions.length === 0) {
+      this.selectedValueChange.emit([]); // Emit empty selection
+    }
   }
 }

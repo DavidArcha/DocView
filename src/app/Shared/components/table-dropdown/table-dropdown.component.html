@@ -2,16 +2,19 @@
     <!-- Dropdown Button -->
     <button class="dropdown-toggle" (click)="toggleDropdown()">
         <ng-container *ngIf="multiSelect; else singleSelect">
-            <div class="selected-items">
-                <span *ngFor="let item of selectedOptions" class="selected-tag">
-                    {{ item }}
-                    <span class="tag-close" (click)="removeItem(item, $event)">✖</span>
-                </span>
-            </div>
+            <span *ngIf="selectedOptions.length > 0; else defaultText">
+                <div class="selected-items">
+                    <span *ngFor="let item of selectedOptions" class="selected-tag">
+                        {{ item }}
+                        <span class="tag-close" (click)="removeItem(item, $event)">✖</span>
+                    </span>
+                </div>
+            </span>
         </ng-container>
         <ng-template #singleSelect>
             <span class="selected-value">{{ selectedOption }}</span>
         </ng-template>
+        <ng-template #defaultText>Select</ng-template>
 
         <!-- Clear Button (Only for Single Select) -->
         <span *ngIf="!multiSelect && selectedOption !== 'Select'" class="clear-icon"
