@@ -47,6 +47,17 @@
     transform: rotate(180deg);
 }
 
+.close-icon {
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #888;
+}
+
+.close-icon:hover {
+    color: #000;
+}
+
 
 .list-view {
     list-style-type: none; // ✅ Remove bullets

@@ -5,7 +5,6 @@ import { DropdownService } from '../../services/dropdown.service';
 @Component({
   selector: 'app-table-dropdown',
   standalone: false,
-
   templateUrl: './table-dropdown.component.html',
   styleUrl: './table-dropdown.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,14 +18,14 @@ export class TableDropdownComponent {
   isOpen = false;
   searchTerm = '';
   selectedOptions: string[] = []; // ✅ Holds multi-selected options
-  selectedOption: string = 'Select Options....'; // ✅ Single selection value
+  selectedOption: string = 'Select....'; // ✅ Single selection value
   filteredData: ListItem[] = [];
 
   @Output() selectedValueChange = new EventEmitter<ListItem | ListItem[]>();
 
   dropdownId = Math.random().toString(36).substr(2, 9); // Unique ID
 
-  constructor(private cd: ChangeDetectorRef,private dropdownService: DropdownService,) { }
+  constructor(private cd: ChangeDetectorRef, private dropdownService: DropdownService,) { }
 
   ngOnInit() {
     this.filteredData = this.data;
@@ -54,23 +53,20 @@ export class TableDropdownComponent {
 
   selectOption(option: ListItem) {
     if (this.multiSelect) {
-      if (this.selectedOptions.includes(option.label)) {
-        this.selectedOptions = this.selectedOptions.filter((item) => item !== option.label);
-      } else {
+      const index = this.selectedOptions.indexOf(option.label);
+      if (index === -1) {
         this.selectedOptions.push(option.label);
+      } else {
+        this.selectedOptions.splice(index, 1);
       }
 
-      // ✅ Emit the multi-selected values
+      // Emit full objects instead of just labels
       const selectedObjects = this.data.filter(item => this.selectedOptions.includes(item.label));
       this.selectedValueChange.emit(selectedObjects);
     } else {
-      this.selectedOptions = [option.label];
       this.selectedOption = option.label;
-      this.isOpen = false;
-
-      // ✅ Emit the single selected value
       this.selectedValueChange.emit(option);
-      this.closeDropdown();
+      this.isOpen = false;
     }
     this.cd.detectChanges();
   }
@@ -116,5 +112,12 @@ export class TableDropdownComponent {
         this.isOpen = false;
       }
     }
+  }
+
+  clearSelection(event: Event) {
+    event.stopPropagation(); // Prevents the dropdown from toggling when clicking the close icon
+    this.selectedOption = 'Select';
+    this.selectedOptions = [];
+    this.selectedValueChange.emit(undefined);
   }
 }

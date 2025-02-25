@@ -1,7 +1,16 @@
 <div class="dropdown-container">
     <!-- Dropdown Button -->
+    <!-- Dropdown Button -->
     <button class="dropdown-toggle" (click)="toggleDropdown()">
-        {{ selectedOption }}
+        <span *ngIf="multiSelect; else singleSelect">
+            <span *ngIf="selectedOptions.length > 0; else defaultText">
+                {{ selectedOptions.join(', ') }}
+            </span>
+        </span>
+        <ng-template #singleSelect>{{ selectedOption }}</ng-template>
+        <ng-template #defaultText>Select</ng-template>
+
+        <span *ngIf="selectedOptions.length > 0" class="close-icon" (click)="clearSelection($event)">✖</span>
         <span class="arrow" [ngClass]="{ 'open': isOpen }"></span>
     </button>
 
