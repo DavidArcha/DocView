@@ -14,7 +14,7 @@
         <ng-template #singleSelect>
             <span class="selected-value">{{ selectedOption }}</span>
         </ng-template>
-        <ng-template #defaultText>Select</ng-template>
+        <ng-template #defaultText>{{ translatedSelectText }}</ng-template>
 
         <!-- Clear Button (Only for Single Select) -->
         <span *ngIf="!multiSelect && selectedOption !== 'Select'" class="clear-icon"

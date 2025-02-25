@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { ListItem, TableItem } from '../../interfaces/table-dropdown.interface';
 import { DropdownService } from '../../services/dropdown.service';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-table-dropdown',
@@ -16,18 +17,22 @@ export class TableDropdownComponent {
   @Input() preselected?: any; // ✅ Preselect an item
 
   isOpen = false;
+  translatedSelectText: string = 'Select';
   searchTerm = '';
   selectedOptions: string[] = []; // ✅ Holds multi-selected options
-  selectedOption: string = 'Select....'; // ✅ Single selection value
+  selectedOption: string = this.translatedSelectText; // ✅ Single selection value
   filteredData: ListItem[] = [];
+
 
   @Output() selectedValueChange = new EventEmitter<ListItem | ListItem[]>();
 
   dropdownId = Math.random().toString(36).substr(2, 9); // Unique ID
 
-  constructor(private cd: ChangeDetectorRef, private dropdownService: DropdownService,) { }
+  constructor(private cd: ChangeDetectorRef, private dropdownService: DropdownService,
+    private languageService: LanguageService) { }
 
   ngOnInit() {
+
     this.filteredData = this.data;
     this.dropdownService.activeDropdown$.subscribe((id) => {
       this.isOpen = id === this.dropdownId;
@@ -38,7 +43,7 @@ export class TableDropdownComponent {
         ? this.preselected.map((item: any) => item.label)
         : []; // Ensure it's an array or set empty array
     } else {
-      this.selectedOption = this.preselected && this.preselected.label ? this.preselected.label : 'Select';
+      this.selectedOption = this.preselected && this.preselected.label ? this.preselected.label : this.translatedSelectText;
     }
   }
 
@@ -78,7 +83,7 @@ export class TableDropdownComponent {
   }
 
   getSelectedText(): string {
-    return this.selectedOptions.length > 0 ? this.selectedOptions.join(', ') : 'Select Options....';
+    return this.selectedOptions.length > 0 ? this.selectedOptions.join(', ') : this.translatedSelectText;
   }
 
   get tableData(): TableItem[] {
@@ -116,7 +121,7 @@ export class TableDropdownComponent {
   clearSelection(event: Event) {
     event.stopPropagation(); // Prevents dropdown from toggling
     this.selectedOptions = [];
-    this.selectedOption = 'Select';
+    this.selectedOption = this.translatedSelectText;
     this.preselected = null; // Reset preselected item
     this.selectedValueChange.emit(this.multiSelect ? [] : undefined);
   }
