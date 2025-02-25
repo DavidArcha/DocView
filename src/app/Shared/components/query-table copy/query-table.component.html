@@ -2,8 +2,8 @@
   <table>
     <tbody>
       <tr *ngFor="let selected of selectedFields; let i = index">
-        <td class="parent">{{ selected.parent.label }}</td>
-        <td class="field">{{ selected.field.label }}</td>
+        <td class="parent">{{ selected.parent }}</td>
+        <td class="field">{{ selected.field }}</td>
         <!-- Operator column -->
         <td class="operator">
           <app-localized-dropdown [options]="selected.operatorOptions" [selectedLanguage]="selectedLanguage"

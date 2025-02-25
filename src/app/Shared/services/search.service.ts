@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, retry, throwError } from 'rxjs';
 import { RestAPICallUrl } from '../common/apicalls';
 import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
+import { AccordionItem } from '../interfaces/accordian-list.interface';
 
 interface SystemField {
   id: number;
@@ -22,7 +23,7 @@ export class SearchService {
   searchQuery$ = this.searchQuerySubject.asObservable();
 
   constructor(private http: HttpClient) {
-    this.apiUrl = 'https://localhost:7185/';
+    this.apiUrl = 'https://localhost:7156/';
     const savedQuery = localStorage.getItem('searchQuery');
     if (savedQuery) {
       this.searchQuerySubject.next(savedQuery);
@@ -60,5 +61,10 @@ export class SearchService {
   saveSearchData(data: any): Observable<any> {
     let url = this.apiUrl + RestAPICallUrl.saveSearchData;
     return this.http.post(url, data);
+  }
+
+  getAccordionFields(lang: string): Observable<AccordionItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getAccordionData}/${lang}`;
+    return this.http.get<AccordionItem[]>(url);
   }
 }

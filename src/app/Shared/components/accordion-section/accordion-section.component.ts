@@ -1,30 +1,29 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { AccordionSection } from '../../common/accordion-section.model';
-import { delay, Observable, of } from 'rxjs';
+import { AccordionItem } from '../../interfaces/accordian-list.interface';
 
 @Component({
   selector: 'app-accordion-section',
   standalone: false,
   templateUrl: './accordion-section.component.html',
-  styleUrl: './accordion-section.component.scss'
+  styleUrls: ['./accordion-section.component.scss']
 })
 export class AccordionSectionComponent implements OnChanges, OnInit {
-  @Input() section!: AccordionSection;
+  @Input() section!: AccordionItem;
   @Input() parentPath: string = '';
-  // Emit the selected field event to the parent component.
-  @Output() fieldSelected = new EventEmitter<{ parent: string, field: string }>();
+  @Output() fieldSelected = new EventEmitter<{ parent: string, field: string, path: string }>();
 
   public isExpanded: boolean = false;
   private storageKey: string = '';
 
   ngOnInit() {
-    // Create a unique key for this section based on its path and title
-    this.storageKey = `accordion_${this.parentPath}_${this.section.title}`.replace(/\s+/g, '_');
+    this.storageKey = `accordion_${this.parentPath}_${this.section.label}`.replace(/\s+/g, '_');
     this.restoreState();
   }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['section'] || changes['parentPath']) {
-      this.storageKey = `accordion_${this.parentPath}_${this.section.title}`.replace(/\s+/g, '_');
+      this.storageKey = `accordion_${this.parentPath}_${this.section.label}`.replace(/\s+/g, '_');
       this.restoreState();
     }
   }
@@ -45,18 +44,12 @@ export class AccordionSectionComponent implements OnChanges, OnInit {
     }
   }
 
-  // Called when a field is clicked.
-  handleFieldClick(field: string): void {
-    // Build the parent's value as the complete path (without including the field)
-    const parentValue = this.parentPath
-      ? `${this.parentPath} > ${this.section.title}`
-      : this.section.title;
-    // Emit the event with both parent and field values.
-    this.fieldSelected.emit({ parent: parentValue, field });
+  handleFieldClick(fieldId: string) {
+    const fieldPath = this.parentPath ? `${this.parentPath} > ${this.section.id}` : this.section.id;
+    this.fieldSelected.emit({ parent: this.section.id, field: fieldId, path: fieldPath });
   }
 
-  // If a child accordion section emits a fieldSelected event, simply re-emit it upward.
-  onChildFieldSelected(event: { parent: string, field: string }): void {
+  onChildFieldSelected(event: { parent: string; field: string; path: string }) {
     this.fieldSelected.emit(event);
   }
 }

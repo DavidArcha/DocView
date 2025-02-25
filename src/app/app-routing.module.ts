@@ -8,7 +8,9 @@ const routes: Routes = [
   { path: 'home', component: HomepageComponent },
   { path: 'resultpage', component: ResultPageComponent },
   { path: 'resultpage/SimpleSearch', component: ResultPageComponent },
-  { path: 'resultpage/TextSurvey', component: ResultPageComponent }
+  { path: 'resultpage/TextSurvey', component: ResultPageComponent },
+  { path: 'resultpage/Test', component: ResultPageComponent },
+  { path: 'resultpage/TestDD', component: ResultPageComponent }
 ];
 
 @NgModule({

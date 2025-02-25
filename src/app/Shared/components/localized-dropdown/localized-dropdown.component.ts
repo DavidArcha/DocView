@@ -25,20 +25,7 @@ export class LocalizedDropdownComponent implements OnChanges {
         this.selectedValueChange.emit(this.selectedValue);
       }
     }
-    // if (changes['selectedLanguage'] && !changes['selectedLanguage'].firstChange) {
-    //   this.updateSelectedValueForLanguage();
-    // }
   }
-
-  // private updateSelectedValueForLanguage(): void {
-  //   if (this.previousSelectedValue) {
-  //     const matchingOption = this.options.find(option => option.key === this.previousSelectedValue);
-  //     if (matchingOption) {
-  //       this.selectedValue = matchingOption.key;
-  //       this.selectedValueChange.emit(this.selectedValue);
-  //     }
-  //   }
-  // }
 
   onValueChange(newValue: any): void {
     this.previousSelectedValue = newValue;

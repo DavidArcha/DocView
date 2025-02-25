@@ -3,7 +3,7 @@
     <!-- Placeholder option with an empty value -->
     <option value="">{{ placeholder | translate }}</option>
     <!-- List other options -->
-    <option *ngFor="let option of options" [value]="option.key">
+    <option *ngFor="let option of options" [value]="option.id">
       {{ option[selectedLanguage] }}
     </option>
   </select>

@@ -1,5 +1,6 @@
 export const RestAPICallUrl = {
     getSyatemFileds: 'api/Common/systemfields',
     getSystemFieldsbyLang: 'api/Common/systemfieldtranslations',
-    saveSearchData:"api/Common/saveSearchData"
+    saveSearchData:"api/Common/saveSearchData",
+    getAccordionData:"api/Common/hierarchicaldata",
 }

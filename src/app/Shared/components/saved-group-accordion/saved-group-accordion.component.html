@@ -1,20 +1,20 @@
 <div class="accordion-container">
     <div *ngFor="let group of groups" class="group">
         <div class="group-title">
-            <span [class.expanded]="expandedGroups.has(group.groupTitle)"
-                (click)="toggleGroup(group.groupTitle)">&#9656;</span>
-            <span class="save-icon" (click)="toggleGroup(group.groupTitle)">💾</span>
-            {{ group.groupTitle }}
+            <span [class.expanded]="expandedGroups.has(group.groupTitle.id)"
+                (click)="toggleGroup(group.groupTitle.id)">&#9656;</span>
+            <span class="save-icon" (click)="toggleGroup(group.groupTitle.id)">💾</span>
+            {{ group.groupTitle.title }}
         </div>
-        <div *ngIf="expandedGroups.has(group.groupTitle)" class="group-fields">
+        <div *ngIf="expandedGroups.has(group.groupTitle.id)" class="group-fields">
             <div *ngFor="let fieldGroup of group.groupFields" class="field-group">
                 <div class="field-title" (contextmenu)="onGroupFieldTitleRightClick($event, fieldGroup)">
-                    <span [class.expanded]="expandedFields.has(fieldGroup.title)"
-                        (click)="toggleField(fieldGroup.title)">&#9656;</span>
-                    <span class="save-icon" (click)="toggleField(fieldGroup.title)">💾</span>
-                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup, $event); $event.preventDefault();">{{ fieldGroup.title }}</a>
+                    <span [class.expanded]="expandedFields.has(fieldGroup.title.id)"
+                        (click)="toggleField(fieldGroup.title.id)">&#9656;</span>
+                    <span class="save-icon" (click)="toggleField(fieldGroup.title.id)">💾</span>
+                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup, $event); $event.preventDefault();">{{ fieldGroup.title.title }}</a>
                 </div>
-                <div *ngIf="expandedFields.has(fieldGroup.title)" class="fields">
+                <div *ngIf="expandedFields.has(fieldGroup.title.id)" class="fields">
                     <div *ngFor="let field of fieldGroup.fields" class="field"
                         [title]="field.field + ' ' + field.operator"
                         [class.selected]="field === selectedField">
@@ -28,7 +28,7 @@
 </div>
 
 <!-- Context Menu -->
-<div *ngIf="contextMenuVisible" [ngStyle]="{'top.px': contextMenuPosition.y, 'left.px': contextMenuPosition.x}" class="context-menu">
+<div *ngIf="contextMenuVisible" [ngStyle]="{'top.px': contextMenuPosition.y, 'left.px': contextMenuPosition.x}" class="context-menu" (click)="$event.stopPropagation()">
     <ul>
         <li (click)="onEditGroupFieldTitle()">Edit</li>
         <li (click)="onDeleteGroupFieldTitle()">Delete</li>

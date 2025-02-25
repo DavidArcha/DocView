@@ -18,8 +18,10 @@ export class SideNavbarComponent {
   menuItems: MenuItem[] = [
     { icon: 'home', route: '/home', tooltip: 'Homepage' },
     { icon: 'resultpage', route: '/resultpage', tooltip: 'Results' },
-    { icon: 'ss', route: '/resultpage/SimpleSearch', tooltip: 'Simple Search' },
-    { icon: 'ts', route: '/resultpage/TextSurvey', tooltip: 'Text Survey' }
+    { icon: 'SS', route: '/resultpage/SimpleSearch', tooltip: 'Simple Search' },
+    { icon: 'TS', route: '/resultpage/TextSurvey', tooltip: 'Text Survey' },
+    { icon: 'TC', route: '/resultpage/Test', tooltip: 'Test Component' },
+    { icon: 'TDD', route: '/resultpage/TestDD', tooltip: 'Test Component' }
   ];
 
   activeRoute: string = '';
