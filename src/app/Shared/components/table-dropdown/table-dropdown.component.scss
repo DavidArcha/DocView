@@ -5,14 +5,15 @@
 }
 
 .dropdown-toggle {
-    position: relative;
-    width: 100%;
-    padding: 10px;
-    background-color: white;
-    border: 1px solid black;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    text-align: left;
+    position: relative;
+    width: 100%;
+    padding: 8px;
+    background-color: white;
+    border: 1px solid black;
     cursor: pointer;
     font-size: 16px;
     z-index: 990;
@@ -32,6 +33,36 @@
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.selected-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.selected-tag {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    background: lightblue;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.tag-close {
+    margin-left: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.selected-value {
+    flex: 1; /* Takes up remaining space */
+    text-align: left; /* Left-align text */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-left: 5px; /* Adds slight spacing from the left */
+  }
 
 .arrow {
     width: 0;
@@ -46,6 +77,18 @@
 .arrow.open {
     transform: rotate(180deg);
 }
+
+.clear-icon {
+    margin-left: 8px; /* Adds spacing between text and ✖ */
+    margin-right: 8px; /* Pushes ✖ away from the dropdown arrow */
+    cursor: pointer;
+    font-size: 14px;
+    color: #888;
+  }
+  
+  .clear-icon:hover {
+    color: #000;
+  }
 
 .close-icon {
     margin-left: 10px;

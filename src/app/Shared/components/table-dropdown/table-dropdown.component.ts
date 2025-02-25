@@ -12,8 +12,8 @@ import { DropdownService } from '../../services/dropdown.service';
 export class TableDropdownComponent {
   @Input() data: ListItem[] | TableItem[] = [];
   @Input() view: 'list' | 'table' = 'list';
-  @Input() multiSelect: boolean = false; // ✅ Multi-Select Toggle
-  @Input() preselected?: ListItem; // ✅ Preselect an item
+  @Input() multiSelect: boolean = true; // ✅ Multi-Select Toggle
+  @Input() preselected?: any; // ✅ Preselect an item
 
   isOpen = false;
   searchTerm = '';
@@ -32,12 +32,11 @@ export class TableDropdownComponent {
     this.dropdownService.activeDropdown$.subscribe((id) => {
       this.isOpen = id === this.dropdownId;
     });
-    // ✅ Prepopulate the dropdown with the preselected value
-    if (this.preselected) {
-      this.selectedOptions = [this.preselected.label];
+    // Initialize selected values only once
+    if (this.multiSelect && this.preselected) {
+      this.selectedOptions = [...this.preselected.map((item: any) => item.label)];
+    } else if (!this.multiSelect && this.preselected) {
       this.selectedOption = this.preselected.label;
-      // ✅ Emit the initial preselected value
-      this.selectedValueChange.emit(this.preselected);
     }
   }
 
@@ -51,24 +50,22 @@ export class TableDropdownComponent {
     this.dropdownService.setActiveDropdown(null);
   }
 
-  selectOption(option: ListItem) {
+  selectOption(item: any) {
     if (this.multiSelect) {
-      const index = this.selectedOptions.indexOf(option.label);
+      const index = this.selectedOptions.indexOf(item.label);
       if (index === -1) {
-        this.selectedOptions.push(option.label);
+        this.selectedOptions.push(item.label);
       } else {
         this.selectedOptions.splice(index, 1);
       }
-
-      // Emit full objects instead of just labels
-      const selectedObjects = this.data.filter(item => this.selectedOptions.includes(item.label));
+      const selectedObjects = this.data.filter(obj => this.selectedOptions.includes(obj.label));
       this.selectedValueChange.emit(selectedObjects);
     } else {
-      this.selectedOption = option.label;
-      this.selectedValueChange.emit(option);
+      this.selectedOption = item.label;
+      this.preselected = null; // Ensure preselectedItem does not override selection
+      this.selectedValueChange.emit(item);
       this.isOpen = false;
     }
-    this.cd.detectChanges();
   }
 
   updateSearch() {
@@ -115,9 +112,17 @@ export class TableDropdownComponent {
   }
 
   clearSelection(event: Event) {
-    event.stopPropagation(); // Prevents the dropdown from toggling when clicking the close icon
-    this.selectedOption = 'Select';
+    event.stopPropagation(); // Prevents dropdown from toggling
     this.selectedOptions = [];
-    this.selectedValueChange.emit(undefined);
+    this.selectedOption = 'Select';
+    this.preselected = null; // Reset preselected item
+    this.selectedValueChange.emit(this.multiSelect ? [] : undefined);
+  }
+
+  removeItem(itemLabel: string, event: Event) {
+    event.stopPropagation(); // Prevents dropdown from toggling
+    this.selectedOptions = this.selectedOptions.filter(label => label !== itemLabel);
+    const selectedObjects = this.data.filter(obj => this.selectedOptions.includes(obj.label));
+    this.selectedValueChange.emit(selectedObjects);
   }
 }

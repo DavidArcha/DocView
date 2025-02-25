@@ -15,10 +15,10 @@ export class TestingDropdownComponent {
   listData = listDropdownData;
   tableData = tableDropdownData;
 
-   // ✅ Define the preselected item
-   preselectedItem = { id: 'user', label: 'User' };
+  // ✅ Define the preselected item
+  preselectedItem = { id: 'user', label: 'User' };
 
-   selectedListValue: ListItem | ListItem[] | null = null;
+  selectedListValue: ListItem | ListItem[] | null = null;
   selectedTableValue: ListItem | ListItem[] | null = null;
 
   // ✅ Function to capture selected value
