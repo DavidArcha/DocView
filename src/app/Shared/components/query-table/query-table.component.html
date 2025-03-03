@@ -24,7 +24,7 @@
           </div>
         </td>
         <!-- Value column: dynamic control rendering -->
-        <td class="value" *ngIf="shouldShowValueColumn()">
+        <td class="value" *ngIf="getValueControl(selected).show">
           <ng-container [ngSwitch]="getValueControl(selected).type">
             <input *ngSwitchCase="FieldType.Text" type="text" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Number" type="number" [(ngModel)]="selected.value" />
@@ -55,6 +55,7 @@
             Invalid value.
           </div>
         </td>
+        <td *ngIf="!getValueControl(selected).show && shouldShowValueColumn()"></td>
         <td>
           <button (click)="onSearchSelectedField(selected)">Search</button>
           <button (click)="onDeleteSelectedField(i)">Delete</button>
