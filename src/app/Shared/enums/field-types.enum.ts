@@ -7,7 +7,7 @@ export enum FieldType {
 }
 
 export const FieldTypeMapping: { [key: string]: FieldType } = {
-  copy: FieldType.Bool,
+  copy: FieldType.Dropdown,
   current: FieldType.Bool,
   deleted: FieldType.Bool,
   edit: FieldType.Text,

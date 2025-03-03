@@ -219,5 +219,22 @@ export class TestingLevelComponent {
     this.saveSelectedValuesToStorage(selectedValues);
   }
 
+  // Delete a row from the selected fields table.
+  onDeleteSelectedField(index: number): void {
+    this.selectedFields.splice(index, 1);
+    this.updateLocalStorage();
+    localStorage.removeItem('savedAccordionState');
+  }
+
+  onSearchSelectedField(event: any): void {
+    // const dataToSend: SearchField = {
+    //   parent: event.parent,
+    //   field: selected.field,
+    //   operator: selected.operator,
+    //   value: this.getDefaultValue(selected.operator, selected.value)
+    // };
+    // this.resultPageService.sendData([dataToSend]);
+  }
+
 
 }
