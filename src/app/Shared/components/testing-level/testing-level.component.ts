@@ -27,8 +27,10 @@ export class TestingLevelComponent {
   private labelMap: Map<string, string> = new Map();
   dropdownData: any;
 
+  // table-dropdown integration variables
   listData: ListItem[] = [];
   selectedListValue: ListItem | ListItem[] | null = null;
+  preselected: ListItem[] = [];
 
   constructor(
     private searchService: SearchService,
@@ -41,6 +43,7 @@ export class TestingLevelComponent {
       this.selectedLanguage = lang;
       this.loadAccordionData(this.selectedLanguage);
       this.loadSystemFields(this.selectedLanguage);
+      this.loadSelectedValuesFromStorage();
     });
 
     this.searchService.getDropdownData().subscribe(data => {
@@ -53,27 +56,6 @@ export class TestingLevelComponent {
       this.selectedFields = JSON.parse(stored);
       this.refreshSelectedFields();
     }
-  }
-
-  //Load System Fields
-  loadSystemFields(lang: string): void {
-    this.searchService.getSystemFieldsByLang(lang).subscribe({
-      next: (fields) => {
-        if (fields.length > 0) {
-          console.log('System Fields:', fields);
-          // Wait until labelMap is populated before refreshing selected fields
-          setTimeout(() => {
-            this.listData = fields.map(field => ({
-              id: field.id.toString(),
-              label: field.label // Mapping fieldName to label
-            }));
-            console.log('List Data:', this.listData); // Add this line to log listData
-            this.changeDtr.detectChanges();
-          }, 0);
-        }
-      },
-      error: console.error
-    });
   }
 
   // **Fetch Accordion Data and Generate Fast Lookup Map**
@@ -191,6 +173,50 @@ export class TestingLevelComponent {
   onListSelectionChange(selectedValue: ListItem | ListItem[]) {
     console.log('List Dropdown Selected:', selectedValue);
     this.selectedListValue = selectedValue;
+  }
+
+  // Load System Fields
+  loadSystemFields(lang: string): void {
+    this.searchService.getSystemFieldsByLang(lang).subscribe({
+      next: (fields) => {
+        if (fields.length > 0) {
+          this.listData = fields.map(field => ({
+            id: field.id.toString(),
+            label: field.label // Mapping fieldName to label
+          }));
+          this.updatePreselectedValues();
+          this.changeDtr.detectChanges();
+        }
+      },
+      error: console.error
+    });
+  }
+
+  // Save selected values to localStorage
+  saveSelectedValuesToStorage(selectedValues: ListItem | ListItem[]): void {
+    localStorage.setItem('selectedListValue', JSON.stringify(selectedValues));
+  }
+
+  // Load selected values from localStorage
+  loadSelectedValuesFromStorage(): void {
+    const storedValues = localStorage.getItem('selectedListValue');
+    if (storedValues) {
+      this.preselected = JSON.parse(storedValues);
+    }
+  }
+
+  // Update preselected values based on the current listData
+  updatePreselectedValues(): void {
+    if (this.preselected.length > 0) {
+      const preselectedIds = this.preselected.map(item => item.id);
+      this.preselected = this.listData.filter(item => preselectedIds.includes(item.id));
+    }
+  }
+
+  // Handle selected value change
+  onSelectedValueChange(selectedValues: ListItem | ListItem[]): void {
+    this.selectedListValue = selectedValues;
+    this.saveSelectedValuesToStorage(selectedValues);
   }
 
 
