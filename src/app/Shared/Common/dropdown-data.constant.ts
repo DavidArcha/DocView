@@ -1,3 +1,5 @@
+import { ListItem } from "../interfaces/table-dropdown.interface";
+
 // dropdown-data.constant.ts
 export const DROPDOWN_DATA = {
     "boolOperations": [
@@ -64,3 +66,11 @@ export const DROPDOWN_DATA = {
         { "id": "starts_with", "en": "Start-With", "de": "" }
     ],
 };
+
+// Utility function to transform into ListItem[]
+export function transformDropdownData(category: keyof typeof DROPDOWN_DATA): ListItem[] {
+    return DROPDOWN_DATA[category].map(item => ({
+        id: item.id,
+        label: item.en // Use English labels
+    }));
+}
