@@ -246,7 +246,19 @@ export class TestingLevelComponent {
   onOperatorChange(event: { newOperator: string, index: number }): void {
     const field = this.selectedFields[event.index];
 
-    if (!field || !event.newOperator) {
+    if (!field) {
+      return;
+    }
+
+    // Handle 'select' option selection
+    if (event.newOperator === 'select') {
+      field.operator = {
+        id: 'select',
+        label: this.selectedLanguage === 'de' ? 'Auswählen' : 'Select'
+      };
+      field.value = null;
+      field.operatorTouched = true;
+      this.updateLocalStorage();
       return;
     }
 

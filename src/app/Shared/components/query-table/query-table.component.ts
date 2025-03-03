@@ -43,7 +43,9 @@ export class QueryTableComponent {
     const control = { show: false, dual: false, type: FieldType.Text }; // Default control
 
     // Only show controls if a valid operator is selected (not 'select')
+    // Explicitly check for 'select' option
     if (!selected.operator?.id || selected.operator.id === 'select') {
+      control.show = false;
       return control;
     }
 
