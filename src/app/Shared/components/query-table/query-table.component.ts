@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
+import { FieldType, FieldTypeMapping, NumericFieldMapping, StringFieldMapping, DateFieldMapping, DropdownFieldMapping } from '../../enums/field-types.enum';
 import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 
