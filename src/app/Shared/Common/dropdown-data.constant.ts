@@ -51,6 +51,18 @@ export const DROPDOWN_DATA = {
         { "id": "hundai", "en": "Hundai", "de": "Hundai" },
         { "id": "kia", "en": "KIA", "de": "KIA" }
     ],
+    "timeOperations": [
+        { "id": "equals", "en": "equals", "de": "gleich" },
+        { "id": "not_equals", "en": "not equals", "de": "ungleich" },
+        { "id": "empty", "en": "empty", "de": "leer" },
+        { "id": "not_empty", "en": "not empty", "de": "nicht leer" },
+        { "id": "start_on", "en": "Start-On", "de": "Beginn am" },
+        { "id": "start_after", "en": "Start-after", "de": "Beginn nach" },
+        { "id": "ends_on", "en": "Ends on", "de": "Endet am" },
+        { "id": "between", "en": "between", "de": "zwischen" },
+        { "id": "not_between", "en": "not between", "de": "nicht zwischen" },
+        { "id": "contains_date", "en": "Contains date", "de": "Enthält Datum" }
+    ],
     "tOperations": [
         { "id": "equals", "en": "equals", "de": "gleich" },
         { "id": "not_equals", "en": "not equals", "de": "ungleich" },

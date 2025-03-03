@@ -98,7 +98,7 @@ export class SimpleSearchComponent implements OnInit {
     this.searchService.getSystemFieldsByLang(lang).subscribe({
       next: (fields) => {
         if (fields.length > 0) {
-          this.systemFields = fields;
+          // this.systemFields = fields;
           this.isLoading = false;
           this.changeDtr.detectChanges(); // Trigger change detection
         }

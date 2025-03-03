@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { ListItem, TableItem } from '../../interfaces/table-dropdown.interface';
 import { DropdownService } from '../../services/dropdown.service';
 import { LanguageService } from '../../services/language.service';
@@ -10,7 +10,7 @@ import { LanguageService } from '../../services/language.service';
   styleUrl: './table-dropdown.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TableDropdownComponent {
+export class TableDropdownComponent implements OnChanges {
   @Input() data: ListItem[] | TableItem[] = [];
   @Input() view: 'list' | 'table' = 'list';
   @Input() multiSelect: boolean = false; // ✅ Multi-Select Toggle
@@ -23,7 +23,6 @@ export class TableDropdownComponent {
   selectedOption: string = this.translatedSelectText; // ✅ Single selection value
   filteredData: ListItem[] = [];
 
-
   @Output() selectedValueChange = new EventEmitter<ListItem | ListItem[]>();
 
   dropdownId = Math.random().toString(36).substr(2, 9); // Unique ID
@@ -32,11 +31,38 @@ export class TableDropdownComponent {
     private languageService: LanguageService) { }
 
   ngOnInit() {
-
-    this.filteredData = this.data;
     this.dropdownService.activeDropdown$.subscribe((id) => {
       this.isOpen = id === this.dropdownId;
     });
+    this.initializeSelectedValues();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['data'] && changes['data'].currentValue) {
+      this.filteredData = changes['data'].currentValue;
+      
+      // Update selected option label when data changes (language change)
+      if (!this.multiSelect && this.selectedOption !== this.translatedSelectText) {
+        const selectedItem = this.filteredData.find(item => item.id === this.preselected?.id);
+        if (selectedItem) {
+          this.selectedOption = selectedItem.label;
+        }
+      } else if (this.multiSelect && this.selectedOptions.length > 0) {
+        // Update multiple selected options
+        const selectedItems = this.filteredData.filter(item => 
+          this.preselected?.some((pre: ListItem) => pre.id === item.id)
+        );
+        this.selectedOptions = selectedItems.map(item => item.label);
+      }
+      this.cd.detectChanges();
+    }
+
+    if (changes['preselected']) {
+      this.initializeSelectedValues();
+    }
+  }
+
+  initializeSelectedValues() {
     // Initialize selected values only once
     if (this.multiSelect) {
       this.selectedOptions = Array.isArray(this.preselected)
@@ -124,7 +150,7 @@ export class TableDropdownComponent {
     this.selectedOption = this.translatedSelectText;
     this.preselected = null; // Reset preselected item
     this.selectedValueChange.emit(this.multiSelect ? [] : undefined);
-    this.closeDropdown()
+    this.closeDropdown();
   }
 
   removeItem(itemLabel: string, event: Event) {

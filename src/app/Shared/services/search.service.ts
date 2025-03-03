@@ -2,13 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, retry, throwError } from 'rxjs';
 import { RestAPICallUrl } from '../common/apicalls';
-import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
 import { AccordionItem } from '../interfaces/accordian-list.interface';
+import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
+import { ListItem } from '../interfaces/table-dropdown.interface';
 
-interface SystemField {
-  id: number;
-  fieldName: string;
-}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -43,14 +41,9 @@ export class SearchService {
     localStorage.removeItem('searchQuery');
   }
 
-  getSystemFields(): Observable<SystemField[]> {
-    let url = this.apiUrl + RestAPICallUrl.getSyatemFileds;
-    return this.http.get<SystemField[]>(url);
-  }
-
-  getSystemFieldsByLang(lang: string): Observable<SystemField[]> {
-    let url = `${this.apiUrl}${RestAPICallUrl.getSystemFieldsbyLang}/${lang}`;
-    return this.http.get<SystemField[]>(url);
+  getSystemFieldsByLang(lang: string): Observable<ListItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSyatemFileds}/${lang}`;
+    return this.http.get<ListItem[]>(url);
   }
 
   getDropdownData(): Observable<any> {

@@ -18,10 +18,8 @@ export class LocalizedDropdownComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['options'] && this.options && this.options.length > 0) {
-      // When a placeholder is provided, do not auto-select the first option.
-      // Instead, keep the selectedValue as empty so that the placeholder is shown.
       if (this.selectedValue === undefined || this.selectedValue === null) {
-        this.selectedValue = '';  // Leave empty to match the placeholder option's value.
+        this.selectedValue = ''; 
         this.selectedValueChange.emit(this.selectedValue);
       }
     }

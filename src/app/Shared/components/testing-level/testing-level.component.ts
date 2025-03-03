@@ -5,8 +5,9 @@ import { LanguageService } from '../../services/language.service';
 import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 import { DualOperators, NoValueOperators, OperatorType } from '../../enums/operator-types.enum';
+
+import { ListItem } from '../../interfaces/table-dropdown.interface';
 import { listDropdownData } from '../../common/list-dropdown';
-import { tableDropdownData } from '../../common/table-dropdown';
 
 @Component({
   selector: 'app-testing-level',
@@ -26,6 +27,9 @@ export class TestingLevelComponent {
   private labelMap: Map<string, string> = new Map();
   dropdownData: any;
 
+  listData: ListItem[] = [];
+  selectedListValue: ListItem | ListItem[] | null = null;
+
   constructor(
     private searchService: SearchService,
     private changeDtr: ChangeDetectorRef,
@@ -36,6 +40,7 @@ export class TestingLevelComponent {
     this.languageService.language$.subscribe(lang => {
       this.selectedLanguage = lang;
       this.loadAccordionData(this.selectedLanguage);
+      this.loadSystemFields(this.selectedLanguage);
     });
 
     this.searchService.getDropdownData().subscribe(data => {
@@ -48,6 +53,27 @@ export class TestingLevelComponent {
       this.selectedFields = JSON.parse(stored);
       this.refreshSelectedFields();
     }
+  }
+
+  //Load System Fields
+  loadSystemFields(lang: string): void {
+    this.searchService.getSystemFieldsByLang(lang).subscribe({
+      next: (fields) => {
+        if (fields.length > 0) {
+          console.log('System Fields:', fields);
+          // Wait until labelMap is populated before refreshing selected fields
+          setTimeout(() => {
+            this.listData = fields.map(field => ({
+              id: field.id.toString(),
+              label: field.label // Mapping fieldName to label
+            }));
+            console.log('List Data:', this.listData); // Add this line to log listData
+            this.changeDtr.detectChanges();
+          }, 0);
+        }
+      },
+      error: console.error
+    });
   }
 
   // **Fetch Accordion Data and Generate Fast Lookup Map**
@@ -110,6 +136,11 @@ export class TestingLevelComponent {
     this.updateLocalStorage();
   }
 
+  // Save updated table data to localStorage
+  updateLocalStorage(): void {
+    localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
+  }
+
   /**
    * Returns the operator dropdown options based on the selected field.
    */
@@ -156,26 +187,11 @@ export class TestingLevelComponent {
     this.changeDtr.detectChanges();
   }
 
-  /**
-    * When the operator value changes, update the operator and reset the value.
-    */
-  onOperatorChange(event: { newOperator: string, index: number }): void {
-    const field = this.selectedFields[event.index];
-    field.operator = event.newOperator;
-
-    if (DualOperators.includes(event.newOperator as OperatorType)) {
-      field.value = ['', ''];
-    } else if (NoValueOperators.includes(event.newOperator as OperatorType)) {
-      field.value = null;
-    } else {
-      field.value = '';
-    }
-
-    this.updateLocalStorage();
+  // ✅ Function to capture selected value
+  onListSelectionChange(selectedValue: ListItem | ListItem[]) {
+    console.log('List Dropdown Selected:', selectedValue);
+    this.selectedListValue = selectedValue;
   }
 
-  // Save updated table data to localStorage
-  updateLocalStorage(): void {
-    localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
-  }
+
 }

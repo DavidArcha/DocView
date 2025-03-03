@@ -16,47 +16,6 @@
         </td>
         <!-- Value column: dynamic control rendering -->
         <td class="value">
-          <ng-container *ngIf="getValueControl(selected) as control">
-            <ng-container *ngIf="control.show">
-              <ng-container *ngIf="control.dual; else singleControl">
-                <!-- Dual controls -->
-                <input [type]="control.type" [(ngModel)]="selected.value[0]" placeholder="Value 1"
-                  (blur)="markValueTouched(selected, 0)"
-                  [ngClass]="{'error': submitted && !validateField(selected, 0)}" />
-                <div class="value-error" *ngIf="isValueTouched(selected, 0) && !validateField(selected, 0)">
-                  Please enter a valid value.
-                </div>
-                <input [type]="control.type" [(ngModel)]="selected.value[1]" placeholder="Value 2"
-                  (blur)="markValueTouched(selected, 1)"
-                  [ngClass]="{'error': submitted && !validateField(selected, 1)}" />
-                <div class="value-error" *ngIf="isValueTouched(selected, 1) && !validateField(selected, 1)">
-                  Please enter a valid value.
-                </div>
-              </ng-container>
-              <ng-template #singleControl>
-                <ng-container *ngIf="control.type === 'dropdown'; else otherControl">
-                  <select [(ngModel)]="selected.value" (blur)="markValueTouched(selected)"
-                    [ngClass]="{'error': submitted && !validateField(selected)}">
-                    <!-- Localized default option -->
-                    <option value="">{{ selectedLanguage === 'de' ? 'Bitte wählen' : 'Select' }}</option>
-                    <option *ngFor="let option of control.options" [value]="option.key">
-                      {{ option[selectedLanguage] }}
-                    </option>
-                  </select>
-                  <div class="value-error" *ngIf="isValueTouched(selected) && !validateField(selected)">
-                    Please select a valid value.
-                  </div>
-                </ng-container>
-                <ng-template #otherControl>
-                  <input [type]="control.type" [(ngModel)]="selected.value" placeholder="Enter value"
-                    (blur)="markValueTouched(selected)" [ngClass]="{'error': submitted && !validateField(selected)}" />
-                  <div class="value-error" *ngIf="isValueTouched(selected) && !validateField(selected)">
-                    Please enter a valid value.
-                  </div>
-                </ng-template>
-              </ng-template>
-            </ng-container>
-          </ng-container>
         </td>
         <td>
           <button (click)="onSearchSelectedField(selected)">Search</button>

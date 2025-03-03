@@ -14,8 +14,6 @@ export class QueryTableComponent {
   @Input() selectedFields: SelectedField[] = [];
   @Input() dropdownData: any;
   @Input() selectedLanguage: string = 'de';
-  @Input() searchName: string = '';
-
   @Output() operatorChange = new EventEmitter<{ newOperator: string, index: number }>();
   @Output() searchSelectedField = new EventEmitter<SelectedField>();
   @Output() deleteSelectedField = new EventEmitter<number>();
@@ -40,99 +38,8 @@ export class QueryTableComponent {
     return FieldTypeMapping[selected.field.label.toLowerCase()] || FieldType.Text;
   }
 
-  getValueControl(selected: SelectedField): any {
-    if (!selected.operator || selected.operator === 'select') {
-      return { show: false };
-    }
-
-    if (NoValueOperators.includes(selected.operator as OperatorType)) {
-      return { show: false };
-    }
-
-    const fieldType = this.getFieldType(selected);
-    let control: any = {};
-    control.dual = DualOperators.includes(selected.operator as OperatorType);
-    control.show = true;
-
-    if (!control.dual && fieldType === FieldType.Text && selected.field.label.toLowerCase() === 'brand') {
-      control.type = FieldType.Dropdown;
-      control.options = this.dropdownData.brandValues;
-    } else {
-      control.type = fieldType;
-    }
-    return control;
-  }
-
-  validateField(selected: SelectedField, idx?: number): boolean {
-    const control = this.getValueControl(selected);
-    if (!control.show) {
-      return true;
-    }
-
-    let value;
-    if (control.dual) {
-      if (idx === undefined) {
-        return false;
-      }
-      value = selected.value ? selected.value[idx] : '';
-    } else {
-      value = selected.value;
-    }
-
-    if (typeof value === 'string') {
-      value = value.trim();
-    }
-
-    if (!value) {
-      return false;
-    }
-
-    if (control.type === FieldType.Number) {
-      return /^[0-9]+$/.test(value);
-    }
-
-    if (control.type === FieldType.Text) {
-      return /^[a-zA-Z0-9 ]+$/.test(value);
-    }
-
-    return true;
-  }
-
   isOperatorValid(selected: SelectedField): boolean {
     return !!selected.operator && selected.operator !== 'select';
   }
 
-  markValueTouched(selected: SelectedField, idx?: number): void {
-    const control = this.getValueControl(selected);
-    if (control.show) {
-      if (control.dual) {
-        if (!selected.valueTouched || !Array.isArray(selected.valueTouched)) {
-          selected.valueTouched = [false, false];
-        }
-        if (idx !== undefined) {
-          (selected.valueTouched as boolean[])[idx] = true;
-        }
-      } else {
-        selected.valueTouched = true;
-      }
-    }
-  }
-
-  isValueTouched(selected: SelectedField, idx?: number): boolean {
-    const control = this.getValueControl(selected);
-    if (!control.show) {
-      return false;
-    }
-    if (control.dual) {
-      if (!selected.valueTouched || !Array.isArray(selected.valueTouched)) {
-        return false;
-      }
-      if (idx === undefined) {
-        return false;
-      }
-      return (selected.valueTouched as boolean[])[idx];
-    } else {
-      return !!selected.valueTouched;
-    }
-  }
 }

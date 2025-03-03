@@ -1,4 +1,5 @@
-<div style="margin-left: 30px;">
-  <h3>Select an Option:</h3>
-  <app-localized-dropdown [options]="dropdownItems.stringOperations"></app-localized-dropdown>
-</div>
+<app-table-dropdown
+  [data]="listData"
+  [preselected]="preselected"
+  (selectedValueChange)="onSelectedValueChange($event)">
+</app-table-dropdown>
