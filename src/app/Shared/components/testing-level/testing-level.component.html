@@ -9,5 +9,6 @@
 <br>
 <!-- Use the QueryTable component here -->
 <app-query-table [selectedFields]="selectedFields" [dropdownData]="dropdownData" [selectedLanguage]="selectedLanguage"
-  (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)">
+  (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)"
+  (operatorChange)="onOperatorChange($event)">
 </app-query-table>

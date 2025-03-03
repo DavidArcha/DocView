@@ -9,7 +9,7 @@ export enum FieldType {
 // Sets of fields
 const NumericFields = ['version', 'priority'];
 const StringFields = ['edit', 'state', 'user', 'brand', 'input', 'visual', 'description', 'status'];
-const DateFields = ['date'];
+const DateFields = ['date','current'];
 const DropdownFields = ['copy', 'category'];
 
 // Numeric fields set

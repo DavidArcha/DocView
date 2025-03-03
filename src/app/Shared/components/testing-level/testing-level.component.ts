@@ -92,7 +92,6 @@ export class TestingLevelComponent {
     }
   }
 
-
   // **Optimized O(1) Label Lookup Instead of Recursive Search**
   getLabelById(id: string): string | null {
     return this.labelMap.get(id) || null;
@@ -143,7 +142,6 @@ export class TestingLevelComponent {
         return [];
     }
   }
-
 
   // **Update Selected Fields' Labels on Language Change**
   refreshSelectedFields(): void {
@@ -236,5 +234,22 @@ export class TestingLevelComponent {
     // this.resultPageService.sendData([dataToSend]);
   }
 
+  /**
+   * When the operator value changes, update the operator and reset the value.
+   */
+  onOperatorChange(event: { newOperator: string, index: number }): void {
+    const field = this.selectedFields[event.index];
+    field.operator = event.newOperator;
+    console.log('Operator Changed:', event.newOperator);
 
+    if (DualOperators.includes(event.newOperator as OperatorType)) {
+      field.value = ['', ''];
+    } else if (NoValueOperators.includes(event.newOperator as OperatorType)) {
+      field.value = null;
+    } else {
+      field.value = '';
+    }
+
+    this.updateLocalStorage();
+  }
 }
