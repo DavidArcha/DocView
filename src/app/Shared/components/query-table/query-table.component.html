@@ -1,5 +1,14 @@
 <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
   <table>
+    <thead>
+      <tr>
+        <th>Parent</th>
+        <th>Field</th>
+        <th>Operator</th>
+        <th *ngIf="shouldShowValueColumn()">Value</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
     <tbody>
       <tr *ngFor="let selected of selectedFields; let i = index">
         <td class="parent">{{ selected.parent.label }}</td>
@@ -15,8 +24,8 @@
           </div>
         </td>
         <!-- Value column: dynamic control rendering -->
-        <td class="value">
-          <ng-container *ngIf="getValueControl(selected).show" [ngSwitch]="getValueControl(selected).type">
+        <td class="value" *ngIf="shouldShowValueColumn()">
+          <ng-container [ngSwitch]="getValueControl(selected).type">
             <input *ngSwitchCase="FieldType.Text" type="text" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Number" type="number" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Date" type="date" [(ngModel)]="selected.value" />

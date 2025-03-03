@@ -45,20 +45,20 @@ export class QueryTableComponent {
 
   getValueControl(selected: SelectedField): any {
     const control = { show: false, dual: false, type: FieldType.Text }; // Default control
-  
+
     // Check if a valid operation is selected
     if (selected.operator && selected.operator !== 'select') {
       const operator = selected.operator.toLowerCase();
-  
+
       // Scenario-1: No need to display any control
       if (NoValueOperators.includes(operator as OperatorType)) {
         control.show = false;
         return control;
       }
-  
+
       // Check the parent column set
       const parentType = this.getFieldType(selected);
-  
+
       // Scenario-2: Handle dual controls for specific operations
       if (DualOperators.includes(operator as OperatorType)) {
         control.show = true;
@@ -72,7 +72,7 @@ export class QueryTableComponent {
         }
         return control;
       }
-  
+
       // Scenario-3: Handle single controls for other operations
       control.show = true;
       if (parentType === FieldType.Date) {
@@ -85,7 +85,7 @@ export class QueryTableComponent {
         control.type = FieldType.Text;
       }
     }
-  
+
     return control;
   }
 
@@ -155,5 +155,9 @@ export class QueryTableComponent {
       }
     }
     return false;
+  }
+
+  shouldShowValueColumn(): boolean {
+    return this.selectedFields.some(field => this.getValueControl(field).show);
   }
 }
