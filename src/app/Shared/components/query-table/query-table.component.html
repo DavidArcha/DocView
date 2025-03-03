@@ -16,20 +16,20 @@
         <!-- Operator column -->
         <td class="operator">
           <app-localized-dropdown [options]="selected.operatorOptions" [selectedLanguage]="selectedLanguage"
-            [(selectedValue)]="selected.operator" (selectedValueChange)="onOperatorChange($event, i)">
+            [selectedValue]="selected.operator.id" (selectedValueChange)="onOperatorChange($event, i)">
           </app-localized-dropdown>
-          <!-- Display error message only if the field has been touched -->
           <div class="operator-error" *ngIf="selected.operatorTouched && !isOperatorValid(selected)">
             Please select one option.
           </div>
         </td>
         <!-- Value column: dynamic control rendering -->
-        <td class="value" *ngIf="getValueControl(selected).show">
+        <td class="value" *ngIf="getValueControl(selected).show && isOperatorValid(selected)">
           <ng-container [ngSwitch]="getValueControl(selected).type">
             <input *ngSwitchCase="FieldType.Text" type="text" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Number" type="number" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Date" type="date" [(ngModel)]="selected.value" />
-            <app-table-dropdown *ngSwitchCase="FieldType.Dropdown" [data]="dropdownData" [(ngModel)]="selected.value"></app-table-dropdown>
+            <app-table-dropdown *ngSwitchCase="FieldType.Dropdown" [data]="dropdownData"
+              [(ngModel)]="selected.value"></app-table-dropdown>
             <ng-container *ngSwitchCase="FieldType.Text">
               <ng-container *ngIf="getValueControl(selected).dual">
                 <input type="text" [(ngModel)]="selected.value[0]" />
@@ -55,12 +55,12 @@
             Invalid value.
           </div>
         </td>
-        <td *ngIf="!getValueControl(selected).show && shouldShowValueColumn()"></td>
+        <td *ngIf="(!getValueControl(selected).show || !isOperatorValid(selected)) && shouldShowValueColumn()"></td>
         <td>
           <button (click)="onSearchSelectedField(selected)">Search</button>
           <button (click)="onDeleteSelectedField(i)">Delete</button>
         </td>
       </tr>
     </tbody>
-  </table>  
+  </table>
 </div>

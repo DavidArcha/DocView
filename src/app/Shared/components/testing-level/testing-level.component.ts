@@ -102,8 +102,12 @@ export class TestingLevelComponent {
     const parentLabel = this.getLabelById(event.parent);
     const fieldLabel = this.getLabelById(event.field);
     const operatorOptions = this.getOperatorOptions(event.field);
-    const defaultOperator = '';
-    const defaultValue = null;
+
+    // Initialize with default operator object
+    const defaultOperator = {
+      id: 'select',
+      label: this.selectedLanguage === 'de' ? 'Auswählen' : 'Select'
+    };
 
     if (parentLabel && fieldLabel) {
       this.selectedFields.push({
@@ -111,7 +115,9 @@ export class TestingLevelComponent {
         field: { id: event.field, label: fieldLabel },
         operator: defaultOperator,
         operatorOptions: operatorOptions,
-        value: defaultValue
+        value: null,
+        operatorTouched: false,
+        valueTouched: false
       });
     }
     this.updateLocalStorage();
@@ -239,17 +245,30 @@ export class TestingLevelComponent {
    */
   onOperatorChange(event: { newOperator: string, index: number }): void {
     const field = this.selectedFields[event.index];
-    field.operator = event.newOperator;
-    console.log('Operator Changed:', event.newOperator);
 
-    if (DualOperators.includes(event.newOperator as OperatorType)) {
-      field.value = ['', ''];
-    } else if (NoValueOperators.includes(event.newOperator as OperatorType)) {
-      field.value = null;
-    } else {
-      field.value = '';
+    if (!field || !event.newOperator) {
+      return;
     }
 
-    this.updateLocalStorage();
+    const selectedOption = field.operatorOptions.find(op => op.id === event.newOperator);
+
+    if (selectedOption) {
+      field.operator = {
+        id: selectedOption.id,
+        label: selectedOption[this.selectedLanguage] || selectedOption.id
+      };
+
+      // Reset value based on operator type
+      if (DualOperators.includes(selectedOption.id as OperatorType)) {
+        field.value = ['', ''];
+      } else if (NoValueOperators.includes(selectedOption.id as OperatorType)) {
+        field.value = null;
+      } else {
+        field.value = '';
+      }
+
+      field.operatorTouched = true;
+      this.updateLocalStorage();
+    }
   }
 }

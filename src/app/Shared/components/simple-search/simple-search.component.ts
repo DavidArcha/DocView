@@ -129,7 +129,7 @@ export class SimpleSearchComponent implements OnInit {
     const parentLabel = this.getLabelById(event.parent, this.sections);
     const fieldLabel = this.getLabelById(event.field, this.sections);
     const operatorOptions = this.getOperatorOptions(event.field);
-    const defaultOperator = '';
+    const defaultOperator = { id: 'select', label: 'Select' }; // Default operator with id and label
     const defaultValue = null;
 
     if (parentLabel && fieldLabel) {
@@ -181,20 +181,20 @@ export class SimpleSearchComponent implements OnInit {
   /**
    * When the operator value changes, update the operator and reset the value.
    */
-  onOperatorChange(event: { newOperator: string, index: number }): void {
-    const field = this.selectedFields[event.index];
-    field.operator = event.newOperator;
+  // onOperatorChange(event: { newOperator: string, index: number }): void {
+  //   const field = this.selectedFields[event.index];
+  //   field.operator = event.newOperator;
 
-    if (DualOperators.includes(event.newOperator as OperatorType)) {
-      field.value = ['', ''];
-    } else if (NoValueOperators.includes(event.newOperator as OperatorType)) {
-      field.value = null;
-    } else {
-      field.value = '';
-    }
+  //   if (DualOperators.includes(event.newOperator as OperatorType)) {
+  //     field.value = ['', ''];
+  //   } else if (NoValueOperators.includes(event.newOperator as OperatorType)) {
+  //     field.value = null;
+  //   } else {
+  //     field.value = '';
+  //   }
 
-    this.updateLocalStorage();
-  }
+  //   this.updateLocalStorage();
+  // }
 
   // Delete a row from the selected fields table.
   onDeleteSelectedField(index: number): void {
@@ -223,11 +223,7 @@ export class SimpleSearchComponent implements OnInit {
     }
   }
 
-  hasValueColumn(): boolean {
-    return this.selectedFields.some(
-      field => field.operator && field.operator !== 'empty' && field.operator !== 'yes' && field.operator !== 'no'
-    );
-  }
+ 
 
   onGroupFieldTitleClicked(fields: any[]): void {
     this.selectedFields = fields.map(field => ({

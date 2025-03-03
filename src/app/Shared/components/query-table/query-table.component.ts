@@ -36,57 +36,58 @@ export class QueryTableComponent {
   }
 
   getFieldType(selected: SelectedField): FieldType {
-    return FieldTypeMapping[selected.field.label.toLowerCase()] || FieldType.Text;
-  }
-
-  isOperatorValid(selected: SelectedField): boolean {
-    return !!selected.operator && selected.operator !== 'select';
+    return FieldTypeMapping[selected.field.id.toLowerCase()] || FieldType.Text;
   }
 
   getValueControl(selected: SelectedField): any {
     const control = { show: false, dual: false, type: FieldType.Text }; // Default control
 
-    // Check if a valid operation is selected
-    if (selected.operator && selected.operator !== 'select') {
-      const operator = selected.operator.toLowerCase();
-
-      // Scenario-1: No need to display any control
-      if (NoValueOperators.includes(operator as OperatorType)) {
-        control.show = false;
-        return control;
-      }
-
-      // Check the parent column set
-      const parentType = this.getFieldType(selected);
-
-      // Scenario-2: Handle dual controls for specific operations
-      if (DualOperators.includes(operator as OperatorType)) {
-        control.show = true;
-        control.dual = true;
-        if (parentType === FieldType.Date) {
-          control.type = FieldType.Date;
-        } else if (parentType === FieldType.Number) {
-          control.type = FieldType.Number;
-        } else {
-          control.type = FieldType.Text;
-        }
-        return control;
-      }
-
-      // Scenario-3: Handle single controls for other operations
-      control.show = true;
-      if (parentType === FieldType.Date) {
-        control.type = FieldType.Date;
-      } else if (parentType === FieldType.Number) {
-        control.type = FieldType.Number;
-      } else if (parentType === FieldType.Dropdown) {
-        control.type = FieldType.Dropdown;
-      } else {
-        control.type = FieldType.Text;
-      }
+    // Only show controls if a valid operator is selected (not 'select')
+    if (!selected.operator?.id || selected.operator.id === 'select') {
+      return control;
     }
 
+    const operatorId = selected.operator.id.toLowerCase();
+
+    // Scenario-1: No need to display any control
+    if (NoValueOperators.includes(operatorId as OperatorType)) {
+      control.show = false;
+      return control;
+    }
+
+    // Check the parent column set
+    const parentType = this.getFieldType(selected);
+
+    // Scenario-2: Handle dual controls for specific operations
+    if (DualOperators.includes(operatorId as OperatorType)) {
+      control.show = true;
+      control.dual = true;
+      control.type = this.getControlType(parentType);
+      return control;
+    }
+
+    // Scenario-3: Handle single controls for other operations
+    control.show = true;
+    control.type = this.getControlType(parentType);
+
     return control;
+  }
+
+  private getControlType(parentType: FieldType): FieldType {
+    switch (parentType) {
+      case FieldType.Date:
+        return FieldType.Date;
+      case FieldType.Number:
+        return FieldType.Number;
+      case FieldType.Dropdown:
+        return FieldType.Dropdown;
+      default:
+        return FieldType.Text;
+    }
+  }
+
+  isOperatorValid(selected: SelectedField): boolean {
+    return !!selected.operator?.id && selected.operator.id !== 'select';
   }
 
   validateField(selected: SelectedField, idx?: number): boolean {
@@ -158,6 +159,8 @@ export class QueryTableComponent {
   }
 
   shouldShowValueColumn(): boolean {
-    return this.selectedFields.some(field => this.getValueControl(field).show);
+    return this.selectedFields.some(field =>
+      this.getValueControl(field).show && this.isOperatorValid(field)
+    );
   }
 }

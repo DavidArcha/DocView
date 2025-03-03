@@ -9,8 +9,8 @@ export enum FieldType {
 // Sets of fields
 const NumericFields = ['version', 'priority'];
 const StringFields = ['edit', 'state', 'user', 'brand', 'input', 'visual', 'description', 'status'];
-const DateFields = ['date','current'];
-const DropdownFields = ['copy', 'category'];
+const DateFields = ['current','copy'];
+const DropdownFields = ['category','date'];
 
 // Numeric fields set
 export const NumericFieldMapping: { [key: string]: FieldType } = Object.fromEntries(

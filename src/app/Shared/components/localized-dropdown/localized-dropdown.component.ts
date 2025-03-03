@@ -18,8 +18,8 @@ export class LocalizedDropdownComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['options'] && this.options && this.options.length > 0) {
-      if (this.selectedValue === undefined || this.selectedValue === null) {
-        this.selectedValue = ''; 
+      if (!this.selectedValue || this.selectedValue === undefined || this.selectedValue === null) {
+        this.selectedValue = 'select';
         this.selectedValueChange.emit(this.selectedValue);
       }
     }
