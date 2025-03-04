@@ -191,6 +191,26 @@ export class TestingLevelComponent {
     this.selectedFields = this.selectedFields.map(field => {
       const parentLabel = this.getLabelById(field.parent.id);
       const fieldLabel = this.getLabelById(field.field.id);
+      
+      // For dropdown fields, ensure the dropdown data is refreshed
+      const dropdownData = this.getDropdownDataForField(field.field.id);
+      
+      // If value is present and it's a dropdown value, refresh its label according to current language
+      let value = field.value;
+      if (value && field.dropdownData && field.dropdownData.length > 0) {
+        if (Array.isArray(value)) {
+          // Handle array of selected values
+          value = value.map(v => {
+            const matchingItem = dropdownData.find(item => item.id === v.id);
+            return matchingItem || v;
+          });
+        } else if (typeof value === 'object' && 'id' in value) {
+          // Handle single selected value
+          const matchingItem = dropdownData.find(item => item.id === value.id);
+          value = matchingItem || value;
+        }
+      }
+      
       return {
         parent: {
           id: field.parent.id,
@@ -202,7 +222,10 @@ export class TestingLevelComponent {
         },
         operator: field.operator,
         operatorOptions: field.operatorOptions,
-        value: field.value
+        value: value,
+        operatorTouched: field.operatorTouched,
+        valueTouched: field.valueTouched,
+        dropdownData: dropdownData
       };
     });
 

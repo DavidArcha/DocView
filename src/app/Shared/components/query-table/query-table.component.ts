@@ -165,4 +165,42 @@ export class QueryTableComponent {
       this.getValueControl(field).show && this.isOperatorValid(field)
     );
   }
+
+  // Add these methods to handle dropdown value storage and retrieval
+  getSelectedDropdownValues(selected: SelectedField): string[] {
+    if (!selected.value) return [];
+
+    // If the value is already an object with id, extract the id
+    if (typeof selected.value === 'object' && selected.value !== null && 'id' in selected.value) {
+      return [selected.value.id];
+    }
+
+    // If it's an array of objects, map to ids
+    if (Array.isArray(selected.value) && selected.value.length > 0 &&
+      typeof selected.value[0] === 'object' && 'id' in selected.value[0]) {
+      return selected.value.map(item => item.id);
+    }
+
+    // If it's a simple string, wrap in array
+    if (typeof selected.value === 'string') {
+      return [selected.value];
+    }
+
+    return [];
+  }
+
+  onDropdownValueChange(selectedItems: any[], index: number): void {
+    if (!selectedItems || selectedItems.length === 0) {
+      this.selectedFields[index].value = null;
+    } else if (selectedItems.length === 1) {
+      // Store the complete object to preserve language information
+      this.selectedFields[index].value = selectedItems[0];
+    } else {
+      // Store array of objects for multi-select
+      this.selectedFields[index].value = selectedItems;
+    }
+
+    // Mark as touched to handle validation
+    this.markValueTouched(this.selectedFields[index]);
+  }
 }
