@@ -31,3 +31,42 @@
         </div>
     </div>
 </div>
+
+<div class="selected-fields-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Parent</th>
+                <th>Field</th>
+                <th>Operator</th>
+                <th>Value</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="parent">Parent</td>
+                <td class="field">Fiels</td>
+                <!-- Operator column -->
+                <td class="operator">
+                    <div>
+                        Please select one option.
+                    </div>
+                </td>
+                <!-- Value column: dynamic control rendering -->
+                <td class="value">
+                    <ng-container>
+                        <app-table-dropdown [data]="listData" [isTableView]="false" [selectedValues]="selectedValueIds"
+                            [selectedLanguage]="currentLanguage" [multiSelect]="true"
+                            (selectedValuesChange)="onSelectedListValueChange($event)">
+                        </app-table-dropdown>
+                    </ng-container>
+                </td>
+                <td></td>
+                <td>
+                </td>
+            </tr>
+          
+        </tbody>
+    </table>
+</div>

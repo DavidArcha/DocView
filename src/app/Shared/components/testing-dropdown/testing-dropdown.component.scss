@@ -46,3 +46,57 @@ h3 {
         word-wrap: break-word;
     }
 }
+
+.selected-fields-table {
+    position: relative;
+    margin-top: 20px;
+    max-height: 200px;
+    /* Limits the visible height of the table */
+    overflow-y: auto;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0; 
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        overflow: visible; // Ensure overflow is visible
+        position: relative;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+}
+
+.error {
+    border: 1px solid red;
+}
+
+.selected-fields-table app-table-dropdown {
+    display: block;
+    width: 100%;
+
+    // Override any max-width constraints
+    .dropdown-container {
+        max-width: none;
+    }
+
+    // Ensure the dropdown content appears above other elements
+    .dropdown-content {
+        z-index: 10000; 
+        min-width: 250px; // Ensure minimum width
+        width: auto;     // Allow to grow if needed
+    }
+}
+.operator-error,
+.value-error {
+    color: red;
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
