@@ -1,7 +1,20 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
-import { ListItem, TableItem } from '../../interfaces/table-dropdown.interface';
+import { 
+  ChangeDetectionStrategy, 
+  ChangeDetectorRef, 
+  Component, 
+  EventEmitter, 
+  HostListener, 
+  Input, 
+  OnChanges, 
+  OnDestroy,
+  OnInit, 
+  Output, 
+  SimpleChanges 
+} from '@angular/core';
+import { Subscription } from 'rxjs';
 import { DropdownService } from '../../services/dropdown.service';
 import { LanguageService } from '../../services/language.service';
+import { DropdownItem } from '../../interfaces/table-dropdown.interface';
 
 @Component({
   selector: 'app-table-dropdown',
@@ -10,161 +23,209 @@ import { LanguageService } from '../../services/language.service';
   styleUrl: './table-dropdown.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TableDropdownComponent implements OnChanges {
-  @Input() data: ListItem[] | TableItem[] = [];
-  @Input() view: 'list' | 'table' = 'list';
-  @Input() multiSelect: boolean = false; // ✅ Multi-Select Toggle
-  @Input() preselected?: any; // ✅ Preselect an item
+export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy {
+  @Input() data: DropdownItem[] = [];
+  @Input() isTableView = false; // New simplified boolean for view type
+  @Input() multiSelect = false;
+  @Input() selectedLanguage = 'de';
+  @Input() useTranslations = false;
+  @Input() selectedValues: string[] = [];
+  @Input() tableColumns?: string[];
+  @Output() selectedValuesChange = new EventEmitter<DropdownItem[]>();
 
   isOpen = false;
-  translatedSelectText: string = 'Select';
-  searchTerm = '';
-  selectedOptions: string[] = []; // ✅ Holds multi-selected options
-  selectedOption: string = this.translatedSelectText; // ✅ Single selection value
-  filteredData: ListItem[] = [];
+  selectedOptions: DropdownItem[] = [];
+  filteredData: DropdownItem[] = [];
+  selectedOption = '';
+  searchTerm = ''; // For search functionality
 
-  @Output() selectedValueChange = new EventEmitter<ListItem | ListItem[]>();
+  // Generate deterministic ID using timestamp and counter for uniqueness
+  private static idCounter = 0;
+  readonly dropdownId = `dropdown-${Date.now()}-${TableDropdownComponent.idCounter++}`;
+  
+  private subscriptions = new Subscription();
 
-  dropdownId = Math.random().toString(36).substr(2, 9); // Unique ID
+  constructor(
+    private cd: ChangeDetectorRef, 
+    private dropdownService: DropdownService,
+    private languageService: LanguageService
+  ) {}
 
-  constructor(private cd: ChangeDetectorRef, private dropdownService: DropdownService,
-    private languageService: LanguageService) { }
-
-  ngOnInit() {
-    this.dropdownService.activeDropdown$.subscribe((id) => {
-      this.isOpen = id === this.dropdownId;
-    });
-    this.initializeSelectedValues();
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['data'] && changes['data'].currentValue) {
-      this.filteredData = changes['data'].currentValue;
-      
-      // Update selected option label when data changes (language change)
-      if (!this.multiSelect && this.selectedOption !== this.translatedSelectText) {
-        const selectedItem = this.filteredData.find(item => item.id === this.preselected?.id);
-        if (selectedItem) {
-          this.selectedOption = selectedItem.label;
+  ngOnInit(): void {
+    this.subscriptions.add(
+      this.dropdownService.activeDropdown$.subscribe((id) => {
+        const isActive = id === this.dropdownId;
+        if (this.isOpen !== isActive) {
+          this.isOpen = isActive;
+          this.cd.detectChanges();
         }
-      } else if (this.multiSelect && this.selectedOptions.length > 0) {
-        // Update multiple selected options
-        const selectedItems = this.filteredData.filter(item => 
-          this.preselected?.some((pre: ListItem) => pre.id === item.id)
-        );
-        this.selectedOptions = selectedItems.map(item => item.label);
-      }
-      this.cd.detectChanges();
-    }
-
-    if (changes['preselected']) {
-      this.initializeSelectedValues();
-    }
-  }
-
-  initializeSelectedValues() {
-    // Initialize selected values only once
-    if (this.multiSelect) {
-      this.selectedOptions = Array.isArray(this.preselected)
-        ? this.preselected.map((item: any) => item.label)
-        : []; // Ensure it's an array or set empty array
-    } else {
-      this.selectedOption = this.preselected && this.preselected.label ? this.preselected.label : this.translatedSelectText;
-    }
-  }
-
-  toggleDropdown() {
-    this.isOpen = !this.isOpen;
-    this.dropdownService.setActiveDropdown(this.isOpen ? this.dropdownId : null);
-  }
-
-  closeDropdown() {
-    this.isOpen = false;
-    this.dropdownService.setActiveDropdown(null);
-  }
-
-  selectOption(item: any) {
-    if (this.multiSelect) {
-      const index = this.selectedOptions.indexOf(item.label);
-      if (index === -1) {
-        this.selectedOptions.push(item.label);
-      } else {
-        this.selectedOptions.splice(index, 1);
-      }
-      const selectedObjects = this.data.filter(obj => this.selectedOptions.includes(obj.label));
-      this.selectedValueChange.emit(selectedObjects);
-    } else {
-      this.selectedOption = item.label;
-      this.preselected = null; // Ensure preselectedItem does not override selection
-      this.selectedValueChange.emit(item);
-      this.isOpen = false;
-    }
-  }
-
-  updateSearch() {
-    this.filteredData = this.data.filter((item) =>
-      item.label.toLowerCase().includes(this.searchTerm.toLowerCase())
+      })
     );
-    this.cd.detectChanges();
+    this.initializeSelection();
   }
 
-  getSelectedText(): string {
-    return this.selectedOptions.length > 0 ? this.selectedOptions.join(', ') : this.translatedSelectText;
+  ngOnChanges(changes: SimpleChanges): void {
+    if ((changes['data'] || changes['selectedValues']) && this.data) {
+      this.filteredData = [...this.data];
+      this.initializeSelection();
+    }
   }
 
-  get tableData(): TableItem[] {
-    return this.filteredData as TableItem[];
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   @HostListener('document:click', ['$event'])
-  onClickOutside(event: Event) {
-    if (!event.target || !(event.target as HTMLElement).closest('.dropdown-container')) {
+  onClickOutside(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown-container')) {
       this.isOpen = false;
+      this.dropdownService.setActiveDropdown(null);
+      this.cd.detectChanges();
     }
   }
 
-  @HostListener('document:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
+  toggleDropdown(): void {
+    this.isOpen = !this.isOpen;
     if (this.isOpen) {
-      const currentIndex = this.filteredData.findIndex((item) => this.selectedOptions.includes(item.label));
+      this.dropdownService.setActiveDropdown(this.dropdownId);
+      // Reset search when opening
+      this.searchTerm = '';
+      this.filterItems();
+    } else {
+      this.dropdownService.setActiveDropdown(null);
+    }
+    this.cd.detectChanges();
+  }
 
-      if (event.key === 'ArrowDown') {
-        const nextIndex = (currentIndex + 1) % this.filteredData.length;
-        this.selectedOptions = [this.filteredData[nextIndex].label];
-        this.selectedOption = this.filteredData[nextIndex].label;
-      } else if (event.key === 'ArrowUp') {
-        const prevIndex = (currentIndex - 1 + this.filteredData.length) % this.filteredData.length;
-        this.selectedOptions = [this.filteredData[prevIndex].label];
-        this.selectedOption = this.filteredData[prevIndex].label;
-      } else if (event.key === 'Enter') {
-        this.isOpen = false;
-      } else if (event.key === 'Escape') {
-        this.isOpen = false;
+  selectOption(item: DropdownItem): void {
+    if (this.multiSelect) {
+      const index = this.selectedOptions.findIndex(opt => opt.id === item.id);
+      if (index === -1) {
+        this.selectedOptions = [...this.selectedOptions, item];
+      } else {
+        this.selectedOptions = [
+          ...this.selectedOptions.slice(0, index),
+          ...this.selectedOptions.slice(index + 1)
+        ];
+      }
+      this.selectedValuesChange.emit(this.selectedOptions);
+    } else {
+      this.selectedOption = this.getDisplayLabel(item);
+      this.selectedOptions = [item];
+      this.selectedValuesChange.emit([item]);
+      this.isOpen = false;
+      this.dropdownService.setActiveDropdown(null);
+    }
+    this.cd.detectChanges();
+  }
+
+  isSelected(item: DropdownItem): boolean {
+    return this.multiSelect 
+      ? this.selectedOptions.some(opt => opt.id === item.id)
+      : this.selectedValues.includes(item.id);
+  }
+
+  getDisplayLabel(item: DropdownItem): string {
+    if (this.useTranslations && item.translations) {
+      return item.translations[this.selectedLanguage] || item.label || '';
+    }
+    return item.label || '';
+  }
+
+  getDisplayText(): string {
+    if (this.multiSelect) {
+      if (this.selectedOptions.length === 0) {
+        return this.getPlaceholderText();
+      }
+      return this.selectedOptions
+        .map(item => this.getDisplayLabel(item))
+        .join(', ');
+    }
+    return this.selectedOption || this.getPlaceholderText();
+  }
+
+  private getPlaceholderText(): string {
+    return this.selectedLanguage === 'de' ? 'Auswählen' : 'Select';
+  }
+
+  clearSelection(event: Event): void {
+    event.stopPropagation();
+    if (this.multiSelect) {
+      this.selectedOptions = [];
+    } else {
+      this.selectedOption = '';
+      this.selectedValues = [];
+    }
+    this.selectedValuesChange.emit([]);
+    this.cd.detectChanges();
+  }
+
+  getTableHeaders(): string[] {
+    if (!this.tableColumns && this.data.length > 0 && this.data[0]?.tableData) {
+      return Object.keys(this.data[0].tableData);
+    }
+    return this.tableColumns || [];
+  }
+
+  getTableCellValue(item: DropdownItem, column: string): string {
+    return item.tableData?.[column] || '';
+  }
+
+  toggleSelectAll(): void {
+    if (this.selectedOptions.length === this.filteredData.length) {
+      this.selectedOptions = [];
+    } else {
+      this.selectedOptions = [...this.filteredData];
+    }
+    this.selectedValuesChange.emit(this.selectedOptions);
+    this.cd.detectChanges();
+  }
+
+  onSearchChange(): void {
+    this.filterItems();
+    this.cd.detectChanges();
+  }
+
+  filterItems(): void {
+    if (!this.searchTerm.trim()) {
+      this.filteredData = [...this.data];
+      return;
+    }
+    
+    const searchTermLower = this.searchTerm.toLowerCase();
+    
+    this.filteredData = this.data.filter(item => {
+      const label = this.getDisplayLabel(item).toLowerCase();
+      
+      // Also search in table data if available
+      if (this.isTableView && item.tableData) {
+        const tableValues = Object.values(item.tableData)
+          .map(val => String(val).toLowerCase());
+        return label.includes(searchTermLower) || 
+               tableValues.some(val => val.includes(searchTermLower));
+      }
+      
+      return label.includes(searchTermLower);
+    });
+  }
+
+  private initializeSelection(): void {
+    if (this.multiSelect) {
+      this.selectedOptions = this.data.filter(item => 
+        this.selectedValues.includes(item.id)
+      );
+    } else if (this.selectedValues.length > 0) {
+      const selected = this.data.find(item => item.id === this.selectedValues[0]);
+      if (selected) {
+        this.selectedOption = this.getDisplayLabel(selected);
+        this.selectedOptions = [selected];
       }
     }
+    this.cd.detectChanges();
   }
 
-  clearSelection(event: Event) {
-    event.stopPropagation(); // Prevents dropdown from toggling
-    this.selectedOptions = [];
-    this.selectedOption = this.translatedSelectText;
-    this.preselected = null; // Reset preselected item
-    this.selectedValueChange.emit(this.multiSelect ? [] : undefined);
-    this.closeDropdown();
-  }
-
-  removeItem(itemLabel: string, event: Event) {
-    event.stopPropagation(); // Prevents dropdown from toggling
-    this.selectedOptions = this.selectedOptions.filter(label => label !== itemLabel);
-
-    // Emit updated selection
-    const selectedObjects = this.data.filter(obj => this.selectedOptions.includes(obj.label));
-    this.selectedValueChange.emit(selectedObjects);
-
-    // If no items are left, reset to "Select"
-    if (this.selectedOptions.length === 0) {
-      this.selectedValueChange.emit([]); // Emit empty selection
-      this.closeDropdown();
-    }
+  getSearchPlaceholder(): string {
+    return this.selectedLanguage === 'de' ? 'Suchen...' : 'Search...';
   }
 }
