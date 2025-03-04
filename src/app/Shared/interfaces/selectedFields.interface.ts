@@ -6,4 +6,5 @@ export interface SelectedField {
     value: any;
     operatorTouched?: boolean;
     valueTouched?: boolean | boolean[];
+    dropdownData?: any[]; 
 }

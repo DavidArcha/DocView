@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { AccordionItem } from '../../interfaces/accordian-list.interface';
 import { SearchService } from '../../services/search.service';
 import { LanguageService } from '../../services/language.service';
-import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
+import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 import { DualOperators, NoValueOperators, OperatorType } from '../../enums/operator-types.enum';
 
@@ -31,6 +31,8 @@ export class TestingLevelComponent {
   listData: ListItem[] = [];
   selectedListValue: ListItem | ListItem[] | null = null;
   preselected: ListItem[] = [];
+  stateData: ListItem[] = [];
+  brandData: ListItem[] = [];
 
   constructor(
     private searchService: SearchService,
@@ -43,6 +45,8 @@ export class TestingLevelComponent {
       this.selectedLanguage = lang;
       this.loadAccordionData(this.selectedLanguage);
       this.loadSystemFields(this.selectedLanguage);
+      this.loadStateData(this.selectedLanguage);
+      this.loadBrandData(this.selectedLanguage);
       this.loadSelectedValuesFromStorage();
     });
 
@@ -71,6 +75,38 @@ export class TestingLevelComponent {
             this.refreshSelectedFields();
           }, 0);
 
+          this.changeDtr.detectChanges();
+        }
+      },
+      error: console.error
+    });
+  }
+
+  loadStateData(lang: string): void {
+    this.searchService.getStateData(lang).subscribe({
+      next: (stateFields) => {
+        if (stateFields.length > 0) {
+          this.stateData = stateFields.map(field => ({
+            id: field.id.toString(),
+            label: field.label // Mapping fieldName to label
+          }));
+          console.log('State Data:', this.stateData);
+          this.changeDtr.detectChanges();
+        }
+      },
+      error: console.error
+    });
+  }
+
+  loadBrandData(lang: string): void {
+    this.searchService.getBrandsData(lang).subscribe({
+      next: (brandFields) => {
+        if (brandFields.length > 0) {
+          this.brandData = brandFields.map(field => ({
+            id: field.id.toString(),
+            label: field.label // Mapping fieldName to label
+          }));
+          console.log('Brand Data:', this.brandData);
           this.changeDtr.detectChanges();
         }
       },
@@ -108,6 +144,8 @@ export class TestingLevelComponent {
       id: 'select',
       label: this.selectedLanguage === 'de' ? 'Auswählen' : 'Select'
     };
+    const defaultValue = null;
+    const dropdownData = this.getDropdownDataForField(event.field) || [];
 
     if (parentLabel && fieldLabel) {
       this.selectedFields.push({
@@ -115,9 +153,8 @@ export class TestingLevelComponent {
         field: { id: event.field, label: fieldLabel },
         operator: defaultOperator,
         operatorOptions: operatorOptions,
-        value: null,
-        operatorTouched: false,
-        valueTouched: false
+        value: defaultValue,
+        dropdownData: dropdownData
       });
     }
     this.updateLocalStorage();
@@ -281,6 +318,18 @@ export class TestingLevelComponent {
 
       field.operatorTouched = true;
       this.updateLocalStorage();
+    }
+  }
+
+  getDropdownDataForField(fieldId: string): any[] {
+    const dataSource = DropdownDataMapping[fieldId.toLowerCase()];
+    switch (dataSource) {
+      case 'stateData':
+        return this.stateData;
+      case 'brandData':
+        return this.brandData;
+      default:
+        return [];
     }
   }
 }

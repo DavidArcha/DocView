@@ -38,19 +38,6 @@ export const DROPDOWN_DATA = {
         { "id": "not_between", "en": "not between", "de": "nicht zwischen" },
         { "id": "contains_date", "en": "Contains date", "de": "Enthält Datum" }
     ],
-    "stateValues": [
-        { "id": "pending", "en": "Pending", "de": "Ausstehend" },
-        { "id": "initial", "en": "Initial", "de": "Initial" },
-        { "id": "in_process", "en": "In Process", "de": "In Bearbeitung" },
-        { "id": "reviewed", "en": "Reviewed", "de": "Überprüft" },
-        { "id": "approved", "en": "Approved", "de": "Genehmigt" }
-    ],
-    "brandValues": [
-        { "id": "bmw", "en": "BMW", "de": "BMW" },
-        { "id": "tata", "en": "TATA", "de": "TATA" },
-        { "id": "hundai", "en": "Hundai", "de": "Hundai" },
-        { "id": "kia", "en": "KIA", "de": "KIA" }
-    ],
     "timeOperations": [
         { "id": "equals", "en": "equals", "de": "gleich" },
         { "id": "not_equals", "en": "not equals", "de": "ungleich" },

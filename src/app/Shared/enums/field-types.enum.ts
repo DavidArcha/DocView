@@ -7,10 +7,10 @@ export enum FieldType {
 }
 
 // Sets of fields
-const NumericFields = ['version', 'priority'];
-const StringFields = ['edit', 'state', 'user', 'brand', 'input', 'visual', 'description', 'status'];
-const DateFields = ['current','copy'];
-const DropdownFields = ['category','date'];
+const NumericFields = ['version', 'priority', 'edit'];
+const StringFields = ['state', 'user', 'brand', 'input', 'visual', 'description', 'status'];
+const DateFields = ['current', 'date'];
+const DropdownFields = ['category', 'copy'];
 
 // Numeric fields set
 export const NumericFieldMapping: { [key: string]: FieldType } = Object.fromEntries(
@@ -31,6 +31,12 @@ export const DateFieldMapping: { [key: string]: FieldType } = Object.fromEntries
 export const DropdownFieldMapping: { [key: string]: FieldType } = Object.fromEntries(
   DropdownFields.map(field => [field, FieldType.Dropdown])
 );
+
+// Mapping for dropdown fields to their data sources
+export const DropdownDataMapping: { [key: string]: string } = {
+  'copy': 'stateData',
+  'category': 'brandData'
+};
 
 // Combined field type mapping for easy lookup
 export const FieldTypeMapping: { [key: string]: FieldType } = {

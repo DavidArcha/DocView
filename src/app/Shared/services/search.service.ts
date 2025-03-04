@@ -60,4 +60,14 @@ export class SearchService {
     let url = `${this.apiUrl}${RestAPICallUrl.getAccordionData}/${lang}`;
     return this.http.get<AccordionItem[]>(url);
   }
+
+  getStateData(lang: string): Observable<AccordionItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getStateData}/${lang}`;
+    return this.http.get<AccordionItem[]>(url);
+  }
+
+  getBrandsData(lang: string): Observable<ListItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getBrandData}/${lang}`;
+    return this.http.get<ListItem[]>(url);
+  }
 }
