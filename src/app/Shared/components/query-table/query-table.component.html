@@ -28,8 +28,9 @@
             <input *ngSwitchCase="FieldType.Text" type="text" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Number" type="number" [(ngModel)]="selected.value" />
             <input *ngSwitchCase="FieldType.Date" type="date" [(ngModel)]="selected.value" />
-            <!-- <app-table-dropdown *ngSwitchCase="FieldType.Dropdown" [data]="selected.dropdownData||[]"
-              [(ngModel)]="selected.value"></app-table-dropdown> -->
+            <app-table-dropdown *ngSwitchCase="FieldType.Dropdown" [data]="selected.dropdownData||[]"
+              [isTableView]="false" [multiSelect]="false">
+            </app-table-dropdown>
             <ng-container *ngSwitchCase="FieldType.Text">
               <ng-container *ngIf="getValueControl(selected).dual">
                 <input type="text" [(ngModel)]="selected.value[0]" />

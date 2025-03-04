@@ -117,12 +117,19 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
         ];
       }
       this.selectedValuesChange.emit(this.selectedOptions);
+      
+      // Close the dropdown if in list view and not table view
+      if (!this.isTableView) {
+        this.closeDropdown();
+        this.dropdownService.setActiveDropdown(null);
+      }
     } else {
       this.selectedOption = this.getDisplayLabel(item);
       this.selectedOptions = [item];
       this.selectedValuesChange.emit([item]);
       this.isOpen = false;
       this.dropdownService.setActiveDropdown(null);
+      this.closeDropdown(); // Ensure we call closeDropdown to properly clean up the overlay
     }
     this.cd.detectChanges();
   }
