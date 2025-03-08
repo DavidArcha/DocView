@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { AccordionItem } from '../../interfaces/accordian-list.interface';
-import { AccordionService } from '../../services/accordion.service';
+import { AccordionItem } from '../../../interfaces/accordian-list.interface';
+import { AccordionService } from '../../../services/accordion.service';
 
 @Component({
   selector: 'app-accordion-section',

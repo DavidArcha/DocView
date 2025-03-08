@@ -21,9 +21,8 @@ import { HeaderComponent } from './components/header/header.component';
 import { CustomButtonsComponent } from './Shared/components/custom-buttons/custom-buttons.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LocalizedDropdownComponent } from './Shared/components/localized-dropdown/localized-dropdown.component';
-import { MultilevelAccordionComponent } from './Shared/components/multilevel-accordion/multilevel-accordion.component';
-import { AccordionSectionComponent } from './Shared/components/accordion-section/accordion-section.component';
-import { SavedGroupAccordionComponent } from './Shared/components/saved-group-accordion/saved-group-accordion.component';
+import { AccordionSectionComponent } from './Shared/components/accordionControl/accordion-section/accordion-section.component';
+import { SavedGroupAccordionComponent } from './Shared/components/accordionControl/saved-group-accordion/saved-group-accordion.component';
 import { TextsurveyComponent } from './Shared/components/textsurvey/textsurvey.component';
 import { QueryTableComponent } from './Shared/components/query-table/query-table.component';
 import { VideoPlayerComponent } from './Shared/components/video-player/video-player.component';
@@ -36,6 +35,7 @@ import { TestingLevelComponent } from './Shared/components/testing-level/testing
 import { TableDropdownComponent } from './Shared/components/table-dropdown/table-dropdown.component';
 import { TestingDropdownComponent } from './Shared/components/testing-dropdown/testing-dropdown.component';
 import { TestingAccordionComponent } from './Shared/components/accordionControl/testing-accordion/testing-accordion.component';
+import { MultilevelAccordionComponent } from './Shared/components/accordionControl/multilevel-accordion/multilevel-accordion.component';
 
 @NgModule({
   declarations: [

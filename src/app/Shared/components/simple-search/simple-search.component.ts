@@ -9,7 +9,7 @@ import { ResultPageService } from '../../services/result-page.service';
 import { searchGroupFields } from '../../common/search_groupfields';
 import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { OperatorType, NoValueOperators, DualOperators } from '../../enums/operator-types.enum';
-import { SavedGroupAccordionComponent } from '../saved-group-accordion/saved-group-accordion.component';
+import { SavedGroupAccordionComponent } from '../accordionControl/saved-group-accordion/saved-group-accordion.component';
 import { AccordionItem } from '../../interfaces/accordian-list.interface';
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 

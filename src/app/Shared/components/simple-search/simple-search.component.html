@@ -24,9 +24,9 @@
         <!-- Render the accordion when data is loaded -->
         <ng-container *ngIf="!isLoading">
             <!-- Render the accordion sections -->
-            <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
+            <!-- <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
                 (fieldSelected)="onFieldSelected($event)">
-            </app-accordion-section>
+            </app-accordion-section> -->
         </ng-container>
     </div>
     <!-- Use the QueryTable component here -->

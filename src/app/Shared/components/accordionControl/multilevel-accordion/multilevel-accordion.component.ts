@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { AccordionSection } from '../../common/accordion-section.model';
-import { accordionDataTypes } from '../../common/accordian';
 import { delay, Observable, of } from 'rxjs';
-import { AccordionItem } from '../../interfaces/accordian-list.interface';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { trigger, state, style, animate, transition } from '@angular/animations';
+import { AccordionItem } from '../../../interfaces/accordian-list.interface';
 
 @Component({
   selector: 'app-multilevel-accordion',
