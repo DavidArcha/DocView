@@ -35,6 +35,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TestingLevelComponent } from './Shared/components/testing-level/testing-level.component';
 import { TableDropdownComponent } from './Shared/components/table-dropdown/table-dropdown.component';
 import { TestingDropdownComponent } from './Shared/components/testing-dropdown/testing-dropdown.component';
+import { TestingAccordionComponent } from './Shared/components/accordionControl/testing-accordion/testing-accordion.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { TestingDropdownComponent } from './Shared/components/testing-dropdown/t
     VideoPlayerComponent,
     TestingLevelComponent,
     TableDropdownComponent,
-    TestingDropdownComponent
+    TestingDropdownComponent,
+    TestingAccordionComponent
   ],
   imports: [
     BrowserModule,
