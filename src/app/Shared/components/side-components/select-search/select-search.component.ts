@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, QueryList, ViewChildren } from '@angular/core';
 import { DropdownItem } from '../../../interfaces/table-dropdown.interface';
 import { SearchService } from '../../../services/search.service';
 import { LanguageService } from '../../../services/language.service';
 import { AccordionItem } from '../../../interfaces/accordian-list.interface';
 import { Subject, takeUntil } from 'rxjs';
+import { AccordionSectionComponent } from '../../accordionControl/accordion-section/accordion-section.component';
 
 @Component({
   selector: 'app-select-search',
@@ -14,7 +15,8 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class SelectSearchComponent {
 
-
+  // Add ViewChildren to access accordion sections
+  @ViewChildren(AccordionSectionComponent) accordionSections!: QueryList<AccordionSectionComponent>;
   //System type data configuration start
   systemTypeData: DropdownItem[] = [];
   currentLanguage = 'en';
@@ -63,6 +65,12 @@ export class SelectSearchComponent {
   //System type data configuration start
   // Handle selected value change for list view
   onSelectedSystemTypeValueChange(selectedValues: DropdownItem[]): void {
+
+    // When a new item is selected, collapse all accordion sections
+    if (this.accordionSections) {
+      this.accordionSections.forEach(section => section.collapse());
+    }
+
     this.selectedSystemTypeValue = selectedValues.length === 1 ? selectedValues[0] : selectedValues;
     if (selectedValues.length === 0 && !this.clearingDropdown) {
       // Just clear the dropdown selection without affecting the accordion data
@@ -124,7 +132,6 @@ export class SelectSearchComponent {
 
   // Load selected values from localStorage
   loadSelectedSystemTypeValuesFromStorage(): void {
-    console.log("Current language", this.currentLanguage);
     // Load list values
     const savedListValue = localStorage.getItem('selectedSystemTypeValues');
     if (savedListValue) {
@@ -151,7 +158,10 @@ export class SelectSearchComponent {
     this.selectedSystemTypeValue = null;
     this.selectedSystemTypeValueIds = [];
     this.saveSelectedSystemTypeValuesToStorage(null);
-    
+    // Also collapse all accordion sections
+    if (this.accordionSections) {
+      this.accordionSections.forEach(section => section.collapse());
+    }
   }
   //System type data configuration end.
 
@@ -159,7 +169,6 @@ export class SelectSearchComponent {
 
   // Load Accordion Data
   loadAccordionData(selectedSysType: any, lang: string): void {
-    console.log("Selected System Type : ", selectedSysType);
     this.isLoading = true;
     this.searchService.getSystemFieldsAccData(selectedSysType, lang).subscribe({
       next: (fields) => {
