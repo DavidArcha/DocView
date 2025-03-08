@@ -1,4 +1,11 @@
 <div class="simple-search">
+
+    <div class="first-accordion-section">
+        <!-- Accordion sections with trackBy for performance -->
+        <app-accordion-section *ngFor="let section of systemFieldsAccData; trackBy: trackByFn" [section]="section"
+            [parentPath]="''" [isLoading]="isLoading" (fieldSelected)="onFieldSelected($event)">
+        </app-accordion-section>
+    </div>
     <!-- Loading indicator for system types -->
     <div *ngIf="loadingSystemTypes" class="loading-indicator">
         <span>Loading system types...</span>

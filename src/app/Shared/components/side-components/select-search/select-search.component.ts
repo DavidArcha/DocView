@@ -17,6 +17,10 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Add ViewChildren to access accordion sections
   @ViewChildren(AccordionSectionComponent) accordionSections!: QueryList<AccordionSectionComponent>;
 
+  // First System Fields Accordion Data start
+  public firstSystemFieldsData: AccordionItem[] = [];
+  //First System Fields Accordion Data end
+
   //System type data configuration start
   systemTypeData: DropdownItem[] = [];
   currentLanguage = 'en';
