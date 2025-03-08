@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { DropdownItem } from '../../interfaces/table-dropdown.interface';
-import { SearchService } from '../../services/search.service';
-import { LanguageService } from '../../services/language.service';
-import { tableDropdownData } from '../../common/table-dropdown';
+import { DropdownItem } from '../../../interfaces/table-dropdown.interface';
+import { SearchService } from '../../../services/search.service';
+import { LanguageService } from '../../../services/language.service';
+import { tableDropdownData } from '../../../common/table-dropdown';
 
 @Component({
   selector: 'app-testing-dropdown',

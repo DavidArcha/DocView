@@ -5,4 +5,5 @@ export const RestAPICallUrl = {
     getAccordionData:"api/Common/hierarchicaldata",
     getStateData:"api/Common/states",
     getBrandData:"api/Common/brands",
+    getSystemTypeFields: 'api/Common/systemtypes',
 }

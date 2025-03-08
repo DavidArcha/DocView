@@ -1,0 +1,8 @@
+<div class="simple-search">
+    <div class="dropdown-section">
+        <app-table-dropdown [data]="systemTypeData" [isTableView]="false" [selectedValues]="selectedSystemTypeValueIds"
+            [selectedLanguage]="currentLanguage" [multiSelect]="false"
+            (selectedValuesChange)="onSelectedSystemTypeValueChange($event)">
+        </app-table-dropdown>
+    </div>
+</div>

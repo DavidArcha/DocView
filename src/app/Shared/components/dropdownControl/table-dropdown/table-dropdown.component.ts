@@ -17,11 +17,11 @@ import {
   AfterViewInit
 } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { DropdownService } from '../../services/dropdown.service';
-import { LanguageService } from '../../services/language.service';
-import { DropdownItem } from '../../interfaces/table-dropdown.interface';
 import { Overlay, OverlayRef, OverlayPositionBuilder } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { DropdownItem } from '../../../interfaces/table-dropdown.interface';
+import { DropdownService } from '../../../services/dropdown.service';
+import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-table-dropdown',
@@ -117,7 +117,7 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
         ];
       }
       this.selectedValuesChange.emit(this.selectedOptions);
-      
+
       // Close the dropdown if in list view and not table view
       if (!this.isTableView) {
         this.closeDropdown();
@@ -245,38 +245,38 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
 
   toggleDropdown() {
     if (this.isOpen) {
-        this.closeDropdown();
+      this.closeDropdown();
     } else {
-        // Ensure dropdownTemplate and viewContainerRef are defined
-        if (!this.dropdownTemplate || !this.viewContainerRef) {
-            console.error('Dropdown template or view container ref is not defined');
-            return;
-        }
+      // Ensure dropdownTemplate and viewContainerRef are defined
+      if (!this.dropdownTemplate || !this.viewContainerRef) {
+        console.error('Dropdown template or view container ref is not defined');
+        return;
+      }
 
-        // Build a position strategy connected to the toggle button
-        const positionStrategy = this.overlayPositionBuilder
-            .flexibleConnectedTo(this.dropdownToggle)
-            .withPositions([{
-                originX: 'start',
-                originY: 'bottom',
-                overlayX: 'start',
-                overlayY: 'top',
-            }]);
+      // Build a position strategy connected to the toggle button
+      const positionStrategy = this.overlayPositionBuilder
+        .flexibleConnectedTo(this.dropdownToggle)
+        .withPositions([{
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top',
+        }]);
 
-        // Create the overlay with a transparent backdrop to catch outside clicks
-        this.overlayRef = this.overlay.create({
-            positionStrategy,
-            scrollStrategy: this.overlay.scrollStrategies.reposition(),
-            hasBackdrop: true,
-            backdropClass: 'transparent-backdrop'
-        });
+      // Create the overlay with a transparent backdrop to catch outside clicks
+      this.overlayRef = this.overlay.create({
+        positionStrategy,
+        scrollStrategy: this.overlay.scrollStrategies.reposition(),
+        hasBackdrop: true,
+        backdropClass: 'transparent-backdrop'
+      });
 
-        // Close the dropdown if the backdrop is clicked
-        this.overlayRef.backdropClick().subscribe(() => this.closeDropdown());
+      // Close the dropdown if the backdrop is clicked
+      this.overlayRef.backdropClick().subscribe(() => this.closeDropdown());
 
-        // Attach the dropdown template to the overlay
-        this.overlayRef.attach(new TemplatePortal(this.dropdownTemplate, this.viewContainerRef));
-        this.isOpen = true;
+      // Attach the dropdown template to the overlay
+      this.overlayRef.attach(new TemplatePortal(this.dropdownTemplate, this.viewContainerRef));
+      this.isOpen = true;
     }
   }
 

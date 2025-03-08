@@ -20,7 +20,7 @@ import { HomepageComponent } from './components/HomePage/homepage.component';
 import { HeaderComponent } from './components/header/header.component';
 import { CustomButtonsComponent } from './Shared/components/custom-buttons/custom-buttons.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { LocalizedDropdownComponent } from './Shared/components/localized-dropdown/localized-dropdown.component';
+import { LocalizedDropdownComponent } from './Shared/components/dropdownControl/localized-dropdown/localized-dropdown.component';
 import { AccordionSectionComponent } from './Shared/components/accordionControl/accordion-section/accordion-section.component';
 import { SavedGroupAccordionComponent } from './Shared/components/accordionControl/saved-group-accordion/saved-group-accordion.component';
 import { TextsurveyComponent } from './Shared/components/textsurvey/textsurvey.component';
@@ -32,10 +32,11 @@ import { VgOverlayPlayModule } from '@videogular/ngx-videogular/overlay-play';
 import { VgBufferingModule } from '@videogular/ngx-videogular/buffering';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TestingLevelComponent } from './Shared/components/testing-level/testing-level.component';
-import { TableDropdownComponent } from './Shared/components/table-dropdown/table-dropdown.component';
-import { TestingDropdownComponent } from './Shared/components/testing-dropdown/testing-dropdown.component';
+import { TestingDropdownComponent } from './Shared/components/dropdownControl/testing-dropdown/testing-dropdown.component';
 import { TestingAccordionComponent } from './Shared/components/accordionControl/testing-accordion/testing-accordion.component';
 import { MultilevelAccordionComponent } from './Shared/components/accordionControl/multilevel-accordion/multilevel-accordion.component';
+import { TableDropdownComponent } from './Shared/components/dropdownControl/table-dropdown/table-dropdown.component';
+import { SelectSearchComponent } from './Shared/components/side-components/select-search/select-search.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +59,8 @@ import { MultilevelAccordionComponent } from './Shared/components/accordionContr
     TestingLevelComponent,
     TableDropdownComponent,
     TestingDropdownComponent,
-    TestingAccordionComponent
+    TestingAccordionComponent,
+    SelectSearchComponent
   ],
   imports: [
     BrowserModule,

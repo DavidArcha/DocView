@@ -46,6 +46,11 @@ export class SearchService {
     return this.http.get<ListItem[]>(url);
   }
 
+  getSystemTypeFieldsByLang(lang: string): Observable<ListItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSystemTypeFields}/${lang}`;
+    return this.http.get<ListItem[]>(url);
+  }
+
   getDropdownData(): Observable<any> {
     // In a more complex scenario, you could load this data from an assets JSON file using HttpClient.
     return of(DROPDOWN_DATA);

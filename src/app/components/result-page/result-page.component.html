@@ -15,6 +15,7 @@
         <div class="control-content" *ngIf="!isControlCollapsed">
             <app-textsurvey *ngIf="selectedComponent === 'TextSurvey'"></app-textsurvey>
             <app-simple-search *ngIf="selectedComponent === 'SimpleSearch'"></app-simple-search>
+            <app-select-search *ngIf="selectedComponent === 'SelectSearch'"></app-select-search>
             <app-testing-level *ngIf="selectedComponent === 'Test'"></app-testing-level>
             <app-testing-dropdown *ngIf="selectedComponent === 'TestDD'"></app-testing-dropdown>
             <app-testing-accordion *ngIf="selectedComponent === 'TestACC'"></app-testing-accordion>
