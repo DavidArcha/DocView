@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, Observable, of, retry, throwError } from '
 import { RestAPICallUrl } from '../common/apicalls';
 import { AccordionItem } from '../interfaces/accordian-list.interface';
 import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
-import { ListItem } from '../interfaces/table-dropdown.interface';
+import { DropdownItem, ListItem } from '../interfaces/table-dropdown.interface';
 
 
 @Injectable({
@@ -41,14 +41,19 @@ export class SearchService {
     localStorage.removeItem('searchQuery');
   }
 
-  getSystemFieldsByLang(lang: string): Observable<ListItem[]> {
+  getSystemFieldsByLang(lang: string): Observable<DropdownItem[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getSyatemFileds}/${lang}`;
-    return this.http.get<ListItem[]>(url);
+    return this.http.get<DropdownItem[]>(url);
   }
 
-  getSystemTypeFieldsByLang(lang: string): Observable<ListItem[]> {
+  getSystemTypeFieldsByLang(lang: string): Observable<DropdownItem[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getSystemTypeFields}/${lang}`;
-    return this.http.get<ListItem[]>(url);
+    return this.http.get<DropdownItem[]>(url);
+  }
+
+  getSystemFieldsAccData(selectedSysType: any, lang: string): Observable<AccordionItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSystemFieldsAccData}/${selectedSysType}/${lang}`;
+    return this.http.get<AccordionItem[]>(url);
   }
 
   getDropdownData(): Observable<any> {

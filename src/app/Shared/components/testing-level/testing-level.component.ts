@@ -244,10 +244,10 @@ export class TestingLevelComponent {
     this.searchService.getSystemFieldsByLang(lang).subscribe({
       next: (fields) => {
         if (fields.length > 0) {
-          this.listData = fields.map(field => ({
-            id: field.id.toString(),
-            label: field.label // Mapping fieldName to label
-          }));
+          // this.listData = fields.map(field => ({
+          //   id: field.id.toString(),
+          //   label: field.label // Mapping fieldName to label
+          // }));
           this.updatePreselectedValues();
           this.changeDtr.detectChanges();
         }

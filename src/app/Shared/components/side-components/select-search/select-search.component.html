@@ -5,4 +5,7 @@
             (selectedValuesChange)="onSelectedSystemTypeValueChange($event)">
         </app-table-dropdown>
     </div>
+    <app-accordion-section *ngFor="let section of systemFieldsAccData" [section]="section" [parentPath]="''"
+        [isLoading]="isLoading" (fieldSelected)="onFieldSelected($event)">
+    </app-accordion-section>
 </div>
