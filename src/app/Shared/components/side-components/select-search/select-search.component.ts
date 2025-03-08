@@ -21,6 +21,7 @@ export class SelectSearchComponent {
   selectedSystemTypeValueIds: string[] = [];
   selectedSystemTypeValue: DropdownItem | DropdownItem[] | null = null;
 
+  private clearingDropdown = false;
   private _showGroupDataOutside: boolean = false;
 
   set showGroupDataOutside(value: boolean) {
@@ -63,7 +64,16 @@ export class SelectSearchComponent {
   // Handle selected value change for list view
   onSelectedSystemTypeValueChange(selectedValues: DropdownItem[]): void {
     this.selectedSystemTypeValue = selectedValues.length === 1 ? selectedValues[0] : selectedValues;
+    if (selectedValues.length === 0 && !this.clearingDropdown) {
+      // Just clear the dropdown selection without affecting the accordion data
+      this.selectedSystemTypeValue = null;
+      this.selectedSystemTypeValueIds = [];
+      this.saveSelectedSystemTypeValuesToStorage(null);
+      this.systemFieldsAccData = [];
+      return;
+    }
 
+    this.clearingDropdown = false; // Reset the flag
     // Extract the id from the selected value(s)
     const selectedId = Array.isArray(this.selectedSystemTypeValue) ? this.selectedSystemTypeValue.map(item => item.id) : this.selectedSystemTypeValue.id;
 
@@ -89,7 +99,7 @@ export class SelectSearchComponent {
   }
 
   // Save selected values to localStorage
-  saveSelectedSystemTypeValuesToStorage(selectedValues: DropdownItem | DropdownItem[]): void {
+  saveSelectedSystemTypeValuesToStorage(selectedValues: DropdownItem | DropdownItem[] | null): void {
     localStorage.setItem('selectedSystemTypeValues', JSON.stringify(selectedValues));
   }
 
@@ -134,12 +144,22 @@ export class SelectSearchComponent {
       }
     }
   }
+
+  // Add a method to handle clearing the dropdown explicitly
+  clearDropdownSelection(): void {
+    this.clearingDropdown = true;
+    this.selectedSystemTypeValue = null;
+    this.selectedSystemTypeValueIds = [];
+    this.saveSelectedSystemTypeValuesToStorage(null);
+    
+  }
   //System type data configuration end.
 
   // Inject the Accordion based on the selected system type start
 
   // Load Accordion Data
   loadAccordionData(selectedSysType: any, lang: string): void {
+    console.log("Selected System Type : ", selectedSysType);
     this.isLoading = true;
     this.searchService.getSystemFieldsAccData(selectedSysType, lang).subscribe({
       next: (fields) => {
