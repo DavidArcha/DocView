@@ -100,7 +100,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle selected value change for list view
   onSelectedSystemTypeValueChange(selectedValues: DropdownItem[]): void {
     this.selectedSystemTypeValue = selectedValues.length === 1 ? selectedValues[0] : selectedValues;
-
+    console.log("Selected Values:", this.selectedSystemTypeValue);
     // When a new item is selected, collapse all existing system accordion sections first
     if (this.systemAccordionSections) {
       this.systemAccordionSections.forEach(section => section.collapse());
@@ -248,7 +248,23 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Handle Field Selection and Store Labels Instead of IDs
   onFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
-    console.log("Acc Selected Fields:", event);
+    // Replace parent with selectedSystemTypeValue
+    const modifiedEvent = {
+      parent: this.selectedSystemTypeValue
+        ? {
+          id: Array.isArray(this.selectedSystemTypeValue)
+            ? this.selectedSystemTypeValue[0].id
+            : this.selectedSystemTypeValue.id,
+          label: Array.isArray(this.selectedSystemTypeValue)
+            ? this.selectedSystemTypeValue[0].label
+            : this.selectedSystemTypeValue.label
+        }
+        : { id: '', label: '' },
+      field: event.field,
+      path: event.path
+    };
+
+    console.log("System Fields Selected:", modifiedEvent);
   }
 
   // First System Fields Accordion Data start
@@ -279,8 +295,19 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       });
   }
 
+  // Handle Field Selection for first accordion
   onFirstAccFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
-    console.log("First Selected Fields:", event);
+    // Set parent to null/undefined
+    const modifiedEvent = {
+      parent: { id: null, label: null },
+      field: event.field,
+      path: event.path
+    };
+
+    console.log("First Fields Selected:", modifiedEvent);
+
+    // Add the selected field to the selectedFields array
+    // this.selectedFields.push(modifiedEvent);
   }
   // First System Fields Accordion Data end
 
