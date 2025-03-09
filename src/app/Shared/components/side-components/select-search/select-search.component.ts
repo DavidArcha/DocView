@@ -101,6 +101,11 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   onSelectedSystemTypeValueChange(selectedValues: DropdownItem[]): void {
     this.selectedSystemTypeValue = selectedValues.length === 1 ? selectedValues[0] : selectedValues;
 
+    // When a new item is selected, collapse all existing system accordion sections first
+    if (this.systemAccordionSections) {
+      this.systemAccordionSections.forEach(section => section.collapse());
+    }
+
     if (selectedValues.length === 0 && !this.clearingDropdown) {
       // Just clear the dropdown selection without affecting the accordion data
       this.selectedSystemTypeValue = null;
@@ -207,6 +212,10 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.selectedSystemTypeValueIds = [];
     this.saveSelectedSystemTypeValuesToStorage(null);
     this.systemFieldsAccData = [];
+    // Make sure to collapse all system accordions when clearing the dropdown
+    if (this.systemAccordionSections) {
+      this.systemAccordionSections.forEach(section => section.collapse());
+    }
   }
 
   // Load Accordion Data with improved state management
@@ -239,7 +248,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Handle Field Selection and Store Labels Instead of IDs
   onFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
-    console.log("Acc Selected Fields:", this.selectedFields);
+    console.log("Acc Selected Fields:", event);
   }
 
   // First System Fields Accordion Data start
@@ -271,7 +280,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   }
 
   onFirstAccFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
-    console.log("First Selected Fields:", this.selectedFields);
+    console.log("First Selected Fields:", event);
   }
   // First System Fields Accordion Data end
 
