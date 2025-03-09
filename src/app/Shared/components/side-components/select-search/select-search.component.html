@@ -2,8 +2,9 @@
 
     <div class="first-accordion-section">
         <!-- Accordion sections with trackBy for performance -->
-        <app-accordion-section *ngFor="let section of systemFieldsAccData; trackBy: trackByFn" [section]="section"
-            [parentPath]="''" [isLoading]="isLoading" (fieldSelected)="onFieldSelected($event)">
+        <app-accordion-section #firstAccordion *ngFor="let section of firstSystemFieldsData; trackBy: trackByFn"
+            [section]="section" [parentPath]="''" [isLoading]="isLoading" [sectionType]="'first'"
+            (fieldSelected)="onFirstAccFieldSelected($event)">
         </app-accordion-section>
     </div>
     <!-- Loading indicator for system types -->
@@ -27,8 +28,9 @@
     </div>
 
     <!-- Accordion sections with trackBy for performance -->
-    <app-accordion-section *ngFor="let section of systemFieldsAccData; trackBy: trackByFn" [section]="section"
-        [parentPath]="''" [isLoading]="isLoading" (fieldSelected)="onFieldSelected($event)">
+    <app-accordion-section #systemAccordion *ngFor="let section of systemFieldsAccData; trackBy: trackByFn"
+        [section]="section" [parentPath]="''" [isLoading]="isLoading" [sectionType]="'system'"
+        (fieldSelected)="onFieldSelected($event)">
     </app-accordion-section>
     <div class="action-buttons">
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>

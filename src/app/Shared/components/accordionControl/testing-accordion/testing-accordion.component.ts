@@ -48,7 +48,7 @@ export class TestingAccordionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.accordionService.setLoadingState(true);
+    // this.accordionService.setLoadingState(true);
     this.searchService.getAccordionFields(lang).subscribe({
       next: (fields) => {
         if (fields.length > 0) {
@@ -56,11 +56,11 @@ export class TestingAccordionComponent implements OnInit, OnDestroy {
           this.accordionService.setAccordionData(lang, fields);
           console.log("Accordion Data : ", this.sections);
         }
-        this.accordionService.setLoadingState(false);
+        // this.accordionService.setLoadingState(false);
       },
       error: (err) => {
         console.error(err);
-        this.accordionService.setLoadingState(false);
+        // this.accordionService.setLoadingState(false);
       }
     });
   }

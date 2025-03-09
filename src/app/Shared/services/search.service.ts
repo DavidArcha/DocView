@@ -41,9 +41,9 @@ export class SearchService {
     localStorage.removeItem('searchQuery');
   }
 
-  getSystemFields(lang: string): Observable<DropdownItem[]> {
+  getSystemFields(lang: string): Observable<AccordionItem[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getSyatemFileds}/${lang}`;
-    return this.http.get<DropdownItem[]>(url);
+    return this.http.get<AccordionItem[]>(url);
   }
 
   getSystemFieldsByLang(lang: string): Observable<DropdownItem[]> {

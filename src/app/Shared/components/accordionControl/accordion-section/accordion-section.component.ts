@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { AccordionItem } from '../../../interfaces/accordian-list.interface';
 import { AccordionService } from '../../../services/accordion.service';
+import { UniqueIdService } from '../../../services/unique-id.service';
 
 @Component({
   selector: 'app-accordion-section',
@@ -28,31 +29,52 @@ export class AccordionSectionComponent implements OnInit, OnChanges {
   @Input() parentPath: string = '';
   @Input() defaultExpanded: boolean = false;
   @Input() isLoading: boolean = false;
-  
+  @Input() sectionType: string = 'default'; // Add this to identify which accordion type this belongs to
+
   @Output() fieldSelected = new EventEmitter<{ parent: { id: string, label: string }, field: { id: string, label: string }, path: string }>();
   @Output() expandedChange = new EventEmitter<boolean>();
 
   public isExpanded: boolean = false;
 
-  constructor(private accordionService: AccordionService) {}
+  // Component instance ID
+  private instanceId: string;
+
+  constructor(private accordionService: AccordionService,
+    private uniqueIdService: UniqueIdService
+  ) {
+    // Generate unique ID for this component instance
+    this.instanceId = this.uniqueIdService.generateId();
+  }
 
   ngOnInit(): void {
-    const expandedState = localStorage.getItem(this.getStorageKey());
-    this.isExpanded = expandedState ? JSON.parse(expandedState) : this.accordionService.getExpandedState(this.section.id) || this.defaultExpanded;
+    // Use section ID and type for persistent storage key
+    const storedState = localStorage.getItem(this.getStorageKey());
+
+    if (storedState !== null) {
+      this.isExpanded = JSON.parse(storedState);
+    } else {
+      // Fall back to default
+      this.isExpanded = this.defaultExpanded;
+    }
+
+    // Make sure service is updated with current state too
+    this.accordionService.setExpandedState(this.getStorageKey(), this.isExpanded);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['section'] && !changes['section'].firstChange) {
-      // Handle section changes
-      const expandedState = localStorage.getItem(this.getStorageKey());
-      this.isExpanded = expandedState ? JSON.parse(expandedState) : this.defaultExpanded;
+      // Handle section changes by re-checking storage
+      const storedState = localStorage.getItem(this.getStorageKey());
+      if (storedState !== null) {
+        this.isExpanded = JSON.parse(storedState);
+      }
     }
   }
 
   toggleSection(): void {
     this.isExpanded = !this.isExpanded;
     this.expandedChange.emit(this.isExpanded);
-    this.accordionService.setExpandedState(this.section.id, this.isExpanded);
+    this.accordionService.setExpandedState(this.getStorageKey(), this.isExpanded);
     localStorage.setItem(this.getStorageKey(), JSON.stringify(this.isExpanded));
   }
 
@@ -88,7 +110,7 @@ export class AccordionSectionComponent implements OnInit, OnChanges {
     if (!this.isExpanded) {
       this.isExpanded = true;
       this.expandedChange.emit(true);
-      this.accordionService.setExpandedState(this.section.id, this.isExpanded);
+      this.accordionService.setExpandedState(this.getStorageKey(), this.isExpanded);
       localStorage.setItem(this.getStorageKey(), JSON.stringify(this.isExpanded));
     }
   }
@@ -97,12 +119,13 @@ export class AccordionSectionComponent implements OnInit, OnChanges {
     if (this.isExpanded) {
       this.isExpanded = false;
       this.expandedChange.emit(false);
-      this.accordionService.setExpandedState(this.section.id, this.isExpanded);
+      this.accordionService.setExpandedState(this.getStorageKey(), this.isExpanded);
       localStorage.setItem(this.getStorageKey(), JSON.stringify(this.isExpanded));
     }
   }
 
   private getStorageKey(): string {
-    return `accordion-section-${this.section.id}`;
+    // Use a more persistent identifier based on section ID and type
+    return `accordion-${this.sectionType}-${this.section.id}`;
   }
 }

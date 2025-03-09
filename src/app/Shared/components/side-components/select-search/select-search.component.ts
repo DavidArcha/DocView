@@ -5,6 +5,7 @@ import { LanguageService } from '../../../services/language.service';
 import { AccordionItem } from '../../../interfaces/accordian-list.interface';
 import { Subject, takeUntil, finalize, catchError, of, BehaviorSubject } from 'rxjs';
 import { AccordionSectionComponent } from '../../accordionControl/accordion-section/accordion-section.component';
+import { AccordionService } from '../../../services/accordion.service';
 
 @Component({
   selector: 'app-select-search',
@@ -16,6 +17,11 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Add ViewChildren to access accordion sections
   @ViewChildren(AccordionSectionComponent) accordionSections!: QueryList<AccordionSectionComponent>;
+
+  // Add these to track each section type separately
+  @ViewChildren('firstAccordion') firstAccordionSections!: QueryList<AccordionSectionComponent>;
+  @ViewChildren('systemAccordion') systemAccordionSections!: QueryList<AccordionSectionComponent>;
+
 
   // First System Fields Accordion Data start
   public firstSystemFieldsData: AccordionItem[] = [];
@@ -55,7 +61,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   constructor(
     private searchService: SearchService,
     private changeDtr: ChangeDetectorRef,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private accordionService: AccordionService
   ) { }
 
   ngOnInit(): void {
@@ -73,6 +80,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       .subscribe(lang => {
         this.currentLanguage = lang;
         this.loadSystemTypeFields(lang);
+        this.loadFirstAccordionData(lang);
         // Load from localStorage if available
         this.loadSelectedSystemTypeValuesFromStorage();
       });
@@ -91,11 +99,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Handle selected value change for list view
   onSelectedSystemTypeValueChange(selectedValues: DropdownItem[]): void {
-    // When a new item is selected, collapse all accordion sections
-    if (this.accordionSections) {
-      this.accordionSections.forEach(section => section.collapse());
-    }
-
     this.selectedSystemTypeValue = selectedValues.length === 1 ? selectedValues[0] : selectedValues;
 
     if (selectedValues.length === 0 && !this.clearingDropdown) {
@@ -204,10 +207,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.selectedSystemTypeValueIds = [];
     this.saveSelectedSystemTypeValuesToStorage(null);
     this.systemFieldsAccData = [];
-    // Also collapse all accordion sections
-    if (this.accordionSections) {
-      this.accordionSections.forEach(section => section.collapse());
-    }
   }
 
   // Load Accordion Data with improved state management
@@ -231,34 +230,54 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (fields) => {
           this.systemFieldsAccData = fields;
+          // Restore expansion state for these sections
+          this.accordionService.restoreAccordionState('system', fields);
+          setTimeout(() => this.changeDtr.detectChanges(), 0);
         }
       });
   }
 
   // Handle Field Selection and Store Labels Instead of IDs
   onFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
-    const existingIndex = this.selectedFields.findIndex(
-      item => item.field.id === event.field.id && item.parent.id === event.parent.id
-    );
-
-    if (existingIndex === -1) {
-      // Add new selection
-      this.selectedFields.push(event);
-    } else {
-      // Remove existing selection
-      this.selectedFields.splice(existingIndex, 1);
-    }
-
-    console.log("Updated Selected Fields:", this.selectedFields);
+    console.log("Acc Selected Fields:", this.selectedFields);
   }
+
+  // First System Fields Accordion Data start
+  loadFirstAccordionData(lang: string): void {
+    this.loadingSubject.next(true);
+    this.hasError = false;
+
+    this.searchService.getSystemFields(lang)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.loadingSubject.next(false);
+        }),
+        catchError(err => {
+          this.hasError = true;
+          this.errorMessage = 'Failed to load field data. Please try again.';
+          console.error('Error loading accordion data:', err);
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (fields) => {
+          this.firstSystemFieldsData = fields;
+          // Restore expansion state for these sections
+          this.accordionService.restoreAccordionState('first', fields);
+          setTimeout(() => this.changeDtr.detectChanges(), 0);
+        }
+      });
+  }
+
+  onFirstAccFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
+    console.log("First Selected Fields:", this.selectedFields);
+  }
+  // First System Fields Accordion Data end
 
   // New button: Clear with implementation
   clearTable(): void {
     this.selectedFields = [];
-    // Collapse all accordion sections
-    if (this.accordionSections) {
-      this.accordionSections.forEach(section => section.collapse());
-    }
   }
 
   // New button: Search with implementation
