@@ -6,6 +6,8 @@ import { AccordionItem } from '../../../interfaces/accordian-list.interface';
 import { Subject, takeUntil, finalize, catchError, of, BehaviorSubject } from 'rxjs';
 import { AccordionSectionComponent } from '../../accordionControl/accordion-section/accordion-section.component';
 import { AccordionService } from '../../../services/accordion.service';
+import { SelectedField } from '../../../interfaces/selectedFields.interface';
+import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../../enums/field-types.enum';
 
 @Component({
   selector: 'app-select-search',
@@ -47,7 +49,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Improved system fields accordion data with state tracking
   public systemFieldsAccData: AccordionItem[] = [];
-  public selectedFields: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }[] = [];
+  // For table data fields storage.
+  public selectedFields: SelectedField[] = [];
+  dropdownData: any;
 
   set showGroupDataOutside(value: boolean) {
     this._showGroupDataOutside = value;
@@ -249,22 +253,18 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle Field Selection and Store Labels Instead of IDs
   onFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
     // Replace parent with selectedSystemTypeValue
-    const modifiedEvent = {
-      parent: this.selectedSystemTypeValue
-        ? {
-          id: Array.isArray(this.selectedSystemTypeValue)
-            ? this.selectedSystemTypeValue[0].id
-            : this.selectedSystemTypeValue.id,
-          label: Array.isArray(this.selectedSystemTypeValue)
-            ? this.selectedSystemTypeValue[0].label
-            : this.selectedSystemTypeValue.label
-        }
-        : { id: '', label: '' },
-      field: event.field,
-      path: event.path
-    };
+    const parent = this.selectedSystemTypeValue
+      ? {
+        id: Array.isArray(this.selectedSystemTypeValue)
+          ? this.selectedSystemTypeValue[0].id
+          : this.selectedSystemTypeValue.id,
+        label: Array.isArray(this.selectedSystemTypeValue)
+          ? this.selectedSystemTypeValue[0].label || '' // Ensure it's never undefined
+          : this.selectedSystemTypeValue.label || ''    // Ensure it's never undefined
+      }
+      : { id: '', label: '' }; // Empty string as default
 
-    console.log("System Fields Selected:", modifiedEvent);
+    this.handleFieldSelection(event, parent);
   }
 
   // First System Fields Accordion Data start
@@ -298,18 +298,81 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle Field Selection for first accordion
   onFirstAccFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
     // Set parent to null/undefined
-    const modifiedEvent = {
-      parent: { id: null, label: null },
-      field: event.field,
-      path: event.path
-    };
+    const parent = { id: '', label: '' };
 
-    console.log("First Fields Selected:", modifiedEvent);
-
-    // Add the selected field to the selectedFields array
-    // this.selectedFields.push(modifiedEvent);
+    this.handleFieldSelection(event, parent);
   }
   // First System Fields Accordion Data end
+
+  // Common method for handling field selection from any accordion
+  private handleFieldSelection(
+    event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string },
+    parentOverride?: { id: string, label: string } | null
+  ): void {
+    // Use provided parent override or default from event
+    const parent = parentOverride || event.parent;
+
+    const operatorOptions = this.getOperatorOptions(event.field.label);
+
+    // Initialize with default operator object
+    const defaultOperator = {
+      id: 'select',
+      label: this.currentLanguage === 'de' ? 'Auswählen' : 'Select'
+    };
+    const defaultValue = null;
+    const dropdownData = this.getDropdownDataForField(event.field.label) || [];
+
+    // Create a new SelectedField object with all required properties
+    const selectedField: SelectedField = {
+      parent: parent,
+      field: event.field,
+      operator: defaultOperator,
+      operatorOptions: operatorOptions,
+      value: defaultValue,
+      dropdownData: dropdownData
+    };
+
+    this.selectedFields.push(selectedField);
+    console.log('Selected Fields:', this.selectedFields);
+    this.updateLocalStorage();
+  }
+
+  // Save updated table data to localStorage
+  updateLocalStorage(): void {
+    localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
+  }
+  /**
+   * Returns the operator dropdown options based on the selected field.
+   */
+  getOperatorOptions(field: string): any[] {
+    const fieldLower = field.toLowerCase();
+    switch (FieldTypeMapping[fieldLower]) {
+      case FieldType.Bool:
+        return this.dropdownData.boolOperations;
+      case FieldType.Text:
+        return this.dropdownData.tOperations;
+      case FieldType.Date:
+        return this.dropdownData.dateOperations;
+      case FieldType.Number:
+        return this.dropdownData.numberOperations;
+      case FieldType.Dropdown:
+        return this.dropdownData.stringOperations;
+      default:
+        return [];
+    }
+  }
+
+  getDropdownDataForField(fieldId: string): any[] {
+    const dataSource = DropdownDataMapping[fieldId.toLowerCase()];
+    switch (dataSource) {
+      // case 'stateData':
+      //   return this.stateData;
+      // case 'brandData':
+      //   return this.brandData;
+      default:
+        return [];
+    }
+  }
 
   // New button: Clear with implementation
   clearTable(): void {
