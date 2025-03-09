@@ -8,6 +8,7 @@ import { AccordionSectionComponent } from '../../accordionControl/accordion-sect
 import { AccordionService } from '../../../services/accordion.service';
 import { SelectedField } from '../../../interfaces/selectedFields.interface';
 import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../../enums/field-types.enum';
+import { DualOperators, NoValueOperators, OperatorType } from '../../../enums/operator-types.enum';
 
 @Component({
   selector: 'app-select-search',
@@ -51,7 +52,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   public systemFieldsAccData: AccordionItem[] = [];
   // For table data fields storage.
   public selectedFields: SelectedField[] = [];
-  dropdownData: any;
+  operationsDDData: any;
 
   set showGroupDataOutside(value: boolean) {
     this._showGroupDataOutside = value;
@@ -78,6 +79,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.changeDtr.detectChanges();
       });
 
+
     // Subscribe to language changes
     this.languageService.language$
       .pipe(takeUntil(this.destroy$))
@@ -89,8 +91,18 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.loadSelectedSystemTypeValuesFromStorage();
       });
 
+    this.searchService.getDropdownData().subscribe(data => {
+      this.operationsDDData = data;
+    });
+
     // Load stored selection preferences
     this.loadShowGroupDataOutsideFromStorage();
+
+    // Load table data from localStorage if available
+    const stored = localStorage.getItem('selectedFields');
+    if (stored) {
+      this.selectedFields = JSON.parse(stored);
+    }
   }
 
   // Load stored preferences
@@ -312,7 +324,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     // Use provided parent override or default from event
     const parent = parentOverride || event.parent;
 
-    const operatorOptions = this.getOperatorOptions(event.field.label);
+    const operatorOptions = this.getOperatorOptions(event.field.id);
 
     // Initialize with default operator object
     const defaultOperator = {
@@ -320,7 +332,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       label: this.currentLanguage === 'de' ? 'Auswählen' : 'Select'
     };
     const defaultValue = null;
-    const dropdownData = this.getDropdownDataForField(event.field.label) || [];
+    const dropdownData = this.getDropdownDataForField(event.field.id) || [];
 
     // Create a new SelectedField object with all required properties
     const selectedField: SelectedField = {
@@ -345,18 +357,19 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
    * Returns the operator dropdown options based on the selected field.
    */
   getOperatorOptions(field: string): any[] {
-    const fieldLower = field.toLowerCase();
+    const fieldLower = field;
+    console.log('Field:', fieldLower);
     switch (FieldTypeMapping[fieldLower]) {
       case FieldType.Bool:
-        return this.dropdownData.boolOperations;
+        return this.operationsDDData.boolOperations;
       case FieldType.Text:
-        return this.dropdownData.tOperations;
+        return this.operationsDDData.tOperations;
       case FieldType.Date:
-        return this.dropdownData.dateOperations;
+        return this.operationsDDData.dateOperations;
       case FieldType.Number:
-        return this.dropdownData.numberOperations;
+        return this.operationsDDData.numberOperations;
       case FieldType.Dropdown:
-        return this.dropdownData.stringOperations;
+        return this.operationsDDData.stringOperations;
       default:
         return [];
     }
@@ -372,6 +385,57 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       default:
         return [];
     }
+  }
+
+  /**
+     * When the operator value changes, update the operator and reset the value.
+     */
+  onOperatorChange(event: { newOperator: string, index: number }): void {
+    const field = this.selectedFields[event.index];
+
+    if (!field) {
+      return;
+    }
+
+    // Handle 'select' option selection
+    if (event.newOperator === 'select') {
+      field.operator = {
+        id: 'select',
+        label: this.currentLanguage === 'de' ? 'Auswählen' : 'Select'
+      };
+      field.value = null;
+      field.operatorTouched = true;
+      this.updateLocalStorage();
+      return;
+    }
+
+    const selectedOption = field.operatorOptions.find(op => op.id === event.newOperator);
+
+    if (selectedOption) {
+      field.operator = {
+        id: selectedOption.id,
+        label: selectedOption[this.currentLanguage] || selectedOption.id
+      };
+
+      // Reset value based on operator type
+      if (DualOperators.includes(selectedOption.id as OperatorType)) {
+        field.value = ['', ''];
+      } else if (NoValueOperators.includes(selectedOption.id as OperatorType)) {
+        field.value = null;
+      } else {
+        field.value = '';
+      }
+
+      field.operatorTouched = true;
+      this.updateLocalStorage();
+    }
+  }
+
+  // Delete a row from the selected fields table.
+  onDeleteSelectedField(index: number): void {
+    this.selectedFields.splice(index, 1);
+    this.updateLocalStorage();
+    localStorage.removeItem('savedAccordionState');
   }
 
   // New button: Clear with implementation

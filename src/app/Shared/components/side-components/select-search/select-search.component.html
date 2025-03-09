@@ -32,6 +32,12 @@
         [section]="section" [parentPath]="''" [isLoading]="isLoading" [sectionType]="'system'"
         (fieldSelected)="onFieldSelected($event)">
     </app-accordion-section>
+
+    <!-- Use the QueryTable component here -->
+    <app-query-table [selectedFields]="selectedFields" [dropdownData]="operationsDDData"
+        [selectedLanguage]="currentLanguage" (deleteSelectedField)="onDeleteSelectedField($event)"
+        (operatorChange)="onOperatorChange($event)">
+    </app-query-table>
     <div class="action-buttons">
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>
         <button [disabled]="selectedFields.length === 0" (click)="searchTable()">Search</button>
