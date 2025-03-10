@@ -40,38 +40,65 @@
         <!-- Value column: dynamic control rendering -->
         <td class="value" *ngIf="getValueControl(selected).show && isOperatorValid(selected)">
           <ng-container [ngSwitch]="getValueControl(selected).type">
-            <input *ngSwitchCase="FieldType.Text" type="text" [(ngModel)]="selected.value" />
-            <input *ngSwitchCase="FieldType.Number" type="number" [(ngModel)]="selected.value" />
-            <input *ngSwitchCase="FieldType.Date" type="date" [(ngModel)]="selected.value" />
+            <!-- Text inputs -->
+            <ng-container *ngSwitchCase="FieldType.Text">
+              <ng-container *ngIf="!getValueControl(selected).dual; else dualTextInputs">
+                <input type="text" [(ngModel)]="selected.value" [class.invalid]="!validateField(selected)"
+                  (blur)="markValueTouched(selected)" />
+              </ng-container>
+              <ng-template #dualTextInputs>
+                <div class="dual-input-container">
+                  <input type="text" [(ngModel)]="selected.value[0]" [class.invalid]="!validateField(selected, 0)"
+                    (blur)="markValueTouched(selected, 0)" placeholder="From" />
+                  <input type="text" [(ngModel)]="selected.value[1]" [class.invalid]="!validateField(selected, 1)"
+                    (blur)="markValueTouched(selected, 1)" placeholder="To" />
+                </div>
+              </ng-template>
+            </ng-container>
+
+            <!-- Number inputs -->
+            <ng-container *ngSwitchCase="FieldType.Number">
+              <ng-container *ngIf="!getValueControl(selected).dual; else dualNumberInputs">
+                <input type="number" [(ngModel)]="selected.value" [class.invalid]="!validateField(selected)"
+                  (blur)="markValueTouched(selected)" placeholder="Enter value" />
+              </ng-container>
+              <ng-template #dualNumberInputs>
+                <div class="dual-input-container">
+                  <input type="number" [(ngModel)]="selected.value[0]" [class.invalid]="!validateField(selected, 0)"
+                    (blur)="markValueTouched(selected, 0)" placeholder="From" />
+                  <input type="number" [(ngModel)]="selected.value[1]" [class.invalid]="!validateField(selected, 1)"
+                    (blur)="markValueTouched(selected, 1)" placeholder="To" />
+                </div>
+              </ng-template>
+            </ng-container>
+
+            <!-- Date inputs -->
+            <ng-container *ngSwitchCase="FieldType.Date">
+              <ng-container *ngIf="!getValueControl(selected).dual; else dualDateInputs">
+                <input type="date" [(ngModel)]="selected.value" [class.invalid]="!validateField(selected)" />
+              </ng-container>
+              <ng-template #dualDateInputs>
+                <div class="dual-input-container">
+                  <input type="date" [(ngModel)]="selected.value[0]" [class.invalid]="!validateField(selected, 0)" />
+                  <input type="date" [(ngModel)]="selected.value[1]" [class.invalid]="!validateField(selected, 1)" />
+                </div>
+              </ng-template>
+            </ng-container>
+
+            <!-- Dropdown -->
             <app-table-dropdown *ngSwitchCase="FieldType.Dropdown" [data]="selected.dropdownData || []"
               [isTableView]="false" [multiSelect]="false" [selectedValues]="getSelectedDropdownValues(selected)"
               [selectedLanguage]="selectedLanguage" (selectedValuesChange)="onDropdownValueChange($event, i)">
             </app-table-dropdown>
+
+            <!-- Button -->
             <button *ngSwitchCase="FieldType.Button">
               {{ selected.value }}
             </button>
-            <ng-container *ngSwitchCase="FieldType.Text">
-              <ng-container *ngIf="getValueControl(selected).dual">
-                <input type="text" [(ngModel)]="selected.value[0]" />
-                <input type="text" [(ngModel)]="selected.value[1]" />
-              </ng-container>
-            </ng-container>
-            <ng-container *ngSwitchCase="FieldType.Number">
-              <ng-container *ngIf="getValueControl(selected).dual">
-                <input type="number" [(ngModel)]="selected.value[0]" />
-                <input type="number" [(ngModel)]="selected.value[1]" />
-              </ng-container>
-            </ng-container>
-            <ng-container *ngSwitchCase="FieldType.Date">
-              <ng-container *ngIf="getValueControl(selected).dual">
-                <input type="date" [(ngModel)]="selected.value[0]" />
-                <input type="date" [(ngModel)]="selected.value[1]" />
-              </ng-container>
-            </ng-container>
-            <!-- Add more controls as needed -->
           </ng-container>
+
           <!-- Display error message if the value is invalid -->
-          <div class="value-error" *ngIf="!validateField(selected)">
+          <div class="value-error" *ngIf="isValueTouched(selected) && !validateField(selected)">
             Invalid value.
           </div>
         </td>

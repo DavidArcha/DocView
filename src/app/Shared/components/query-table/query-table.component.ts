@@ -212,6 +212,25 @@ export class QueryTableComponent implements OnInit, OnDestroy {
   onOperatorChange(newOperator: string, index: number): void {
     this.operatorChange.emit({ newOperator, index });
     this.selectedFields[index].operatorTouched = true;
+
+    // Initialize value when operator changes
+    this.initializeValue(this.selectedFields[index]);
+  }
+
+  // Initialize value based on control type (single or dual)
+  initializeValue(selected: SelectedField): void {
+    const control = this.getValueControl(selected);
+
+    if (control.dual && (!selected.value || !Array.isArray(selected.value))) {
+      // Initialize dual input values as array with empty strings
+      selected.value = ['', ''];
+    } else if (!control.dual && Array.isArray(selected.value)) {
+      // Convert array back to single value if control type changed
+      selected.value = selected.value[0] || '';
+    } else if (!control.dual && selected.value === undefined) {
+      // Initialize single input with empty string
+      selected.value = '';
+    }
   }
 
   // Helper method to get parent data for search/save operations
@@ -241,28 +260,103 @@ export class QueryTableComponent implements OnInit, OnDestroy {
   // Then use this in your search or save methods
   // Update the onSearchSelectedField method to include all parent selections
   onSearchSelectedField(selected: SelectedField, index: number): void {
-    // Check if the operator is valid
-    if (!this.isOperatorValid(selected)) {
-      return;
-    }
-
-    // Check if the value is valid
-    if (!this.validateField(selected)) {
+    // Check if required fields are valid before proceeding
+    if (!this.isOperatorValid(selected) || !this.validateField(selected)) {
+      // Mark all fields as touched to show validation errors
+      selected.operatorTouched = true;
       this.markValueTouched(selected);
       return;
     }
 
-    // Prepare parent data for search
-    const parentData = this.prepareParentDataForSearch(index);
+    // Create search criteria object
     const searchCriteria: SearchCriteria = {
-      parent: parentData, // Add parent data to the search criteria
-      field: selected.field,  // Add field data to the search criteria
-      operator: selected.operator,  // Add operator data to the search criteria 
-      value: selected.value  // Add value data to the search criteria
+      field: {
+        id: selected.field.id,
+        label: selected.field.label
+      },
+      operator: {
+        id: selected.operator.id,
+        label: selected.operator.label || selected.operator.id // Fallback to ID if label is not available
+      },
+      // Format value based on control type
+      value: this.formatValueForSearch(selected)
     };
 
+    // Handle parent based on selection type
+    if (this.isParentEmpty(selected)) {
+      // Case 1: Parents selected from dropdown
+      if (selected.parentSelected) {
+        // Handle both single item and array of items
+        if (Array.isArray(selected.parentSelected)) {
+          // It's an array of dropdown items
+          if (selected.parentSelected.length > 0) {
+            // Use first item as the main parent for backward compatibility
+            const primaryParent = selected.parentSelected[0];
+            searchCriteria.parent = {
+              id: primaryParent.id,
+              label: primaryParent.label
+            };
+
+            // If there are multiple parents, add them as parentList
+            if (selected.parentSelected.length > 1) {
+              // Add additional property for multiple parents
+              (searchCriteria as any).parentList = selected.parentSelected.map(p => ({
+                id: p.id,
+                label: p.label
+              }));
+            }
+          }
+        } else {
+          // It's a single dropdown item
+          searchCriteria.parent = {
+            id: selected.parentSelected.id,
+            label: selected.parentSelected.label
+          };
+        }
+      } else {
+        // No parents selected, leave parent undefined
+      }
+    } else {
+      // Case 2: Single parent from existing data
+      searchCriteria.parent = {
+        id: selected.parent.id,
+        label: selected.parent.label
+      };
+    }
+
+    console.log('Search criteria:', searchCriteria);
     // Emit the search criteria
     this.searchSelectedField.emit(searchCriteria);
+  }
+
+  // Helper method to format value based on control type
+  private formatValueForSearch(selected: SelectedField): any {
+    const control = this.getValueControl(selected);
+
+    // If control doesn't require value, return null
+    if (!control.show) {
+      return null;
+    }
+
+    // Handle different value formats
+    if (control.dual) {
+      // For dual controls, ensure value is an array with both items
+      // Make sure they're properly initialized
+      if (!Array.isArray(selected.value)) {
+        selected.value = [selected.value, ''];
+      }
+      return selected.value;
+    }
+
+    // Handle dropdown values (might be array or single value)
+    if (control.type === FieldType.Dropdown) {
+      // Ensure dropdown values are returned as array
+      const values = this.getSelectedDropdownValues(selected);
+      return values.length === 1 ? values[0] : values;
+    }
+
+    // For single value controls
+    return selected.value;
   }
 
   onDeleteSelectedField(index: number): void {
@@ -332,66 +426,79 @@ export class QueryTableComponent implements OnInit, OnDestroy {
       return true;
     }
 
+    // Initialize value if not set
+    if (control.dual && (!selected.value || !Array.isArray(selected.value))) {
+      selected.value = ['', ''];
+    }
+
     let value;
     if (control.dual) {
-      if (idx === undefined) {
-        return false;
+      // For dual controls, validate specific index if provided
+      if (idx !== undefined) {
+        value = selected.value[idx];
+        return this.validateSingleValue(value, control.type);
       }
-      value = selected.value ? selected.value[idx] : '';
+      // Otherwise validate both values
+      return this.validateSingleValue(selected.value[0], control.type) &&
+        this.validateSingleValue(selected.value[1], control.type);
     } else {
+      // For single controls
       value = selected.value;
+      return this.validateSingleValue(value, control.type);
+    }
+  }
+
+  // Helper method for validating a single value
+  private validateSingleValue(value: any, type: FieldType): boolean {
+    if (value === undefined || value === null) {
+      return false;
     }
 
     if (typeof value === 'string') {
       value = value.trim();
+      if (value === '') return false;
     }
 
-    if (!value) {
-      return false;
+    switch (type) {
+      case FieldType.Number:
+        return /^[0-9]+$/.test(value.toString());
+      case FieldType.Text:
+        return value.toString().length > 0;
+      case FieldType.Date:
+        return value !== '';
+      case FieldType.Dropdown:
+        return value !== null && value !== '';
+      default:
+        return true;
     }
-
-    if (control.type === FieldType.Number) {
-      return /^[0-9]+$/.test(value);
-    }
-
-    if (control.type === FieldType.Text) {
-      return /^[a-zA-Z0-9 ]+$/.test(value);
-    }
-
-    return true;
   }
 
   markValueTouched(selected: SelectedField, idx?: number): void {
     const control = this.getValueControl(selected);
-    if (control.show) {
-      if (control.dual) {
-        if (!selected.valueTouched || !Array.isArray(selected.valueTouched)) {
-          selected.valueTouched = [false, false];
-        }
-        if (idx !== undefined) {
-          (selected.valueTouched as boolean[])[idx] = true;
-        }
-      } else {
-        selected.valueTouched = true;
+
+    if (control.dual && idx !== undefined) {
+      // For dual inputs, we need an array of booleans
+      if (!selected.valueTouched || typeof selected.valueTouched === 'boolean') {
+        // Initialize as array if it doesn't exist or is a boolean
+        selected.valueTouched = [false, false];
       }
+      // Now we can safely set the specific index
+      (selected.valueTouched as boolean[])[idx] = true;
+    } else {
+      // For single inputs, just set to true
+      selected.valueTouched = true;
     }
   }
 
+  // Helper method to check if a value is touched
   isValueTouched(selected: SelectedField, idx?: number): boolean {
-    const control = this.getValueControl(selected);
-    if (control.show) {
-      if (control.dual) {
-        if (!idx) return false;
-        return Boolean(
-          selected.valueTouched &&
-          Array.isArray(selected.valueTouched) &&
-          selected.valueTouched[idx]
-        );
-      } else {
-        return Boolean(selected.valueTouched);
-      }
+    if (!selected.valueTouched) return false;
+
+    if (Array.isArray(selected.valueTouched) && idx !== undefined) {
+      return !!selected.valueTouched[idx];
     }
-    return false;
+
+    return !!selected.valueTouched;
   }
 
   shouldShowValueColumn(): boolean {
