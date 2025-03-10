@@ -393,7 +393,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   ): void {
     // Use provided parent override or default from event
     const parent = parentOverride || event.parent;
-    console.log('Operator option :', this.getOperatorOptions(event.field.id));
     const operatorOptions = this.getOperatorOptions(event.field.id);
     // Initialize with default operator object
     const defaultOperator = {
@@ -426,7 +425,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
    */
   getOperatorOptions(field: string): any[] {
     const fieldLower = field;
-    console.log('FIELD:', fieldLower);
     switch (FieldTypeMapping[fieldLower]) {
       case FieldType.Bool:
         return this.operationsDDData.boolOperations;
@@ -611,7 +609,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
           }
         }
       }
-
+      console.log('SELECTED FIELD:', selectedField);
       return selectedField;
     });
     // Save updated fields to localStorage

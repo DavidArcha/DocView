@@ -50,6 +50,8 @@ export class QueryTableComponent implements OnInit, OnDestroy {
         this.loadSystemTypeFields(this.selectedLanguage);
         // Update parent labels for non-dropdown cases
         this.updateParentLabels();
+        // Update parentSelected labels for dropdown cases
+        this.updateParentSelectedLabels();
       });
 
     // Initialize parentSelected for each row if not already set
@@ -184,9 +186,6 @@ export class QueryTableComponent implements OnInit, OnDestroy {
     // Store selection for this specific row without modifying parent
     this.selectedFields[rowIndex].parentSelected = selectedValues.length > 0 ? selectedValues : null;
 
-    // Don't update the parent property to keep the dropdown visible
-    // This ensures isParentEmpty() will continue to return true
-
     // Save to local storage if needed
     this.saveToLocalStorage();
   }
@@ -260,103 +259,9 @@ export class QueryTableComponent implements OnInit, OnDestroy {
   // Then use this in your search or save methods
   // Update the onSearchSelectedField method to include all parent selections
   onSearchSelectedField(selected: SelectedField, index: number): void {
-    // Check if required fields are valid before proceeding
-    if (!this.isOperatorValid(selected) || !this.validateField(selected)) {
-      // Mark all fields as touched to show validation errors
-      selected.operatorTouched = true;
-      this.markValueTouched(selected);
-      return;
-    }
-
-    // Create search criteria object
-    const searchCriteria: SearchCriteria = {
-      field: {
-        id: selected.field.id,
-        label: selected.field.label
-      },
-      operator: {
-        id: selected.operator.id,
-        label: selected.operator.label || selected.operator.id // Fallback to ID if label is not available
-      },
-      // Format value based on control type
-      value: this.formatValueForSearch(selected)
-    };
-
-    // Handle parent based on selection type
-    if (this.isParentEmpty(selected)) {
-      // Case 1: Parents selected from dropdown
-      if (selected.parentSelected) {
-        // Handle both single item and array of items
-        if (Array.isArray(selected.parentSelected)) {
-          // It's an array of dropdown items
-          if (selected.parentSelected.length > 0) {
-            // Use first item as the main parent for backward compatibility
-            const primaryParent = selected.parentSelected[0];
-            searchCriteria.parent = {
-              id: primaryParent.id,
-              label: primaryParent.label
-            };
-
-            // If there are multiple parents, add them as parentList
-            if (selected.parentSelected.length > 1) {
-              // Add additional property for multiple parents
-              (searchCriteria as any).parentList = selected.parentSelected.map(p => ({
-                id: p.id,
-                label: p.label
-              }));
-            }
-          }
-        } else {
-          // It's a single dropdown item
-          searchCriteria.parent = {
-            id: selected.parentSelected.id,
-            label: selected.parentSelected.label
-          };
-        }
-      } else {
-        // No parents selected, leave parent undefined
-      }
-    } else {
-      // Case 2: Single parent from existing data
-      searchCriteria.parent = {
-        id: selected.parent.id,
-        label: selected.parent.label
-      };
-    }
-
-    console.log('Search criteria:', searchCriteria);
+    console.log("Selected on query table: ", selected);
     // Emit the search criteria
-    this.searchSelectedField.emit(searchCriteria);
-  }
-
-  // Helper method to format value based on control type
-  private formatValueForSearch(selected: SelectedField): any {
-    const control = this.getValueControl(selected);
-
-    // If control doesn't require value, return null
-    if (!control.show) {
-      return null;
-    }
-
-    // Handle different value formats
-    if (control.dual) {
-      // For dual controls, ensure value is an array with both items
-      // Make sure they're properly initialized
-      if (!Array.isArray(selected.value)) {
-        selected.value = [selected.value, ''];
-      }
-      return selected.value;
-    }
-
-    // Handle dropdown values (might be array or single value)
-    if (control.type === FieldType.Dropdown) {
-      // Ensure dropdown values are returned as array
-      const values = this.getSelectedDropdownValues(selected);
-      return values.length === 1 ? values[0] : values;
-    }
-
-    // For single value controls
-    return selected.value;
+    this.searchSelectedField.emit(selected);
   }
 
   onDeleteSelectedField(index: number): void {
@@ -543,5 +448,30 @@ export class QueryTableComponent implements OnInit, OnDestroy {
 
     // Mark as touched to handle validation
     this.markValueTouched(this.selectedFields[index]);
+  }
+
+  // Update parentSelected labels based on the current language
+  private updateParentSelectedLabels(): void {
+    this.selectedFields.forEach(field => {
+      if (!field.parentSelected) return;
+
+      // Handle both single and array cases
+      if (Array.isArray(field.parentSelected)) {
+        field.parentSelected.forEach(item => {
+          const labelMap = this.parentLabelMap.get(item.id);
+          if (labelMap && labelMap[this.selectedLanguage]) {
+            // Update the label to the localized version
+            item.label = labelMap[this.selectedLanguage];
+          }
+        });
+      } else {
+        // Single item case
+        const labelMap = this.parentLabelMap.get(field.parentSelected.id);
+        if (labelMap && labelMap[this.selectedLanguage]) {
+          // Update the label to the localized version
+          field.parentSelected.label = labelMap[this.selectedLanguage];
+        }
+      }
+    });
   }
 }
