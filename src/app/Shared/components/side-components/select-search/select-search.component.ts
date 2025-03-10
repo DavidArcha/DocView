@@ -263,37 +263,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.saveSelectedSystemTypeValuesToStorage(this.selectedSystemTypeValue);
   }
 
-  // Add this method to update parent in selectedFields
-  updateSelectedFieldsParents(): void {
-    if (this.selectedFields.length === 0 || this.systemTypeData.length === 0) {
-      return;
-    }
-
-    // Loop through each selectedField and update the parent label using systemTypeData
-    this.selectedFields = this.selectedFields.map(field => {
-      // Skip fields without a parent or parent ID
-      if (!field.parent || !field.parent.id) {
-        return field;
-      }
-
-      // Find the updated system type data with current language
-      const currentSystemType = this.systemTypeData.find(item => item.id === field.parent.id);
-
-      // If found, update the parent label while keeping the same ID
-      if (currentSystemType) {
-        field.parent = {
-          id: field.parent.id,
-          label: currentSystemType.label || '' // Ensure it's never undefined
-        };
-      }
-
-      return field;
-    });
-
-    // Save updated fields to localStorage
-    this.updateLocalStorage();
-  }
-
   // Add a method to handle clearing the dropdown explicitly
   clearDropdownSelection(): void {
     this.clearingDropdown = true;
@@ -330,6 +299,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
           this.systemFieldsAccData = fields;
           // Restore expansion state for these sections
           this.accordionService.restoreAccordionState('system', fields);
+
+          console.log('Loaded accordion data with fields:', fields);
+
+          // Update field labels in selectedFields after systemFieldsAccData is loaded
+          this.updateSelectedFieldsParents();
+
           setTimeout(() => this.changeDtr.detectChanges(), 0);
         }
       });
@@ -373,9 +348,14 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (fields) => {
+          console.log('Loaded first accordion data with fields:', fields);
           this.firstSystemFieldsData = fields;
           // Restore expansion state for these sections
           this.accordionService.restoreAccordionState('first', fields);
+
+          // Update field labels in selectedFields after firstSystemFieldsData is loaded
+          this.updateSelectedFieldsParents();
+
           setTimeout(() => this.changeDtr.detectChanges(), 0);
         }
       });
@@ -419,7 +399,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     };
 
     this.selectedFields.push(selectedField);
-    console.log('Selected Fields:', this.selectedFields);
+    console.log('Selected fields:', this.selectedFields);
     this.updateLocalStorage();
   }
 
@@ -432,7 +412,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
    */
   getOperatorOptions(field: string): any[] {
     const fieldLower = field;
-    console.log('Field:', fieldLower);
     switch (FieldTypeMapping[fieldLower]) {
       case FieldType.Bool:
         return this.operationsDDData.boolOperations;
@@ -550,4 +529,159 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  // Update method to change both parent and field labels based on language
+  updateSelectedFieldsParents(): void {
+    if (this.selectedFields.length === 0) {
+      console.log('1. NO FIELDS: No selected fields to update');
+      return;
+    }
+
+    console.log('2. STARTING UPDATE: Selected fields count:', this.selectedFields.length);
+    console.log('3. FIELD IDS:', this.selectedFields.map(f => f.field.id));
+
+    // Prepare a map of all fields from firstSystemFieldsData for quick lookup
+    const firstSystemFieldsMap = new Map();
+    this.extractFields(this.firstSystemFieldsData, firstSystemFieldsMap);
+
+    console.log('4. FIRST SYSTEM FIELDS MAP: Size:', firstSystemFieldsMap.size);
+    console.log('5. FIRST SYSTEM FIELDS KEYS:', Array.from(firstSystemFieldsMap.keys()));
+
+    // Only extract fields from systemFieldsAccData if we have selected system type
+    const systemFieldsMap = new Map();
+    if (this.systemFieldsAccData.length > 0) {
+      this.extractFields(this.systemFieldsAccData, systemFieldsMap);
+      console.log('6. SYSTEM FIELDS MAP: Size:', systemFieldsMap.size);
+      console.log('7. SYSTEM FIELDS KEYS:', Array.from(systemFieldsMap.keys()));
+    } else {
+      console.log('6. SYSTEM FIELDS MAP: Empty - No system fields data loaded');
+    }
+
+    // Loop through each selectedField and update labels efficiently
+    this.selectedFields = this.selectedFields.map((selectedField, index) => {
+      console.log(`8. PROCESSING FIELD ${index + 1}:`, selectedField.field.id,
+        'Parent ID:', selectedField.parent?.id || 'empty',
+        'Current label:', selectedField.field.label);
+
+      // 1. Update parent labels if we have systemTypeData
+      if (selectedField.parent && selectedField.parent.id && this.systemTypeData.length > 0) {
+        const currentSystemType = this.systemTypeData.find(item => item.id === selectedField.parent.id);
+        if (currentSystemType) {
+          console.log(`9. UPDATING PARENT ${index + 1}:`,
+            selectedField.parent.label, '→', currentSystemType.label || '');
+
+          selectedField.parent = {
+            id: selectedField.parent.id,
+            label: currentSystemType.label || ''
+          };
+        } else {
+          console.log(`9. PARENT ${index + 1} NOT FOUND:`, selectedField.parent.id);
+        }
+      } else {
+        console.log(`9. NO PARENT UPDATE ${index + 1}: Parent empty or no systemTypeData`);
+      }
+
+      // 2. Update field labels based on source accordion
+      if (selectedField.field && selectedField.field.id) {
+        const oldLabel = selectedField.field.label;
+
+        // Case 1: Field from firstSystemFieldsData (empty parent)
+        if (!selectedField.parent.id) {
+          console.log(`10. CASE 1 ${index + 1}: Looking in firstSystemFieldsMap for ID`, selectedField.field.id);
+          const firstSystemField = firstSystemFieldsMap.get(selectedField.field.id);
+
+          if (firstSystemField) {
+            console.log(`11. FOUND IN FIRST ${index + 1}:`,
+              oldLabel, '→', firstSystemField.label);
+
+            selectedField.field = {
+              id: selectedField.field.id,
+              label: firstSystemField.label || ''
+            };
+          } else {
+            console.log(`11. NOT FOUND IN FIRST ${index + 1}:`, selectedField.field.id);
+            // Debug: Log all keys in the map to see if there's a mismatch
+            console.log(`11a. Available keys in firstSystemFieldsMap:`,
+              Array.from(firstSystemFieldsMap.keys()));
+          }
+        }
+        // Case 2: Field from systemFieldsAccData (has parent with ID)
+        else {
+          console.log(`12. CASE 2 ${index + 1}: Looking in systemFieldsMap for ID`, selectedField.field.id);
+          // Only search systemFieldsAccData if we have the right parent loaded
+          const systemField = systemFieldsMap.get(selectedField.field.id);
+          if (systemField) {
+            console.log(`13. FOUND IN SYSTEM ${index + 1}:`,
+              oldLabel, '→', systemField.label);
+
+            selectedField.field = {
+              id: selectedField.field.id,
+              label: systemField.label || ''
+            };
+          } else {
+            console.log(`13. NOT FOUND IN SYSTEM ${index + 1}:`, selectedField.field.id);
+            // Debug: Log all keys in the map to see if there's a mismatch
+            console.log(`13a. Available keys in systemFieldsMap:`,
+              Array.from(systemFieldsMap.keys()));
+          }
+        }
+
+        // Log if label was changed or not
+        if (oldLabel !== selectedField.field.label) {
+          console.log(`14. LABEL UPDATED ${index + 1}:`,
+            oldLabel, '→', selectedField.field.label);
+        } else {
+          console.log(`14. LABEL UNCHANGED ${index + 1}:`, oldLabel);
+        }
+      }
+
+      return selectedField;
+    });
+
+    console.log('15. UPDATE COMPLETE: Saving to localStorage');
+    // Save updated fields to localStorage
+    this.updateLocalStorage();
+  }
+
+  // Helper method to extract all fields from accordion data into a flat map for quick access
+  private extractFields(accordionData: AccordionItem[], fieldsMap: Map<string, any>): void {
+    console.log('E1. EXTRACT START: Processing sections:', accordionData.length);
+
+    const processSection = (section: AccordionItem) => {
+      console.log('E2. SECTION:', section.label || section.id);
+      
+      // In this data structure, the children array contains the actual fields
+      // Each child in children array is a field with id and label
+      if (section.children && Array.isArray(section.children)) {
+        console.log(`E3. CHILDREN FOUND:`, section.children.length);
+        
+        section.children.forEach(child => {
+          // Check if this child is a field (has id and label but no children)
+          if (child.id && (!child.children || child.children.length === 0)) {
+            console.log(`E4. ADDING FIELD: ${child.id} - ${child.label}`);
+            fieldsMap.set(child.id, { id: child.id, label: child.label });
+          } else {
+            // This is a subsection, process it recursively
+            processSection(child);
+          }
+        });
+      } else {
+        console.log('E3. NO CHILDREN in this section');
+      }
+
+      // Also check for fields array if it exists (for flexibility)
+      if (section['fields'] && Array.isArray(section['fields'])) {
+        console.log(`E5. FIELDS ARRAY FOUND:`, section['fields'].length);
+        section['fields'].forEach(field => {
+          console.log(`E6. ADDING FROM FIELDS: ${field.id} - ${field.label}`);
+          fieldsMap.set(field.id, field);
+        });
+      }
+    };
+
+    // Process all top-level sections
+    accordionData.forEach(section => processSection(section));
+    console.log(`E7. EXTRACTION COMPLETE: Total fields extracted: ${fieldsMap.size}`);
+  }
+
 }
