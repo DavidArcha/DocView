@@ -87,8 +87,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.currentLanguage = lang;
         this.loadSystemTypeFields(lang);
         this.loadFirstAccordionData(lang);
-        // Load from localStorage if available
-        this.loadSelectedSystemTypeValuesFromStorage();
       });
 
     this.searchService.getDropdownData().subscribe(data => {
@@ -191,7 +189,10 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
               label: field.label
             }));
 
-            // Update selected values after data is loaded
+            // Update selected values with new language labels
+            this.updateSelectedValuesWithCurrentLanguage();
+
+            // Update selected value IDs
             this.updateSelectedSystemTypeValueIds();
             this.changeDtr.detectChanges();
           }
@@ -199,26 +200,38 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       });
   }
 
-  // Load selected values from localStorage
-  loadSelectedSystemTypeValuesFromStorage(): void {
-    // Load list values
-    const savedListValue = localStorage.getItem('selectedSystemTypeValues');
-    if (savedListValue) {
-      try {
-        this.selectedSystemTypeValue = JSON.parse(savedListValue);
-        this.updateSelectedSystemTypeValueIds();
-        if (this.selectedSystemTypeValue) {
-          const selectedId = Array.isArray(this.selectedSystemTypeValue)
-            ? this.selectedSystemTypeValue.map(item => item.id)
-            : this.selectedSystemTypeValue.id;
-          this.loadAccordionData(selectedId, this.currentLanguage);
+  // New method to update selected values with current language
+  updateSelectedValuesWithCurrentLanguage(): void {
+    if (!this.selectedSystemTypeValue || this.systemTypeData.length === 0) {
+      return;
+    }
+
+    if (Array.isArray(this.selectedSystemTypeValue)) {
+      // Update multiple selections with current language labels
+      this.selectedSystemTypeValue = this.selectedSystemTypeValue.map(selectedItem => {
+        if (!selectedItem || !selectedItem.id) return selectedItem;
+        const currentItem = this.systemTypeData.find(item => item.id === selectedItem.id);
+        return currentItem || selectedItem;
+      });
+    } else {
+      // Update single selection with current language label
+      // Ensure selectedSystemTypeValue is not null before accessing .id
+      const id = this.selectedSystemTypeValue?.id;
+      if (id) {
+        const currentItem = this.systemTypeData.find(item => item.id === id);
+        if (currentItem) {
+          this.selectedSystemTypeValue = currentItem;
         }
-      } catch (e) {
-        console.error('Error parsing saved list values', e);
-        this.selectedSystemTypeValue = null;
-        this.selectedSystemTypeValueIds = [];
       }
     }
+    if (this.selectedSystemTypeValue) {
+      const selectedId = Array.isArray(this.selectedSystemTypeValue)
+        ? this.selectedSystemTypeValue.map(item => item.id)
+        : this.selectedSystemTypeValue.id;
+      this.loadAccordionData(selectedId, this.currentLanguage);
+    }
+    // Save updated values back to localStorage
+    this.saveSelectedSystemTypeValuesToStorage(this.selectedSystemTypeValue);
   }
 
   // Add a method to handle clearing the dropdown explicitly
@@ -264,6 +277,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Handle Field Selection and Store Labels Instead of IDs
   onFieldSelected(event: { parent: { id: string, label: string }, field: { id: string, label: string }, path: string }): void {
+    console.log("Selected Values in onfield:", this.selectedSystemTypeValue);
     // Replace parent with selectedSystemTypeValue
     const parent = this.selectedSystemTypeValue
       ? {
