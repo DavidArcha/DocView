@@ -79,7 +79,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.changeDtr.detectChanges();
       });
 
-
     // Subscribe to language changes
     this.languageService.language$
       .pipe(takeUntil(this.destroy$))
@@ -96,10 +95,34 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     // Load stored selection preferences
     this.loadShowGroupDataOutsideFromStorage();
 
+    // Load stored system type values
+    this.loadSelectedSystemTypeValuesFromStorage();
+
     // Load table data from localStorage if available
     const stored = localStorage.getItem('selectedFields');
     if (stored) {
       this.selectedFields = JSON.parse(stored);
+    }
+  }
+
+  // Add this method to load selected values from localStorage
+  loadSelectedSystemTypeValuesFromStorage(): void {
+    const savedValue = localStorage.getItem('selectedSystemTypeValues');
+    if (savedValue) {
+      try {
+        const savedValueObj = JSON.parse(savedValue);
+        this.selectedSystemTypeValue = savedValueObj;
+
+        // Update IDs for dropdown component binding
+        this.updateSelectedSystemTypeValueIds();
+
+        // Once we have system type data loaded, we'll update the labels
+        // This will happen in the loadSystemTypeFields subscription
+      } catch (e) {
+        console.error('Error loading saved system type values', e);
+        this.selectedSystemTypeValue = null;
+        this.selectedSystemTypeValueIds = [];
+      }
     }
   }
 
@@ -224,14 +247,49 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         }
       }
     }
+
+    // Update parents in selectedFields with new language labels
+    this.updateSelectedFieldsParents();
+
     if (this.selectedSystemTypeValue) {
       const selectedId = Array.isArray(this.selectedSystemTypeValue)
         ? this.selectedSystemTypeValue.map(item => item.id)
         : this.selectedSystemTypeValue.id;
       this.loadAccordionData(selectedId, this.currentLanguage);
     }
+
     // Save updated values back to localStorage
     this.saveSelectedSystemTypeValuesToStorage(this.selectedSystemTypeValue);
+  }
+
+  // Add this method to update parent in selectedFields
+  updateSelectedFieldsParents(): void {
+    if (!this.selectedSystemTypeValue || this.selectedFields.length === 0) {
+      return;
+    }
+
+    const systemTypeId = Array.isArray(this.selectedSystemTypeValue)
+      ? this.selectedSystemTypeValue[0].id
+      : this.selectedSystemTypeValue.id;
+
+    const systemTypeLabel = Array.isArray(this.selectedSystemTypeValue)
+      ? this.selectedSystemTypeValue[0].label || ''
+      : this.selectedSystemTypeValue.label || '';
+
+    // Update all selectedFields that have matching parent ID
+    this.selectedFields = this.selectedFields.map(field => {
+      if (field.parent && field.parent.id === systemTypeId) {
+        // Update the parent label with current language
+        field.parent = {
+          id: systemTypeId,
+          label: systemTypeLabel
+        };
+      }
+      return field;
+    });
+
+    // Save updated fields to localStorage
+    this.updateLocalStorage();
   }
 
   // Add a method to handle clearing the dropdown explicitly
