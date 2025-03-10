@@ -11,7 +11,11 @@
     <div *ngIf="showListView" class="dropdown-section">
         <h3>List View Test</h3>
         <app-table-dropdown [data]="listData" [isTableView]="false" [selectedValues]="selectedValueIds"
-            [selectedLanguage]="currentLanguage" [multiSelect]="false"
+            [selectedLanguage]="currentLanguage" [multiSelect]="true"
+            (selectedValuesChange)="onSelectedListValueChange($event)">
+        </app-table-dropdown>
+        <app-table-dropdown [data]="listData" [isTableView]="false" [selectedValues]="selectedValueIds"
+            [selectedLanguage]="currentLanguage" [multiSelect]="true"
             (selectedValuesChange)="onSelectedListValueChange($event)">
         </app-table-dropdown>
         <div class="selection-display">
@@ -66,7 +70,7 @@
                 <td>
                 </td>
             </tr>
-          
+
         </tbody>
     </table>
 </div>

@@ -1,8 +1,11 @@
+import { DropdownItem } from "./table-dropdown.interface";
+
 export interface SelectedField {
     parent: {
         id: string;
         label: string;
     };
+    parentSelected?: DropdownItem | DropdownItem[] | null;
     field: {
         id: string;
         label: string;

@@ -48,7 +48,7 @@ export class TestingDropdownComponent implements OnInit {
 
   // Load System Fields for list view
   loadSystemFields(lang: string): void {
-    this.searchService.getSystemFieldsByLang(lang).subscribe({
+    this.searchService.getSystemTypeFieldsByLang(lang).subscribe({
       next: (fields) => {
         if (fields.length > 0) {
           this.listData = fields.map(field => ({

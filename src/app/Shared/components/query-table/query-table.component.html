@@ -11,7 +11,22 @@
     </thead>
     <tbody>
       <tr *ngFor="let selected of selectedFields; let i = index">
-        <td class="parent">{{ selected.parent.label }}</td>
+        <td class="parent">
+          <!-- Case 1: If parent is empty or null, show dropdown -->
+          <ng-container *ngIf="isParentEmpty(selected); else showParentLabel">
+            <div class="parent-dropdown">
+              <app-table-dropdown [data]="systemTypeData" [isTableView]="false"
+                [selectedValues]="getParentSelectedValues(selected, i)" [selectedLanguage]="selectedLanguage"
+                [multiSelect]="true" (selectedValuesChange)="onParentValueChange($event, i)">
+              </app-table-dropdown>
+            </div>
+          </ng-container>
+
+          <!-- Case 2: If parent has data, show label -->
+          <ng-template #showParentLabel>
+            {{ selected.parent.label }}
+          </ng-template>
+        </td>
         <td class="field">{{ selected.field.label }}</td>
         <!-- Operator column -->
         <td class="operator">
@@ -59,7 +74,7 @@
         </td>
         <td *ngIf="(!getValueControl(selected).show || !isOperatorValid(selected)) && shouldShowValueColumn()"></td>
         <td>
-          <button (click)="onSearchSelectedField(selected)">Search</button>
+          <button (click)="onSearchSelectedField(selected,i)">Search</button>
           <button (click)="onDeleteSelectedField(i)">Delete</button>
         </td>
       </tr>
