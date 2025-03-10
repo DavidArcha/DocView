@@ -393,9 +393,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   ): void {
     // Use provided parent override or default from event
     const parent = parentOverride || event.parent;
-
+    console.log('Operator option :', this.getOperatorOptions(event.field.id));
     const operatorOptions = this.getOperatorOptions(event.field.id);
-
     // Initialize with default operator object
     const defaultOperator = {
       id: 'select',
@@ -427,6 +426,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
    */
   getOperatorOptions(field: string): any[] {
     const fieldLower = field;
+    console.log('FIELD:', fieldLower);
     switch (FieldTypeMapping[fieldLower]) {
       case FieldType.Bool:
         return this.operationsDDData.boolOperations;
@@ -438,6 +438,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         return this.operationsDDData.numberOperations;
       case FieldType.Dropdown:
         return this.operationsDDData.stringOperations;
+      case FieldType.Button:
+        return this.operationsDDData.timeOperations;
       default:
         return [];
     }
@@ -555,7 +557,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.extractFields(this.systemFieldsAccData, systemFieldsMap);
 
     } else {
-      console.log('6. SYSTEM FIELDS MAP: Empty - No system fields data loaded');
+      console.log('SYSTEM FIELDS MAP: Empty - No system fields data loaded');
     }
 
     // Loop through each selectedField and update labels efficiently
@@ -674,9 +676,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     if (systemTypeIds.length === 0) {
       return;
     }
-
-    console.log('Loading data for label updates only, not for display');
-
     // Keep track of how many loads are pending
     let pendingLoads = systemTypeIds.length;
 
@@ -708,8 +707,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
             // Once all are loaded, extract fields and update labels, but don't update systemFieldsAccData
             if (pendingLoads === 0) {
-              console.log('All temp fields loaded for label updates only');
-
               // Extract all fields from temporary data
               this.extractFields(temporarySystemFields, systemFieldsMap);
 

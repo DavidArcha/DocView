@@ -47,6 +47,9 @@
               [isTableView]="false" [multiSelect]="false" [selectedValues]="getSelectedDropdownValues(selected)"
               [selectedLanguage]="selectedLanguage" (selectedValuesChange)="onDropdownValueChange($event, i)">
             </app-table-dropdown>
+            <button *ngSwitchCase="FieldType.Button">
+              {{ selected.value }}
+            </button>
             <ng-container *ngSwitchCase="FieldType.Text">
               <ng-container *ngIf="getValueControl(selected).dual">
                 <input type="text" [(ngModel)]="selected.value[0]" />
