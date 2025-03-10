@@ -226,6 +226,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // New method to update selected values with current language
   updateSelectedValuesWithCurrentLanguage(): void {
     if (!this.selectedSystemTypeValue || this.systemTypeData.length === 0) {
+      this.updateSelectedFieldsParents();
       return;
     }
 
@@ -264,27 +265,28 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Add this method to update parent in selectedFields
   updateSelectedFieldsParents(): void {
-    if (!this.selectedSystemTypeValue || this.selectedFields.length === 0) {
+    if (this.selectedFields.length === 0 || this.systemTypeData.length === 0) {
       return;
     }
 
-    const systemTypeId = Array.isArray(this.selectedSystemTypeValue)
-      ? this.selectedSystemTypeValue[0].id
-      : this.selectedSystemTypeValue.id;
-
-    const systemTypeLabel = Array.isArray(this.selectedSystemTypeValue)
-      ? this.selectedSystemTypeValue[0].label || ''
-      : this.selectedSystemTypeValue.label || '';
-
-    // Update all selectedFields that have matching parent ID
+    // Loop through each selectedField and update the parent label using systemTypeData
     this.selectedFields = this.selectedFields.map(field => {
-      if (field.parent && field.parent.id === systemTypeId) {
-        // Update the parent label with current language
+      // Skip fields without a parent or parent ID
+      if (!field.parent || !field.parent.id) {
+        return field;
+      }
+
+      // Find the updated system type data with current language
+      const currentSystemType = this.systemTypeData.find(item => item.id === field.parent.id);
+
+      // If found, update the parent label while keeping the same ID
+      if (currentSystemType) {
         field.parent = {
-          id: systemTypeId,
-          label: systemTypeLabel
+          id: field.parent.id,
+          label: currentSystemType.label || '' // Ensure it's never undefined
         };
       }
+
       return field;
     });
 
