@@ -104,7 +104,7 @@
         </td>
         <td *ngIf="(!getValueControl(selected).show || !isOperatorValid(selected)) && shouldShowValueColumn()"></td>
         <td>
-          <button (click)="onSearchSelectedField(selected,i)">Search</button>
+          <button (click)="onSearchSelectedField(selected)">Search</button>
           <button (click)="onDeleteSelectedField(i)">Delete</button>
         </td>
       </tr>

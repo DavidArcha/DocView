@@ -36,7 +36,7 @@
     <!-- Use the QueryTable component here -->
     <app-query-table [selectedFields]="selectedFields" [dropdownData]="operationsDDData"
         [selectedLanguage]="currentLanguage" (deleteSelectedField)="onDeleteSelectedField($event)"
-        (operatorChange)="onOperatorChange($event)">
+        (operatorChange)="onOperatorChange($event)" (searchSelectedField)="onSearchSelectedField($event)">
     </app-query-table>
     <div class="action-buttons">
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>

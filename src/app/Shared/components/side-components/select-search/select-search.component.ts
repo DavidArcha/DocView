@@ -506,6 +506,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     localStorage.removeItem('savedAccordionState');
   }
 
+  onSearchSelectedField(selectedRow: SelectedField): void {
+    console.log("Selected on query table: ", selectedRow);
+  }
   // New button: Clear with implementation
   clearTable(): void {
     this.selectedFields = [];

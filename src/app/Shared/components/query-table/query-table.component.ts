@@ -22,7 +22,7 @@ export class QueryTableComponent implements OnInit, OnDestroy {
   @Input() dropdownData: any;
   @Input() selectedLanguage: string = 'de';
   @Output() operatorChange = new EventEmitter<{ newOperator: string, index: number }>();
-  @Output() searchSelectedField = new EventEmitter<SearchCriteria>();
+  @Output() searchSelectedField = new EventEmitter<SelectedField>();
   @Output() deleteSelectedField = new EventEmitter<number>();
 
   // System type data for parent dropdown
@@ -62,7 +62,6 @@ export class QueryTableComponent implements OnInit, OnDestroy {
     });
     this.loadSelectedValuesFromStorage();
   }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -160,6 +159,7 @@ export class QueryTableComponent implements OnInit, OnDestroy {
 
   // Save selected values to localStorage
   saveSelectedValuesToStorage(selectedValues: DropdownItem | DropdownItem[]): void {
+    console.log('Saving selected values:', selectedValues);
     localStorage.setItem('selectedListValue', JSON.stringify(selectedValues));
   }
 
@@ -258,8 +258,7 @@ export class QueryTableComponent implements OnInit, OnDestroy {
 
   // Then use this in your search or save methods
   // Update the onSearchSelectedField method to include all parent selections
-  onSearchSelectedField(selected: SelectedField, index: number): void {
-    console.log("Selected on query table: ", selected);
+  onSearchSelectedField(selected: SelectedField): void {
     // Emit the search criteria
     this.searchSelectedField.emit(selected);
   }
