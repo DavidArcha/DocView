@@ -116,12 +116,25 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         // Update IDs for dropdown component binding
         this.updateSelectedSystemTypeValueIds();
 
-        // Once we have system type data loaded, we'll update the labels
-        // This will happen in the loadSystemTypeFields subscription
+        // Only load accordion data if we have a selected system type
+        if (this.selectedSystemTypeValue) {
+          const selectedId = Array.isArray(this.selectedSystemTypeValue) ?
+            this.selectedSystemTypeValue.map(item => item.id) :
+            this.selectedSystemTypeValue.id;
+
+          if (selectedId) {
+            // We'll load this once the language and system type data are available
+            console.log('Will load accordion data for selected system:', selectedId);
+          }
+        } else {
+          // If no system type is selected, ensure accordion data is empty
+          this.systemFieldsAccData = [];
+        }
       } catch (e) {
         console.error('Error loading saved system type values', e);
         this.selectedSystemTypeValue = null;
         this.selectedSystemTypeValueIds = [];
+        this.systemFieldsAccData = []; // Ensure accordion is empty
       }
     }
   }
@@ -250,17 +263,24 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
       // Save updated values back to localStorage
       this.saveSelectedSystemTypeValuesToStorage(this.selectedSystemTypeValue);
+
+      // If we have a selected system type, load its accordion data for display
+      const selectedId = Array.isArray(this.selectedSystemTypeValue) ?
+        this.selectedSystemTypeValue.map(item => item.id) :
+        this.selectedSystemTypeValue?.id;
+
+      if (selectedId) {
+        this.loadAccordionData(selectedId, this.currentLanguage);
+      }
+    } else {
+      // If no system type is selected, clear the accordion data
+      this.systemFieldsAccData = [];
     }
 
-    // Get all system type IDs used in selected fields
+    // Get all system type IDs used in selected fields for label updates only
     const allUsedSystemTypeIds = this.getAllSelectedSystemTypeIds();
-
-    // Load data for all used system types to ensure we can update fields
     if (allUsedSystemTypeIds.length > 0) {
       this.loadAllUsedSystemFields(allUsedSystemTypeIds);
-    } else {
-      // Just update parents in selected fields if no system types are used
-      this.updateSelectedFieldsParents();
     }
   }
 
@@ -655,6 +675,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       return;
     }
 
+    console.log('Loading data for label updates only, not for display');
+
     // Keep track of how many loads are pending
     let pendingLoads = systemTypeIds.length;
 
@@ -662,12 +684,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.loadingSubject.next(true);
     this.hasError = false;
 
-    // Create a map to collect all loaded fields
-    const allSystemFields: AccordionItem[] = [];
+    // Create a map to collect all loaded fields - but don't display them
+    const temporarySystemFields: AccordionItem[] = [];
+    const systemFieldsMap = new Map<string, any>();
 
     // For each system type ID, load its fields
     systemTypeIds.forEach(systemTypeId => {
-
       this.searchService.getSystemFieldsAccData(systemTypeId, this.currentLanguage)
         .pipe(
           takeUntil(this.destroy$),
@@ -679,33 +701,79 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (fields) => {
             // Add these fields to our collection
-            allSystemFields.push(...fields);
+            temporarySystemFields.push(...fields);
           },
           complete: () => {
             pendingLoads--;
 
-            // Once all are loaded, update the systemFieldsAccData and update fields
+            // Once all are loaded, extract fields and update labels, but don't update systemFieldsAccData
             if (pendingLoads === 0) {
-              // Store combined data
-              this.systemFieldsAccData = allSystemFields;
+              console.log('All temp fields loaded for label updates only');
 
-              // Now that we have all needed data, update field labels
-              this.updateSelectedFieldsParents();
+              // Extract all fields from temporary data
+              this.extractFields(temporarySystemFields, systemFieldsMap);
+
+              // Update selected fields with the map data
+              this.updateSelectedFieldLabels(systemFieldsMap);
 
               // Complete loading state
               this.loadingSubject.next(false);
 
-              // Also refresh the current selection for the active system type
-              const activeId = Array.isArray(this.selectedSystemTypeValue)
-                ? this.selectedSystemTypeValue.map(item => item.id)
-                : this.selectedSystemTypeValue?.id;
-
-              if (activeId) {
-                this.loadAccordionData(activeId, this.currentLanguage);
-              }
+              // DO NOT update systemFieldsAccData here - this was the bug
             }
           }
         });
     });
+  }
+
+  // 2. Add a new method specifically for updating field labels without affecting the UI
+  updateSelectedFieldLabels(systemFieldsMap: Map<string, any>): void {
+    // Prepare a map of all fields from firstSystemFieldsData for quick lookup
+    const firstSystemFieldsMap = new Map();
+    this.extractFields(this.firstSystemFieldsData, firstSystemFieldsMap);
+
+    // Loop through each selectedField and update labels efficiently
+    this.selectedFields = this.selectedFields.map((selectedField, index) => {
+      // 1. Update parent labels if we have systemTypeData
+      if (selectedField.parent && selectedField.parent.id && this.systemTypeData.length > 0) {
+        const currentSystemType = this.systemTypeData.find(item => item.id === selectedField.parent.id);
+        if (currentSystemType) {
+          selectedField.parent = {
+            id: selectedField.parent.id,
+            label: currentSystemType.label || ''
+          };
+        }
+      }
+
+      // 2. Update field labels based on source accordion
+      if (selectedField.field && selectedField.field.id) {
+        // Case 1: Field from firstSystemFieldsData (empty parent)
+        if (!selectedField.parent.id) {
+          const firstSystemField = firstSystemFieldsMap.get(selectedField.field.id);
+          if (firstSystemField) {
+            selectedField.field = {
+              id: selectedField.field.id,
+              label: firstSystemField.label || ''
+            };
+          }
+        }
+        // Case 2: Field from systemFieldsAccData (has parent with ID)
+        else {
+          // Use the provided map instead of systemFieldsAccData
+          const systemField = systemFieldsMap.get(selectedField.field.id);
+          if (systemField) {
+            selectedField.field = {
+              id: selectedField.field.id,
+              label: systemField.label || ''
+            };
+          }
+        }
+      }
+
+      return selectedField;
+    });
+
+    // Save updated fields to localStorage
+    this.updateLocalStorage();
   }
 }
