@@ -225,42 +225,45 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // New method to update selected values with current language
   updateSelectedValuesWithCurrentLanguage(): void {
-    if (!this.selectedSystemTypeValue || this.systemTypeData.length === 0) {
-      this.updateSelectedFieldsParents();
+    if (this.systemTypeData.length === 0) {
       return;
     }
 
-    if (Array.isArray(this.selectedSystemTypeValue)) {
-      // Update multiple selections with current language labels
-      this.selectedSystemTypeValue = this.selectedSystemTypeValue.map(selectedItem => {
-        if (!selectedItem || !selectedItem.id) return selectedItem;
-        const currentItem = this.systemTypeData.find(item => item.id === selectedItem.id);
-        return currentItem || selectedItem;
-      });
-    } else {
-      // Update single selection with current language label
-      // Ensure selectedSystemTypeValue is not null before accessing .id
-      const id = this.selectedSystemTypeValue?.id;
-      if (id) {
-        const currentItem = this.systemTypeData.find(item => item.id === id);
-        if (currentItem) {
-          this.selectedSystemTypeValue = currentItem;
+    // Update selectedSystemTypeValue with current language labels
+    if (this.selectedSystemTypeValue) {
+      if (Array.isArray(this.selectedSystemTypeValue)) {
+        // Update multiple selections with current language labels
+        this.selectedSystemTypeValue = this.selectedSystemTypeValue.map(selectedItem => {
+          if (!selectedItem || !selectedItem.id) return selectedItem;
+          const currentItem = this.systemTypeData.find(item => item.id === selectedItem.id);
+          return currentItem || selectedItem;
+        });
+      } else {
+        // Update single selection with current language label
+        const id = this.selectedSystemTypeValue?.id;
+        if (id) {
+          const currentItem = this.systemTypeData.find(item => item.id === id);
+          if (currentItem) {
+            this.selectedSystemTypeValue = currentItem;
+          }
         }
       }
+
+      // Save updated values back to localStorage
+      this.saveSelectedSystemTypeValuesToStorage(this.selectedSystemTypeValue);
     }
 
-    // Update parents in selectedFields with new language labels
-    this.updateSelectedFieldsParents();
+    // Get all system type IDs used in selected fields
+    const allUsedSystemTypeIds = this.getAllSelectedSystemTypeIds();
+    console.log('All used system type IDs:', allUsedSystemTypeIds);
 
-    if (this.selectedSystemTypeValue) {
-      const selectedId = Array.isArray(this.selectedSystemTypeValue)
-        ? this.selectedSystemTypeValue.map(item => item.id)
-        : this.selectedSystemTypeValue.id;
-      this.loadAccordionData(selectedId, this.currentLanguage);
+    // Load data for all used system types to ensure we can update fields
+    if (allUsedSystemTypeIds.length > 0) {
+      this.loadAllUsedSystemFields(allUsedSystemTypeIds);
+    } else {
+      // Just update parents in selected fields if no system types are used
+      this.updateSelectedFieldsParents();
     }
-
-    // Save updated values back to localStorage
-    this.saveSelectedSystemTypeValuesToStorage(this.selectedSystemTypeValue);
   }
 
   // Add a method to handle clearing the dropdown explicitly
@@ -623,6 +626,10 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
             // Debug: Log all keys in the map to see if there's a mismatch
             console.log(`13a. Available keys in systemFieldsMap:`,
               Array.from(systemFieldsMap.keys()));
+
+            // Additional debugging - look at the structure of the systemFieldsAccData
+            console.log(`13b. SYSTEM ACCORDION DATA STRUCTURE:`,
+              JSON.stringify(this.systemFieldsAccData.slice(0, 1)));
           }
         }
 
@@ -643,37 +650,44 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.updateLocalStorage();
   }
 
-  // Helper method to extract all fields from accordion data into a flat map for quick access
+  // Enhanced extractFields method with deeper inspection for Case 2
   private extractFields(accordionData: AccordionItem[], fieldsMap: Map<string, any>): void {
     console.log('E1. EXTRACT START: Processing sections:', accordionData.length);
 
     const processSection = (section: AccordionItem) => {
       console.log('E2. SECTION:', section.label || section.id);
-      
-      // In this data structure, the children array contains the actual fields
-      // Each child in children array is a field with id and label
+
+      // 1. First add this section itself if it has an ID (might be a field)
+      if (section.id && section.label) {
+        console.log(`E3. ADDING SECTION AS FIELD: ${section.id} - ${section.label}`);
+        fieldsMap.set(section.id, { id: section.id, label: section.label });
+      }
+
+      // 2. Process children
       if (section.children && Array.isArray(section.children)) {
-        console.log(`E3. CHILDREN FOUND:`, section.children.length);
-        
+        console.log(`E4. CHILDREN FOUND:`, section.children.length);
+
         section.children.forEach(child => {
-          // Check if this child is a field (has id and label but no children)
-          if (child.id && (!child.children || child.children.length === 0)) {
-            console.log(`E4. ADDING FIELD: ${child.id} - ${child.label}`);
+          // Add the child itself as a field 
+          if (child.id) {
+            console.log(`E5. ADDING CHILD: ${child.id} - ${child.label}`);
             fieldsMap.set(child.id, { id: child.id, label: child.label });
-          } else {
-            // This is a subsection, process it recursively
-            processSection(child);
+
+            // If it has children, process them recursively
+            if (child.children && child.children.length > 0) {
+              processSection(child);
+            }
           }
         });
       } else {
-        console.log('E3. NO CHILDREN in this section');
+        console.log('E4. NO CHILDREN in this section');
       }
 
-      // Also check for fields array if it exists (for flexibility)
+      // 3. Also check for explicit fields array if it exists (for flexibility)
       if (section['fields'] && Array.isArray(section['fields'])) {
-        console.log(`E5. FIELDS ARRAY FOUND:`, section['fields'].length);
+        console.log(`E6. FIELDS ARRAY FOUND:`, section['fields'].length);
         section['fields'].forEach(field => {
-          console.log(`E6. ADDING FROM FIELDS: ${field.id} - ${field.label}`);
+          console.log(`E7. ADDING FROM FIELDS: ${field.id} - ${field.label}`);
           fieldsMap.set(field.id, field);
         });
       }
@@ -681,7 +695,86 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Process all top-level sections
     accordionData.forEach(section => processSection(section));
-    console.log(`E7. EXTRACTION COMPLETE: Total fields extracted: ${fieldsMap.size}`);
+    console.log(`E8. EXTRACTION COMPLETE: Total fields extracted: ${fieldsMap.size}`);
   }
 
+  // Add a method to track all system type IDs used in selected fields
+  private getAllSelectedSystemTypeIds(): string[] {
+    const uniqueIds = new Set<string>();
+
+    // Extract all unique parent IDs from selected fields that aren't empty
+    this.selectedFields.forEach(field => {
+      if (field.parent && field.parent.id) {
+        uniqueIds.add(field.parent.id);
+      }
+    });
+
+    return Array.from(uniqueIds);
+  }
+
+  // Add a method to load data for all system types used in selected fields
+  loadAllUsedSystemFields(systemTypeIds: string[]): void {
+    console.log('Loading data for all used system types:', systemTypeIds);
+    if (systemTypeIds.length === 0) {
+      return;
+    }
+
+    // Keep track of how many loads are pending
+    let pendingLoads = systemTypeIds.length;
+
+    // Set loading state
+    this.loadingSubject.next(true);
+    this.hasError = false;
+
+    // Create a map to collect all loaded fields
+    const allSystemFields: AccordionItem[] = [];
+
+    // For each system type ID, load its fields
+    systemTypeIds.forEach(systemTypeId => {
+      console.log(`Loading fields for system type: ${systemTypeId}`);
+
+      this.searchService.getSystemFieldsAccData(systemTypeId, this.currentLanguage)
+        .pipe(
+          takeUntil(this.destroy$),
+          catchError(err => {
+            console.error(`Error loading fields for system type ${systemTypeId}:`, err);
+            return of([]);
+          })
+        )
+        .subscribe({
+          next: (fields) => {
+            console.log(`Loaded fields for system type ${systemTypeId}:`,
+              fields.length > 0 ? fields.map(f => f.id).join(', ') : 'No fields');
+
+            // Add these fields to our collection
+            allSystemFields.push(...fields);
+          },
+          complete: () => {
+            pendingLoads--;
+
+            // Once all are loaded, update the systemFieldsAccData and update fields
+            if (pendingLoads === 0) {
+              console.log('All system fields loaded. Updating fields.');
+              // Store combined data
+              this.systemFieldsAccData = allSystemFields;
+
+              // Now that we have all needed data, update field labels
+              this.updateSelectedFieldsParents();
+
+              // Complete loading state
+              this.loadingSubject.next(false);
+
+              // Also refresh the current selection for the active system type
+              const activeId = Array.isArray(this.selectedSystemTypeValue)
+                ? this.selectedSystemTypeValue.map(item => item.id)
+                : this.selectedSystemTypeValue?.id;
+
+              if (activeId) {
+                this.loadAccordionData(activeId, this.currentLanguage);
+              }
+            }
+          }
+        });
+    });
+  }
 }
