@@ -1,0 +1,225 @@
+<div class="selected-fields-table" *ngIf="selectedFields.length > 0">
+    <table>
+        <thead>
+            <tr>
+                <th>Parent</th>
+                <th>Field</th>
+                <th>Operator</th>
+                <th *ngIf="shouldShowValueColumn()">Value</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let selected of selectedFields; let i = index">
+                <td class="parent">
+                    <!-- Case 1: If parent is empty or null, show dropdown -->
+                    <ng-container *ngIf="isParentEmpty(selected); else showParentLabel">
+                        <div class="parent-dropdown">
+                            <app-table-dropdown [data]="systemTypeData" [isTableView]="false"
+                                [selectedValues]="getParentSelectedValues(selected, i)"
+                                [selectedLanguage]="selectedLanguage" [multiSelect]="true"
+                                (selectedValuesChange)="onParentValueChange($event, i)">
+                            </app-table-dropdown>
+                            <!-- Parent validation error message -->
+                            <div class="validation-error" *ngIf="selected.parentTouched && !isParentValid(selected)">
+                                Please select a type.
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- Case 2: If parent has data, show label -->
+                    <ng-template #showParentLabel>
+                        {{ selected.parent.label }}
+                    </ng-template>
+                </td>
+                <td class="field">{{ selected.field.label }}</td>
+                <!-- Operator column -->
+                <td class="operator">
+                    <app-localized-dropdown [options]="selected.operatorOptions" [selectedLanguage]="selectedLanguage"
+                        [selectedValue]="selected.operator.id" (selectedValueChange)="onOperatorChange($event, i)">
+                    </app-localized-dropdown>
+                    <div class="validation-error" *ngIf="selected.operatorTouched && !isOperatorValid(selected)">
+                        Please select one option.
+                    </div>
+                </td>
+                <!-- Value column: dynamic control rendering -->
+                <td class="value" *ngIf="getValueControl(selected).show && isOperatorValid(selected)">
+                    <ng-container [ngSwitch]="getValueControl(selected).type">
+                        <!-- Text inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Text">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualTextInputs">
+                                <input type="text" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true" />
+                                <!-- Single value validation error -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please enter a value.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualTextInputs>
+                                <div class="dual-input-container">
+                                    <input type="text" [(ngModel)]="selected.value[0]"
+                                        (blur)="selected.valueTouched = true" />
+                                    <input type="text" [(ngModel)]="selected.value[1]"
+                                        (blur)="selected.valueTouched = true" />
+                                    <!-- Dual value validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please enter values in both fields.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Number inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Number">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualNumberInputs">
+                                <input type="number" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true"
+                                    (input)="validateNumberInput($event, selected)" />
+                                <!-- Single value validation error -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please enter a valid number.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualNumberInputs>
+                                <div class="dual-input-container">
+                                    <input type="number" [(ngModel)]="selected.value[0]"
+                                        (blur)="selected.valueTouched = true"
+                                        (input)="validateDualNumberInput($event, selected, 0)" />
+                                    <input type="number" [(ngModel)]="selected.value[1]"
+                                        (blur)="selected.valueTouched = true"
+                                        (input)="validateDualNumberInput($event, selected, 1)" />
+                                    <!-- Dual value validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please enter valid numbers in both fields.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Date inputs (can be expanded later) -->
+                        <ng-container *ngSwitchCase="FieldType.Date">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualDateInputs">
+                                <input type="date" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true" />
+                                <!-- Single value validation error -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please select a date.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualDateInputs>
+                                <div class="dual-input-container">
+                                    <input type="date" [(ngModel)]="selected.value[0]"
+                                        (blur)="selected.valueTouched = true" />
+                                    <input type="date" [(ngModel)]="selected.value[1]"
+                                        (blur)="selected.valueTouched = true" />
+                                    <!-- Dual value validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please select dates for both fields.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Button inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Button">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualButtonInputs">
+                                <div class="button-container">
+                                    <!-- Display text that is initially hidden until button is clicked -->
+                                    <div class="display-text" *ngIf="selected.value">
+                                        {{ selected.value }}
+                                    </div>
+
+                                    <!-- The button that when clicked will show/hide the display text -->
+                                    <button class="field-button" (click)="onFieldButtonClick(selected)"
+                                        [ngClass]="{'selected': selected.value}">
+                                        Select
+                                    </button>
+
+                                    <!-- Validation error message -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please click select button.
+                                    </div>
+                                </div>
+                            </ng-container>
+                            <ng-template #dualButtonInputs>
+                                <div class="dual-button-container">
+                                    <!-- First button with display text -->
+                                    <div class="button-container">
+                                        <div class="display-text" *ngIf="selected.value && selected.value[0]">
+                                            {{ selected.value[0] }}
+                                        </div>
+                                        <button class="field-button" (click)="onFieldButtonClick(selected, 0)"
+                                            [ngClass]="{'selected': selected.value && selected.value[0]}">
+                                            Select First
+                                        </button>
+                                    </div>
+
+                                    <!-- Second button with display text -->
+                                    <div class="button-container">
+                                        <div class="display-text" *ngIf="selected.value && selected.value[1]">
+                                            {{ selected.value[1] }}
+                                        </div>
+                                        <button class="field-button" (click)="onFieldButtonClick(selected, 1)"
+                                            [ngClass]="{'selected': selected.value && selected.value[1]}">
+                                            Select Second
+                                        </button>
+                                    </div>
+
+                                    <!-- Dual validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please click both select buttons.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Dropdown inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Dropdown">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualDropdownInputs">
+                                <app-table-dropdown [data]="getValueControl(selected).dropdownData"
+                                    [isTableView]="false" [multiSelect]="false"
+                                    [selectedValues]="getSelectedDropdownValues(selected)"
+                                    [selectedLanguage]="selectedLanguage"
+                                    (selectedValuesChange)="onDropdownValueChange($event, i)">
+                                </app-table-dropdown>
+                                <!-- Dropdown validation error message -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please select a value.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualDropdownInputs>
+                                <div class="dual-dropdown-container">
+                                    <app-table-dropdown [data]="getValueControl(selected).dropdownData"
+                                        [isTableView]="false" [multiSelect]="false"
+                                        [selectedValues]="getDualSelectedDropdownValues(selected, 0)"
+                                        [selectedLanguage]="selectedLanguage"
+                                        (selectedValuesChange)="onDualDropdownValueChange($event, i, 0)">
+                                    </app-table-dropdown>
+                                    <app-table-dropdown [data]="getValueControl(selected).dropdownData"
+                                        [isTableView]="false" [multiSelect]="false"
+                                        [selectedValues]="getDualSelectedDropdownValues(selected, 1)"
+                                        [selectedLanguage]="selectedLanguage"
+                                        (selectedValuesChange)="onDualDropdownValueChange($event, i, 1)">
+                                    </app-table-dropdown>
+                                    <!-- Dual dropdown validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please select values in both dropdowns.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+                    </ng-container>
+                </td>
+                <td *ngIf="(!getValueControl(selected).show || !isOperatorValid(selected)) && shouldShowValueColumn()">
+                </td>
+                <td>
+                    <button (click)="onSearchSelectedField(selected)">Search</button>
+                    <button (click)="onDeleteSelectedField(i)">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

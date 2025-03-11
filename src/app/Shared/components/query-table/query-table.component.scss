@@ -31,3 +31,30 @@
     font-size: 0.8rem;
     margin-top: 4px;
 }
+
+.selected-parent-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 5px;
+
+    .selected-item {
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-size: 0.9em;
+    }
+}
+
+.dual-input-container {
+    display: flex;
+    gap: 8px;
+
+    input {
+        flex: 1;
+    }
+}
+
+input.invalid {
+    border: 1px solid red;
+}

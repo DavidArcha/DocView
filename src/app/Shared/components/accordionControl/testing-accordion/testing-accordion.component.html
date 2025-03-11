@@ -1,0 +1,4 @@
+<br>
+<app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''" [isLoading]="isLoading"
+    (fieldSelected)="onFieldSelected($event)">
+</app-accordion-section>

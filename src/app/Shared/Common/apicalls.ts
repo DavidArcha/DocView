@@ -3,4 +3,8 @@ export const RestAPICallUrl = {
     getSystemFieldsbyLang: 'api/Common/systemfieldtranslations',
     saveSearchData:"api/Common/saveSearchData",
     getAccordionData:"api/Common/hierarchicaldata",
+    getStateData:"api/Common/states",
+    getBrandData:"api/Common/brands",
+    getSystemTypeFields: 'api/Common/systemtypes',
+    getSystemFieldsAccData: 'api/Common/accordiondata'
 }

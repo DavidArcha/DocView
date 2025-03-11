@@ -1,68 +1,113 @@
 <div class="selected-fields-table" *ngIf="selectedFields.length > 0">
   <table>
+    <thead>
+      <tr>
+        <th>Parent</th>
+        <th>Field</th>
+        <th>Operator</th>
+        <th *ngIf="shouldShowValueColumn()">Value</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
     <tbody>
       <tr *ngFor="let selected of selectedFields; let i = index">
-        <td class="parent">{{ selected.parent.label }}</td>
+        <td class="parent">
+          <!-- Case 1: If parent is empty or null, show dropdown -->
+          <ng-container *ngIf="isParentEmpty(selected); else showParentLabel">
+            <div class="parent-dropdown">
+              <app-table-dropdown [data]="systemTypeData" [isTableView]="false"
+                [selectedValues]="getParentSelectedValues(selected, i)" [selectedLanguage]="selectedLanguage"
+                [multiSelect]="true" (selectedValuesChange)="onParentValueChange($event, i)">
+              </app-table-dropdown>
+            </div>
+          </ng-container>
+
+          <!-- Case 2: If parent has data, show label -->
+          <ng-template #showParentLabel>
+            {{ selected.parent.label }}
+          </ng-template>
+        </td>
         <td class="field">{{ selected.field.label }}</td>
         <!-- Operator column -->
         <td class="operator">
           <app-localized-dropdown [options]="selected.operatorOptions" [selectedLanguage]="selectedLanguage"
-            [(selectedValue)]="selected.operator" (selectedValueChange)="onOperatorChange($event, i)">
+            [selectedValue]="selected.operator.id" (selectedValueChange)="onOperatorChange($event, i)">
           </app-localized-dropdown>
-          <!-- Display error message only if the field has been touched -->
           <div class="operator-error" *ngIf="selected.operatorTouched && !isOperatorValid(selected)">
             Please select one option.
           </div>
         </td>
         <!-- Value column: dynamic control rendering -->
-        <td class="value">
-          <ng-container *ngIf="getValueControl(selected) as control">
-            <ng-container *ngIf="control.show">
-              <ng-container *ngIf="control.dual; else singleControl">
-                <!-- Dual controls -->
-                <input [type]="control.type" [(ngModel)]="selected.value[0]" placeholder="Value 1"
-                  (blur)="markValueTouched(selected, 0)"
-                  [ngClass]="{'error': submitted && !validateField(selected, 0)}" />
-                <div class="value-error" *ngIf="isValueTouched(selected, 0) && !validateField(selected, 0)">
-                  Please enter a valid value.
-                </div>
-                <input [type]="control.type" [(ngModel)]="selected.value[1]" placeholder="Value 2"
-                  (blur)="markValueTouched(selected, 1)"
-                  [ngClass]="{'error': submitted && !validateField(selected, 1)}" />
-                <div class="value-error" *ngIf="isValueTouched(selected, 1) && !validateField(selected, 1)">
-                  Please enter a valid value.
-                </div>
+        <td class="value" *ngIf="getValueControl(selected).show && isOperatorValid(selected)">
+          <ng-container [ngSwitch]="getValueControl(selected).type">
+            <!-- Text inputs -->
+            <ng-container *ngSwitchCase="FieldType.Text">
+              <ng-container *ngIf="!getValueControl(selected).dual; else dualTextInputs">
+                <input type="text" [(ngModel)]="selected.value" [class.invalid]="!validateField(selected)"
+                  (blur)="markValueTouched(selected)" />
               </ng-container>
-              <ng-template #singleControl>
-                <ng-container *ngIf="control.type === 'dropdown'; else otherControl">
-                  <select [(ngModel)]="selected.value" (blur)="markValueTouched(selected)"
-                    [ngClass]="{'error': submitted && !validateField(selected)}">
-                    <!-- Localized default option -->
-                    <option value="">{{ selectedLanguage === 'de' ? 'Bitte wählen' : 'Select' }}</option>
-                    <option *ngFor="let option of control.options" [value]="option.key">
-                      {{ option[selectedLanguage] }}
-                    </option>
-                  </select>
-                  <div class="value-error" *ngIf="isValueTouched(selected) && !validateField(selected)">
-                    Please select a valid value.
-                  </div>
-                </ng-container>
-                <ng-template #otherControl>
-                  <input [type]="control.type" [(ngModel)]="selected.value" placeholder="Enter value"
-                    (blur)="markValueTouched(selected)" [ngClass]="{'error': submitted && !validateField(selected)}" />
-                  <div class="value-error" *ngIf="isValueTouched(selected) && !validateField(selected)">
-                    Please enter a valid value.
-                  </div>
-                </ng-template>
+              <ng-template #dualTextInputs>
+                <div class="dual-input-container">
+                  <input type="text" [(ngModel)]="selected.value[0]" [class.invalid]="!validateField(selected, 0)"
+                    (blur)="markValueTouched(selected, 0)" placeholder="From" />
+                  <input type="text" [(ngModel)]="selected.value[1]" [class.invalid]="!validateField(selected, 1)"
+                    (blur)="markValueTouched(selected, 1)" placeholder="To" />
+                </div>
               </ng-template>
             </ng-container>
+
+            <!-- Number inputs -->
+            <ng-container *ngSwitchCase="FieldType.Number">
+              <ng-container *ngIf="!getValueControl(selected).dual; else dualNumberInputs">
+                <input type="number" [(ngModel)]="selected.value" [class.invalid]="!validateField(selected)"
+                  (blur)="markValueTouched(selected)" placeholder="Enter value" />
+              </ng-container>
+              <ng-template #dualNumberInputs>
+                <div class="dual-input-container">
+                  <input type="number" [(ngModel)]="selected.value[0]" [class.invalid]="!validateField(selected, 0)"
+                    (blur)="markValueTouched(selected, 0)" placeholder="From" />
+                  <input type="number" [(ngModel)]="selected.value[1]" [class.invalid]="!validateField(selected, 1)"
+                    (blur)="markValueTouched(selected, 1)" placeholder="To" />
+                </div>
+              </ng-template>
+            </ng-container>
+
+            <!-- Date inputs -->
+            <ng-container *ngSwitchCase="FieldType.Date">
+              <ng-container *ngIf="!getValueControl(selected).dual; else dualDateInputs">
+                <input type="date" [(ngModel)]="selected.value" [class.invalid]="!validateField(selected)" />
+              </ng-container>
+              <ng-template #dualDateInputs>
+                <div class="dual-input-container">
+                  <input type="date" [(ngModel)]="selected.value[0]" [class.invalid]="!validateField(selected, 0)" />
+                  <input type="date" [(ngModel)]="selected.value[1]" [class.invalid]="!validateField(selected, 1)" />
+                </div>
+              </ng-template>
+            </ng-container>
+
+            <!-- Dropdown -->
+            <app-table-dropdown *ngSwitchCase="FieldType.Dropdown" [data]="selected.dropdownData || []"
+              [isTableView]="false" [multiSelect]="false" [selectedValues]="getSelectedDropdownValues(selected)"
+              [selectedLanguage]="selectedLanguage" (selectedValuesChange)="onDropdownValueChange($event, i)">
+            </app-table-dropdown>
+
+            <!-- Button -->
+            <button *ngSwitchCase="FieldType.Button">
+              {{ selected.value }}
+            </button>
           </ng-container>
+
+          <!-- Display error message if the value is invalid -->
+          <div class="value-error" *ngIf="isValueTouched(selected) && !validateField(selected)">
+            Invalid value.
+          </div>
         </td>
+        <td *ngIf="(!getValueControl(selected).show || !isOperatorValid(selected)) && shouldShowValueColumn()"></td>
         <td>
           <button (click)="onSearchSelectedField(selected)">Search</button>
           <button (click)="onDeleteSelectedField(i)">Delete</button>
         </td>
       </tr>
     </tbody>
-  </table>  
+  </table>
 </div>

@@ -23,7 +23,7 @@ export class ResultPageComponent implements OnInit {
   public selectedRows: any[] = [];
   // Control container state
   isControlCollapsed: boolean = false;
-  
+
   // Icons
   faArrowLeft = faArrowLeft;
   faArrowRight = faArrowRight;
@@ -62,10 +62,12 @@ export class ResultPageComponent implements OnInit {
         newComponent = 'TextSurvey';
       } else if (secondSegment === 'SimpleSearch') {
         newComponent = 'SimpleSearch';
-      }else if (secondSegment === 'Test') {
+      } else if (secondSegment === 'Test') {
         newComponent = 'Test';
-      }else if (secondSegment === 'TestDD') {
+      } else if (secondSegment === 'TestDD') {
         newComponent = 'TestDD';
+      } else if (secondSegment === 'TestACC') {
+        newComponent = 'TestACC';
       }
     }
     // This call now restores collapse state on refresh if needed.
@@ -83,6 +85,10 @@ export class ResultPageComponent implements OnInit {
         updatedComponent = 'Test';
       } else if (pathSegment === 'TestDD') {
         updatedComponent = 'TestDD';
+      } else if (pathSegment === 'TestACC') {
+        updatedComponent = 'TestACC';
+      } else if (pathSegment === 'SelectSearch') {
+        updatedComponent = 'SelectSearch';
       }
       if (updatedComponent !== this.selectedComponent) {
         this.displayComponent(updatedComponent);

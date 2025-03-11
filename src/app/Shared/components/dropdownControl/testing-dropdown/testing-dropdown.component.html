@@ -1,0 +1,76 @@
+<div class="testing-container">
+    <h2>Dropdown Testing</h2>
+
+    <div class="view-toggle">
+        <button (click)="toggleView()">
+            Switch to {{ showListView ? 'Table' : 'List' }} View
+        </button>
+    </div>
+
+    <!-- List View Section -->
+    <div *ngIf="showListView" class="dropdown-section">
+        <h3>List View Test</h3>
+        <app-table-dropdown [data]="listData" [isTableView]="false" [selectedValues]="selectedValueIds"
+            [selectedLanguage]="currentLanguage" [multiSelect]="true"
+            (selectedValuesChange)="onSelectedListValueChange($event)">
+        </app-table-dropdown>
+        <app-table-dropdown [data]="listData" [isTableView]="false" [selectedValues]="selectedValueIds"
+            [selectedLanguage]="currentLanguage" [multiSelect]="true"
+            (selectedValuesChange)="onSelectedListValueChange($event)">
+        </app-table-dropdown>
+        <div class="selection-display">
+            <p>Selected List Value: {{ selectedListValue | json }}</p>
+        </div>
+    </div>
+
+    <!-- Table View Section -->
+    <div *ngIf="!showListView" class="dropdown-section">
+        <h3>Table View Test</h3>
+        <app-table-dropdown [data]="tableData" [isTableView]="true" [tableColumns]="tableColumns"
+            [selectedValues]="selectedTableIds" [selectedLanguage]="currentLanguage" [multiSelect]="true"
+            (selectedValuesChange)="onSelectedTableValueChange($event)">
+        </app-table-dropdown>
+        <div class="selection-display">
+            <p>Selected Table Value: {{ selectedTableValue | json }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="selected-fields-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Parent</th>
+                <th>Field</th>
+                <th>Operator</th>
+                <th>Value</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="parent">Parent</td>
+                <td class="field">Fiels</td>
+                <!-- Operator column -->
+                <td class="operator">
+                    <div>
+                        Please select one option.
+                    </div>
+                </td>
+                <!-- Value column: dynamic control rendering -->
+                <td class="value">
+                    <ng-container>
+                        <app-table-dropdown [data]="listData" [isTableView]="false" [selectedValues]="selectedValueIds"
+                            [selectedLanguage]="currentLanguage" [multiSelect]="false"
+                            (selectedValuesChange)="onSelectedListValueChange($event)">
+                        </app-table-dropdown>
+                    </ng-container>
+                </td>
+                <td></td>
+                <td>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>

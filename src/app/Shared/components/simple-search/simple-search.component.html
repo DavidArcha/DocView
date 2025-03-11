@@ -24,15 +24,14 @@
         <!-- Render the accordion when data is loaded -->
         <ng-container *ngIf="!isLoading">
             <!-- Render the accordion sections -->
-            <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
+            <!-- <app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
                 (fieldSelected)="onFieldSelected($event)">
-            </app-accordion-section>
+            </app-accordion-section> -->
         </ng-container>
     </div>
     <!-- Use the QueryTable component here -->
     <app-query-table [selectedFields]="selectedFields" [dropdownData]="dropdownData"
-        [selectedLanguage]="selectedLanguage" [searchName]="searchName" (operatorChange)="onOperatorChange($event)"
-        (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)">
+        [selectedLanguage]="selectedLanguage" (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)">
     </app-query-table>
 
     <!-- New Buttons -->

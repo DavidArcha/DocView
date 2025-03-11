@@ -2,13 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, catchError, Observable, of, retry, throwError } from 'rxjs';
 import { RestAPICallUrl } from '../common/apicalls';
-import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
 import { AccordionItem } from '../interfaces/accordian-list.interface';
+import { DROPDOWN_DATA } from '../common/dropdown-data.constant';
+import { DropdownItem, ListItem } from '../interfaces/table-dropdown.interface';
 
-interface SystemField {
-  id: number;
-  fieldName: string;
-}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -43,14 +41,24 @@ export class SearchService {
     localStorage.removeItem('searchQuery');
   }
 
-  getSystemFields(): Observable<SystemField[]> {
-    let url = this.apiUrl + RestAPICallUrl.getSyatemFileds;
-    return this.http.get<SystemField[]>(url);
+  getSystemFields(lang: string): Observable<AccordionItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSyatemFileds}/${lang}`;
+    return this.http.get<AccordionItem[]>(url);
   }
 
-  getSystemFieldsByLang(lang: string): Observable<SystemField[]> {
-    let url = `${this.apiUrl}${RestAPICallUrl.getSystemFieldsbyLang}/${lang}`;
-    return this.http.get<SystemField[]>(url);
+  getSystemFieldsByLang(lang: string): Observable<DropdownItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSyatemFileds}/${lang}`;
+    return this.http.get<DropdownItem[]>(url);
+  }
+
+  getSystemTypeFieldsByLang(lang: string): Observable<DropdownItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSystemTypeFields}/${lang}`;
+    return this.http.get<DropdownItem[]>(url);
+  }
+
+  getSystemFieldsAccData(selectedSysType: any, lang: string): Observable<AccordionItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getSystemFieldsAccData}/${selectedSysType}/${lang}`;
+    return this.http.get<AccordionItem[]>(url);
   }
 
   getDropdownData(): Observable<any> {
@@ -66,5 +74,15 @@ export class SearchService {
   getAccordionFields(lang: string): Observable<AccordionItem[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getAccordionData}/${lang}`;
     return this.http.get<AccordionItem[]>(url);
+  }
+
+  getStateData(lang: string): Observable<DropdownItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getStateData}/${lang}`;
+    return this.http.get<DropdownItem[]>(url);
+  }
+
+  getBrandsData(lang: string): Observable<DropdownItem[]> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getBrandData}/${lang}`;
+    return this.http.get<DropdownItem[]>(url);
   }
 }

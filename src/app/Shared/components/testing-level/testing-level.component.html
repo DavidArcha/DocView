@@ -1,9 +1,12 @@
-<app-accordion-section *ngFor="let section of sections" [section]="section" [parentPath]="''"
-    (fieldSelected)="onFieldSelected($event)">
-</app-accordion-section>
+<!-- <app-table-dropdown [data]="listData" [preselected]="preselected" (selectedValueChange)="onSelectedValueChange($event)">
+</app-table-dropdown> -->
+<br>
+<br>
+
 <br>
 <br>
 <!-- Use the QueryTable component here -->
 <app-query-table [selectedFields]="selectedFields" [dropdownData]="dropdownData" [selectedLanguage]="selectedLanguage"
-    (operatorChange)="onOperatorChange($event)">
+  (searchSelectedField)="onSearchSelectedField($event)" (deleteSelectedField)="onDeleteSelectedField($event)"
+  (operatorChange)="onOperatorChange($event)">
 </app-query-table>
