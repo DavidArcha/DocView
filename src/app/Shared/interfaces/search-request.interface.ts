@@ -5,6 +5,9 @@ import { SearchCriteria } from './search-criteria.interface';
  * a search ID and an array of search criteria.
  */
 export interface SearchRequest {
-    searchId: string | number;
-    searchData: SearchCriteria[];
+    title: {
+        id: string;
+        label: string;
+    };
+    fields: SearchCriteria[];
 }

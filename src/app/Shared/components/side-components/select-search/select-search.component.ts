@@ -591,8 +591,11 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Create a search request
     const searchRequest: SearchRequest = {
-      searchId: '',
-      searchData: searchCriteria
+      title: {
+        id: 'search_request',
+        label: 'Search Request'
+      },
+      fields: searchCriteria
     };
     console.log('Search criteria to save:', searchRequest);
     localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
