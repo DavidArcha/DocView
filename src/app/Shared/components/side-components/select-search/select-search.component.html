@@ -34,10 +34,14 @@
     </app-accordion-section>
 
     <!-- Use the QueryTable component here -->
-    <app-query-table [selectedFields]="selectedFields" [dropdownData]="operationsDDData"
+    <!-- <app-query-table [selectedFields]="selectedFields" [dropdownData]="operationsDDData"
         [selectedLanguage]="currentLanguage" (deleteSelectedField)="onDeleteSelectedField($event)"
         (operatorChange)="onOperatorChange($event)" (searchSelectedField)="onSearchSelectedField($event)">
-    </app-query-table>
+    </app-query-table> -->
+
+    <app-relation-table [selectedFields]="selectedFields" [selectedLanguage]="currentLanguage"
+        (deleteSelectedField)="onDeleteSelectedField($event)" (searchSelectedField)="onSearchSelectedField($event)">
+    </app-relation-table>
     <div class="action-buttons">
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>
         <button [disabled]="selectedFields.length === 0" (click)="searchTable()">Search</button>

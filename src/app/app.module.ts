@@ -37,6 +37,7 @@ import { TestingAccordionComponent } from './Shared/components/accordionControl/
 import { MultilevelAccordionComponent } from './Shared/components/accordionControl/multilevel-accordion/multilevel-accordion.component';
 import { TableDropdownComponent } from './Shared/components/dropdownControl/table-dropdown/table-dropdown.component';
 import { SelectSearchComponent } from './Shared/components/side-components/select-search/select-search.component';
+import { RelationTableComponent } from './Shared/components/relation-table/relation-table.component';
 
 @NgModule({
   declarations: [
@@ -60,7 +61,8 @@ import { SelectSearchComponent } from './Shared/components/side-components/selec
     TableDropdownComponent,
     TestingDropdownComponent,
     TestingAccordionComponent,
-    SelectSearchComponent
+    SelectSearchComponent,
+    RelationTableComponent
   ],
   imports: [
     BrowserModule,

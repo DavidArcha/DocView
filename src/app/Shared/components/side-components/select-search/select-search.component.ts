@@ -9,6 +9,7 @@ import { AccordionService } from '../../../services/accordion.service';
 import { SelectedField } from '../../../interfaces/selectedFields.interface';
 import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../../enums/field-types.enum';
 import { DualOperators, NoValueOperators, OperatorType } from '../../../enums/operator-types.enum';
+import { SearchCriteria } from '../../../interfaces/search-criteria.interface';
 
 @Component({
   selector: 'app-select-search',
@@ -47,6 +48,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   private clearingDropdown = false;
   private _showGroupDataOutside: boolean = false;
   private destroy$ = new Subject<void>();
+  searchCriteria: SearchCriteria[] = [];
 
   // Improved system fields accordion data with state tracking
   public systemFieldsAccData: AccordionItem[] = [];
@@ -507,8 +509,30 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   }
 
   onSearchSelectedField(selectedRow: SelectedField): void {
-    console.log("Selected on query table: ", selectedRow);
+    // Convert the selected row to a search criteria following the interface
+    const searchCriteria: SearchCriteria = {
+      // Use parentSelected if available, otherwise fall back to parent
+      parent: selectedRow.parentSelected || selectedRow.parent,
+      field: {
+        id: selectedRow.field.id,
+        label: selectedRow.field.label
+      },
+      operator: {
+        id: selectedRow.operator?.id || '',
+        label: selectedRow.operator?.label || ''
+      },
+      value: selectedRow.value || null
+    };
+
+    console.log("Search criteria for backend:", searchCriteria);
+
+    // Add this to your searchCriteria array
+    this.searchCriteria.push(searchCriteria);
+
+    // Here you would send the criteria to the backend
+    // this.searchService.search(searchCriteria).subscribe(...);
   }
+
   // New button: Clear with implementation
   clearTable(): void {
     this.selectedFields = [];

@@ -1,0 +1,60 @@
+.selected-fields-table {
+    margin-top: 20px;
+    max-height: 200px;
+    /* Limits the visible height of the table */
+    overflow-y: auto;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+}
+
+.error {
+    border: 1px solid red;
+}
+
+.operator-error,
+.value-error {
+    color: red;
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+
+.selected-parent-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 5px;
+
+    .selected-item {
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-size: 0.9em;
+    }
+}
+
+.dual-input-container {
+    display: flex;
+    gap: 8px;
+
+    input {
+        flex: 1;
+    }
+}
+
+input.invalid {
+    border: 1px solid red;
+}

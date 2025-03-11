@@ -159,7 +159,6 @@ export class QueryTableComponent implements OnInit, OnDestroy {
 
   // Save selected values to localStorage
   saveSelectedValuesToStorage(selectedValues: DropdownItem | DropdownItem[]): void {
-    console.log('Saving selected values:', selectedValues);
     localStorage.setItem('selectedListValue', JSON.stringify(selectedValues));
   }
 
