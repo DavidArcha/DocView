@@ -6,7 +6,7 @@ import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../enums/fi
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 import { DualOperators, NoValueOperators, OperatorType } from '../../enums/operator-types.enum';
 
-import { ListItem } from '../../interfaces/table-dropdown.interface';
+import { DropdownItem, ListItem } from '../../interfaces/table-dropdown.interface';
 import { listDropdownData } from '../../common/list-dropdown';
 
 @Component({
@@ -31,8 +31,8 @@ export class TestingLevelComponent {
   listData: ListItem[] = [];
   selectedListValue: ListItem | ListItem[] | null = null;
   preselected: ListItem[] = [];
-  stateData: ListItem[] = [];
-  brandData: ListItem[] = [];
+  stateData: DropdownItem[] = [];
+  brandData: DropdownItem[] = [];
 
   constructor(
     private searchService: SearchService,
@@ -191,10 +191,10 @@ export class TestingLevelComponent {
     this.selectedFields = this.selectedFields.map(field => {
       const parentLabel = this.getLabelById(field.parent.id);
       const fieldLabel = this.getLabelById(field.field.id);
-      
+
       // For dropdown fields, ensure the dropdown data is refreshed
       const dropdownData = this.getDropdownDataForField(field.field.id);
-      
+
       // If value is present and it's a dropdown value, refresh its label according to current language
       let value = field.value;
       if (value && field.dropdownData && field.dropdownData.length > 0) {
@@ -210,7 +210,7 @@ export class TestingLevelComponent {
           value = matchingItem || value;
         }
       }
-      
+
       return {
         parent: {
           id: field.parent.id,

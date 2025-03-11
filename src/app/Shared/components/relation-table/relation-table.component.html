@@ -45,7 +45,6 @@
                 <!-- Value column: dynamic control rendering -->
                 <td class="value" *ngIf="getValueControl(selected).show && isOperatorValid(selected)">
                     <ng-container [ngSwitch]="getValueControl(selected).type">
-                        {{ getValueControl(selected).type }}
                         <!-- Text inputs -->
                         <ng-container *ngSwitchCase="FieldType.Text">
                             <ng-container *ngIf="!getValueControl(selected).dual; else dualTextInputs">
@@ -171,6 +170,43 @@
                                     <div class="validation-error"
                                         *ngIf="selected.valueTouched && !isValueValid(selected)">
                                         Please click both select buttons.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Dropdown inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Dropdown">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualDropdownInputs">
+                                <app-table-dropdown [data]="getValueControl(selected).dropdownData"
+                                    [isTableView]="false" [multiSelect]="false"
+                                    [selectedValues]="getSelectedDropdownValues(selected)"
+                                    [selectedLanguage]="selectedLanguage"
+                                    (selectedValuesChange)="onDropdownValueChange($event, i)">
+                                </app-table-dropdown>
+                                <!-- Dropdown validation error message -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please select a value.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualDropdownInputs>
+                                <div class="dual-dropdown-container">
+                                    <app-table-dropdown [data]="getValueControl(selected).dropdownData"
+                                        [isTableView]="false" [multiSelect]="false"
+                                        [selectedValues]="getDualSelectedDropdownValues(selected, 0)"
+                                        [selectedLanguage]="selectedLanguage"
+                                        (selectedValuesChange)="onDualDropdownValueChange($event, i, 0)">
+                                    </app-table-dropdown>
+                                    <app-table-dropdown [data]="getValueControl(selected).dropdownData"
+                                        [isTableView]="false" [multiSelect]="false"
+                                        [selectedValues]="getDualSelectedDropdownValues(selected, 1)"
+                                        [selectedLanguage]="selectedLanguage"
+                                        (selectedValuesChange)="onDualDropdownValueChange($event, i, 1)">
+                                    </app-table-dropdown>
+                                    <!-- Dual dropdown validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please select values in both dropdowns.
                                     </div>
                                 </div>
                             </ng-template>

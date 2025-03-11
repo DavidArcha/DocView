@@ -76,13 +76,13 @@ export class SearchService {
     return this.http.get<AccordionItem[]>(url);
   }
 
-  getStateData(lang: string): Observable<AccordionItem[]> {
+  getStateData(lang: string): Observable<DropdownItem[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getStateData}/${lang}`;
-    return this.http.get<AccordionItem[]>(url);
+    return this.http.get<DropdownItem[]>(url);
   }
 
-  getBrandsData(lang: string): Observable<ListItem[]> {
+  getBrandsData(lang: string): Observable<DropdownItem[]> {
     let url = `${this.apiUrl}${RestAPICallUrl.getBrandData}/${lang}`;
-    return this.http.get<ListItem[]>(url);
+    return this.http.get<DropdownItem[]>(url);
   }
 }

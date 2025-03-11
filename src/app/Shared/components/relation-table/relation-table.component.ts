@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angu
 import { Subject, takeUntil } from 'rxjs';
 import { SelectedField } from '../../interfaces/selectedFields.interface';
 import { DualOperators, NoValueOperators, OperatorType } from '../../enums/operator-types.enum';
-import { FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
+import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../enums/field-types.enum';
 import { DropdownItem } from '../../interfaces/table-dropdown.interface';
 import { SearchService } from '../../services/search.service';
 import { LanguageService } from '../../services/language.service';
@@ -26,6 +26,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   @Output() deleteSelectedField = new EventEmitter<number>();
 
   systemTypeData: DropdownItem[] = [];
+  brandData: DropdownItem[] = [];
+  stateData: DropdownItem[] = [];
   FieldType = FieldType; // Add this line to make FieldType accessible in the template
 
   constructor(private searchService: SearchService, private languageService: LanguageService) { }
@@ -37,6 +39,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       .subscribe(lang => {
         this.selectedLanguage = lang;
         this.loadSystemTypeFields(this.selectedLanguage);
+        this.getBrandData(this.selectedLanguage);
+        this.getStateData(this.selectedLanguage);
       });
 
     // Initialize parentSelected for each row if not already set
@@ -51,6 +55,34 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // Add these methods to handle dropdowns
+  getBrandData(lang: any): void {
+    this.searchService.getBrandsData(lang)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.brandData = data;
+        },
+        error: (error) => {
+          console.error('Error loading brands:', error);
+        }
+      });  // Return the data immediately
+  }
+
+  getStateData(lang: any): void {
+    this.searchService.getStateData(lang)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.stateData = data;
+        },
+        error: (error) => {
+          console.error('Error loading states:', error);
+        }
+      });
+  }
+
+
   shouldShowValueColumn(): boolean {
     return this.selectedFields.some(field =>
       this.getValueControl(field).show && this.isOperatorValid(field)
@@ -58,10 +90,15 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
   getValueControl(selected: SelectedField): any {
-    const control = { show: false, dual: false, type: FieldType.Text }; // Default control
+    // Change the initialization to make dropdownData type compatible with arrays
+    const control = {
+      show: false,
+      dual: false,
+      type: FieldType.Text,
+      dropdownData: [] as DropdownItem[] // Initialize as empty array instead of null
+    };
 
     // Only show controls if a valid operator is selected (not 'select')
-    // Explicitly check for 'select' option
     if (!selected.operator?.id || selected.operator.id === 'select') {
       control.show = false;
       return control;
@@ -83,6 +120,12 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       control.show = true;
       control.dual = true;
       control.type = this.getControlType(parentType);
+
+      // If dropdown field, determine which dropdown data to use
+      if (control.type === FieldType.Dropdown) {
+        control.dropdownData = this.getDropdownDataForField(selected.field.id);
+      }
+
       return control;
     }
 
@@ -90,7 +133,32 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     control.show = true;
     control.type = this.getControlType(parentType);
 
+    // If dropdown field, determine which dropdown data to use
+    if (control.type === FieldType.Dropdown) {
+      control.dropdownData = this.getDropdownDataForField(selected.field.id);
+    }
+
     return control;
+  }
+
+  // Add this method to determine which dropdown data to use for a field
+  getDropdownDataForField(fieldId: string): any[] {
+    // Get data source name from mapping
+    const dataSource = DropdownDataMapping[fieldId] || DropdownDataMapping['default'];
+
+    console.log(`Getting dropdown data for field: ${fieldId}, data source: ${dataSource}`);
+
+    // Return the appropriate data based on data source name
+    switch (dataSource) {
+      case 'brandData':
+        return this.brandData;
+      case 'stateData':
+        return this.stateData;
+      // Add more cases as you add more data sources
+      default:
+        console.warn(`No data source found for ${dataSource}, returning empty array`);
+        return [];
+    }
   }
 
   private getControlType(parentType: FieldType): FieldType {
@@ -264,6 +332,11 @@ export class RelationTableComponent implements OnInit, OnDestroy {
           !isNaN(Number(selected.value[1]));
       }
 
+      // For dropdown fields, check both values are selected
+      if (fieldType === FieldType.Dropdown) {
+        return !!selected.value[0] && !!selected.value[1];
+      }
+
       // For other field types, just check they're not empty
       return selected.value[0] !== undefined &&
         selected.value[0] !== null &&
@@ -279,6 +352,11 @@ export class RelationTableComponent implements OnInit, OnDestroy {
         selected.value !== null &&
         selected.value !== '' &&
         !isNaN(Number(selected.value));
+    }
+
+    // For dropdown fields, check value exists
+    if (fieldType === FieldType.Dropdown) {
+      return !!selected.value;
     }
 
     // For other fields, just check that value exists
@@ -438,5 +516,89 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       // Toggle behavior - set to null if already has text, otherwise set the text
       selected.value[index] = selected.value[index] ? null : displayText;
     }
+  }
+
+  getSelectedDropdownValues(selected: SelectedField): string[] {
+    if (!selected.value) return [];
+
+    // If the value is already an object with id, extract the id
+    if (typeof selected.value === 'object' && selected.value !== null && 'id' in selected.value) {
+      return [selected.value.id];
+    }
+
+    // If it's an array of objects, map to ids
+    if (Array.isArray(selected.value) && selected.value.length > 0 &&
+      typeof selected.value[0] === 'object' && 'id' in selected.value[0]) {
+      return selected.value.map(item => item.id);
+    }
+
+    // If it's a simple string, wrap in array
+    if (typeof selected.value === 'string') {
+      return [selected.value];
+    }
+
+    return [];
+  }
+
+  // Get selected values for dual dropdown at specific index
+  getDualSelectedDropdownValues(selected: SelectedField, index: number): string[] {
+    if (!selected.value || !Array.isArray(selected.value) || !selected.value[index]) {
+      return [];
+    }
+
+    const value = selected.value[index];
+
+    // If the value is already an object with id
+    if (typeof value === 'object' && value !== null && 'id' in value) {
+      return [value.id];
+    }
+
+    // If it's a simple string
+    if (typeof value === 'string') {
+      return [value];
+    }
+
+    return [];
+  }
+
+  // Handle single dropdown value change
+  onDropdownValueChange(selectedItems: DropdownItem[], index: number): void {
+    const selected = this.selectedFields[index];
+
+    if (!selectedItems || selectedItems.length === 0) {
+      selected.value = null;
+    } else if (selectedItems.length === 1) {
+      // Store the complete object to preserve language information
+      selected.value = selectedItems[0];
+    } else {
+      // Store array of objects for multi-select
+      selected.value = selectedItems;
+    }
+
+    // Mark as touched for validation
+    selected.valueTouched = true;
+  }
+
+  // Handle dual dropdown value change
+  onDualDropdownValueChange(selectedItems: DropdownItem[], index: number, dualIndex: number): void {
+    const selected = this.selectedFields[index];
+
+    // Ensure value is an array of length 2
+    if (!Array.isArray(selected.value) || selected.value.length !== 2) {
+      selected.value = [null, null];
+    }
+
+    if (!selectedItems || selectedItems.length === 0) {
+      selected.value[dualIndex] = null;
+    } else if (selectedItems.length === 1) {
+      // Store the complete object to preserve language information
+      selected.value[dualIndex] = selectedItems[0];
+    } else {
+      // For multiple selections (unusual case)
+      selected.value[dualIndex] = selectedItems[0];
+    }
+
+    // Mark as touched for validation
+    selected.valueTouched = true;
   }
 }
