@@ -45,6 +45,7 @@
                 <!-- Value column: dynamic control rendering -->
                 <td class="value" *ngIf="getValueControl(selected).show && isOperatorValid(selected)">
                     <ng-container [ngSwitch]="getValueControl(selected).type">
+                        {{ getValueControl(selected).type }}
                         <!-- Text inputs -->
                         <ng-container *ngSwitchCase="FieldType.Text">
                             <ng-container *ngIf="!getValueControl(selected).dual; else dualTextInputs">
@@ -115,6 +116,61 @@
                                     <div class="validation-error"
                                         *ngIf="selected.valueTouched && !isValueValid(selected)">
                                         Please select dates for both fields.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Button inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Button">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualButtonInputs">
+                                <div class="button-container">
+                                    <!-- Display text that is initially hidden until button is clicked -->
+                                    <div class="display-text" *ngIf="selected.value">
+                                        {{ selected.value }}
+                                    </div>
+
+                                    <!-- The button that when clicked will show/hide the display text -->
+                                    <button class="field-button" (click)="onFieldButtonClick(selected)"
+                                        [ngClass]="{'selected': selected.value}">
+                                        Select
+                                    </button>
+
+                                    <!-- Validation error message -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please click select button.
+                                    </div>
+                                </div>
+                            </ng-container>
+                            <ng-template #dualButtonInputs>
+                                <div class="dual-button-container">
+                                    <!-- First button with display text -->
+                                    <div class="button-container">
+                                        <div class="display-text" *ngIf="selected.value && selected.value[0]">
+                                            {{ selected.value[0] }}
+                                        </div>
+                                        <button class="field-button" (click)="onFieldButtonClick(selected, 0)"
+                                            [ngClass]="{'selected': selected.value && selected.value[0]}">
+                                            Select First
+                                        </button>
+                                    </div>
+
+                                    <!-- Second button with display text -->
+                                    <div class="button-container">
+                                        <div class="display-text" *ngIf="selected.value && selected.value[1]">
+                                            {{ selected.value[1] }}
+                                        </div>
+                                        <button class="field-button" (click)="onFieldButtonClick(selected, 1)"
+                                            [ngClass]="{'selected': selected.value && selected.value[1]}">
+                                            Select Second
+                                        </button>
+                                    </div>
+
+                                    <!-- Dual validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please click both select buttons.
                                     </div>
                                 </div>
                             </ng-template>

@@ -101,6 +101,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
         return FieldType.Number;
       case FieldType.Dropdown:
         return FieldType.Dropdown;
+      case FieldType.Button:
+        return FieldType.Button;
       default:
         return FieldType.Text;
     }
@@ -228,6 +230,20 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
     // Get field type
     const fieldType = this.getFieldType(selected);
+
+    // Special handling for Button type
+    if (fieldType === FieldType.Button) {
+      // For dual operators with buttons
+      if (DualOperators.includes(operatorId as OperatorType)) {
+        return Array.isArray(selected.value) &&
+          selected.value.length === 2 &&
+          !!selected.value[0] &&
+          !!selected.value[1];
+      }
+
+      // For single button - check if value is not empty/null
+      return !!selected.value;
+    }
 
     // Check for dual value operators
     if (DualOperators.includes(operatorId as OperatorType)) {
@@ -386,6 +402,41 @@ export class RelationTableComponent implements OnInit, OnDestroy {
         selected.value = ['', ''];
         input.value = '';
       }
+    }
+  }
+
+  // Get text to display when button is clicked
+  getButtonDisplayText(selected: SelectedField, index?: number): string {
+    // You can customize what text appears after the button is clicked
+    // This could come from the field data or be generated dynamically
+    const fieldLabel = selected.field.label || 'Selected';
+    const timestamp = new Date().toLocaleTimeString();
+
+    if (index === undefined) {
+      return `${fieldLabel} selected at ${timestamp}`;
+    } else {
+      return `Option ${index + 1} - ${fieldLabel} selected at ${timestamp}`;
+    }
+  }
+
+  // Handle button click
+  onFieldButtonClick(selected: SelectedField, index?: number): void {
+    selected.valueTouched = true;
+
+    // Generate display text
+    const displayText = this.getButtonDisplayText(selected, index);
+
+    if (index === undefined) {
+      // For single button, store the display text instead of boolean
+      // Before storing text, check if it was already set (toggle behavior)
+      selected.value = selected.value ? null : displayText;
+    } else {
+      // For dual buttons, ensure we have an array and store text at specific index
+      if (!Array.isArray(selected.value)) {
+        selected.value = [null, null];
+      }
+      // Toggle behavior - set to null if already has text, otherwise set the text
+      selected.value[index] = selected.value[index] ? null : displayText;
     }
   }
 }
