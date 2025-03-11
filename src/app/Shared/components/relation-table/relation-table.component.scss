@@ -123,3 +123,30 @@ input.ng-touched.ng-invalid,
         margin-right: 0;
     }
 }
+
+.similar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.similar-field-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.similar-text {
+    font-style: italic;
+    color: #555;
+}
+
+.similar-brand-container {
+    margin-top: 4px;
+}
+
+.dual-dropdown-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

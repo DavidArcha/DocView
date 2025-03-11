@@ -90,12 +90,14 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
   getValueControl(selected: SelectedField): any {
-    // Change the initialization to make dropdownData type compatible with arrays
     const control = {
       show: false,
       dual: false,
       type: FieldType.Text,
-      dropdownData: [] as DropdownItem[] // Initialize as empty array instead of null
+      dropdownData: [] as DropdownItem[],
+      // Add these properties for similar operator handling
+      isSimilar: false,
+      similarDropdownData: [] as DropdownItem[]
     };
 
     // Only show controls if a valid operator is selected (not 'select')
@@ -105,6 +107,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     }
 
     const operatorId = selected.operator.id.toLowerCase();
+    console.log(`Operator ID: ${operatorId}`);
 
     // Scenario-1: No need to display any control
     if (NoValueOperators.includes(operatorId as OperatorType)) {
@@ -114,6 +117,24 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
     // Check the parent column set
     const parentType = this.getFieldType(selected);
+
+    // Special case for "similar" operator
+    if (operatorId === 'similar') {
+      control.show = true;
+      control.isSimilar = true; // Mark as similar for special handling in template
+      control.type = this.getControlType(parentType);
+
+      // Always load brand data for the similar dropdown
+      control.similarDropdownData = this.brandData;
+
+      // If the main control is dropdown, determine which dropdown data to use
+      if (control.type === FieldType.Dropdown) {
+        control.dropdownData = this.getDropdownDataForField(selected.field.id);
+      }
+
+      return control;
+    }
+    // Continue with existing scenarios
 
     // Scenario-2: Handle dual controls for specific operations
     if (DualOperators.includes(operatorId as OperatorType)) {
@@ -296,6 +317,14 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       return true;
     }
 
+    // Special validation for similar operator
+    if (operatorId === 'similar') {
+      return Array.isArray(selected.value) &&
+        selected.value.length === 2 &&
+        !!selected.value[0] &&  // First part must have a value
+        !!selected.value[1];    // Brand selection must have a value
+    }
+
     // Get field type
     const fieldType = this.getFieldType(selected);
 
@@ -366,8 +395,18 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
   // Initialize the values properly for each field based on operator type
+  // Initialize the values properly for each field based on operator type
   initializeValueForOperator(selected: SelectedField): void {
     const operatorId = selected.operator?.id?.toLowerCase() || '';
+
+    // Special handling for similar operator
+    if (operatorId === 'similar') {
+      // For similar, we need two values: main value and brand selection
+      if (!selected.value || !Array.isArray(selected.value)) {
+        selected.value = ['', null]; // First item for text/number/etc., second for brand selection
+      }
+      return;
+    }
 
     // For dual value operators, initialize with array if not already
     if (DualOperators.includes(operatorId as OperatorType)) {
@@ -597,6 +636,105 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       // For multiple selections (unusual case)
       selected.value[dualIndex] = selectedItems[0];
     }
+
+    // Mark as touched for validation
+    selected.valueTouched = true;
+  }
+
+  // For similar operator field dropdown values
+  getSimilarFieldDropdownValues(selected: SelectedField): string[] {
+    if (!selected.value || !Array.isArray(selected.value) || !selected.value[0]) {
+      return [];
+    }
+
+    const value = selected.value[0];
+
+    // If the value is already an object with id
+    if (typeof value === 'object' && value !== null && 'id' in value) {
+      return [value.id];
+    }
+
+    // If it's a simple string
+    if (typeof value === 'string') {
+      return [value];
+    }
+
+    return [];
+  }
+
+  // For similar operator brand dropdown values
+  getSimilarBrandDropdownValues(selected: SelectedField): string[] {
+    if (!selected.value || !Array.isArray(selected.value) || !selected.value[1]) {
+      return [];
+    }
+
+    const value = selected.value[1];
+
+    // If the value is already an object with id
+    if (typeof value === 'object' && value !== null && 'id' in value) {
+      return [value.id];
+    }
+
+    // If it's a simple string
+    if (typeof value === 'string') {
+      return [value];
+    }
+
+    return [];
+  }
+
+  // Handle change of the field value in similar operator
+  onSimilarFieldDropdownChange(selectedItems: DropdownItem[], index: number): void {
+    const selected = this.selectedFields[index];
+
+    // Ensure value is an array
+    if (!Array.isArray(selected.value)) {
+      selected.value = [null, null];
+    }
+
+    if (!selectedItems || selectedItems.length === 0) {
+      selected.value[0] = null;
+    } else if (selectedItems.length === 1) {
+      selected.value[0] = selectedItems[0];
+    } else {
+      selected.value[0] = selectedItems[0];
+    }
+
+    // Mark as touched for validation
+    selected.valueTouched = true;
+  }
+
+  // Handle change of the brand dropdown in similar operator
+  onSimilarBrandDropdownChange(selectedItems: DropdownItem[], index: number): void {
+    const selected = this.selectedFields[index];
+
+    // Ensure value is an array
+    if (!Array.isArray(selected.value)) {
+      selected.value = [null, null];
+    }
+
+    if (!selectedItems || selectedItems.length === 0) {
+      selected.value[1] = null;
+    } else if (selectedItems.length === 1) {
+      selected.value[1] = selectedItems[0];
+    } else {
+      selected.value[1] = selectedItems[0];
+    }
+
+    // Mark as touched for validation
+    selected.valueTouched = true;
+  }
+
+  // Handle click of button in similar operator case
+  onSimilarButtonClick(selected: SelectedField): void {
+    // Ensure value is an array
+    if (!Array.isArray(selected.value)) {
+      selected.value = [null, null];
+    }
+
+    // Toggle the button selection
+    const displayText = this.getButtonDisplayText(selected);
+    selected.value[0] = selected.value[0] ? null : displayText;
 
     // Mark as touched for validation
     selected.valueTouched = true;
