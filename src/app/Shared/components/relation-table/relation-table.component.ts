@@ -11,14 +11,13 @@ import { SearchCriteria } from '../../interfaces/search-criteria.interface';
 @Component({
   selector: 'app-relation-table',
   standalone: false,
-
   templateUrl: './relation-table.component.html',
   styleUrl: './relation-table.component.scss'
 })
 export class RelationTableComponent implements OnInit, OnDestroy {
+
   // Add a destroy subject for subscription cleanup
   private destroy$ = new Subject<void>();
-
   @Input() selectedFields: SelectedField[] = [];
   @Input() dropdownData: any;
   @Input() selectedLanguage: string = 'de';
@@ -27,7 +26,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   @Output() deleteSelectedField = new EventEmitter<number>();
 
   systemTypeData: DropdownItem[] = [];
-
+  FieldType = FieldType; // Add this line to make FieldType accessible in the template
 
   constructor(private searchService: SearchService, private languageService: LanguageService) { }
 
@@ -137,11 +136,15 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
   // Handle parent value change for specific row
+  // Handle parent value change for specific row
   onParentValueChange(selectedValues: DropdownItem[], rowIndex: number): void {
     if (!this.selectedFields[rowIndex]) return;
 
     // Store selection for this specific row without modifying parent
     this.selectedFields[rowIndex].parentSelected = selectedValues.length > 0 ? selectedValues : null;
+
+    // Mark parent as touched for validation
+    this.selectedFields[rowIndex].parentTouched = true;
 
     // Save to local storage if needed
     this.saveToLocalStorage();
@@ -195,11 +198,108 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     this.saveToLocalStorage();
   }
 
-  // Update the onSearchSelectedField method to convert to SearchCriteria
+  // Add these methods to handle field validations
+
+  // Check if parent is valid (either has a parent or parentSelected is chosen)
+  isParentValid(selected: SelectedField): boolean {
+    // Valid if it has a parent with ID
+    if (selected.parent && selected.parent.id) {
+      return true;
+    }
+
+    // Valid if parentSelected has been chosen
+    if (selected.parentSelected) {
+      if (Array.isArray(selected.parentSelected)) {
+        return selected.parentSelected.length > 0;
+      }
+      return !!selected.parentSelected.id;
+    }
+
+    return false;
+  }
+
+  // Check if value is valid based on current operator
+  isValueValid(selected: SelectedField): boolean {
+    // No validation needed if operator doesn't require a value
+    const operatorId = selected.operator?.id?.toLowerCase() || '';
+    if (!operatorId || operatorId === 'select' || NoValueOperators.includes(operatorId as OperatorType)) {
+      return true;
+    }
+
+    // Check for dual value operators
+    if (DualOperators.includes(operatorId as OperatorType)) {
+      // Must have an array with both values
+      return Array.isArray(selected.value) &&
+        selected.value.length === 2 &&
+        selected.value[0] !== undefined &&
+        selected.value[0] !== null &&
+        selected.value[0] !== '' &&
+        selected.value[1] !== undefined &&
+        selected.value[1] !== null &&
+        selected.value[1] !== '';
+    }
+
+    // For single value operators, just check that value exists
+    return selected.value !== undefined &&
+      selected.value !== null &&
+      selected.value !== '';
+  }
+
+  // Initialize the values properly for each field based on operator type
+  initializeValueForOperator(selected: SelectedField): void {
+    const operatorId = selected.operator?.id?.toLowerCase() || '';
+
+    // For dual value operators, initialize with array if not already
+    if (DualOperators.includes(operatorId as OperatorType)) {
+      if (!Array.isArray(selected.value)) {
+        selected.value = ['', ''];  // Initialize with empty array
+      }
+    } else if (NoValueOperators.includes(operatorId as OperatorType)) {
+      // For no-value operators, set to null
+      selected.value = null;
+    } else if (!selected.value) {
+      // For single value operators, initialize as empty string if needed
+      selected.value = '';
+    }
+  }
+
+  // Update onOperatorChange to initialize values appropriately
+  onOperatorChange(newOperator: string, index: number): void {
+    this.operatorChange.emit({ newOperator, index });
+    this.selectedFields[index].operatorTouched = true;
+
+    // Initialize value based on new operator
+    if (this.selectedFields[index]) {
+      this.initializeValueForOperator(this.selectedFields[index]);
+    }
+  }
+
+  // Update onSearchSelectedField to validate before emitting
   onSearchSelectedField(selected: SelectedField): void {
-    // Convert the SelectedField to SearchCriteria format according to the interface
+    // Mark fields as touched for validation
+    selected.parentTouched = true;
+    selected.operatorTouched = true;
+    selected.valueTouched = true;
+
+    // Validate all required fields
+    if (!this.isParentValid(selected)) {
+      console.error('Parent validation failed');
+      return;
+    }
+
+    if (!this.isOperatorValid(selected)) {
+      console.error('Operator validation failed');
+      return;
+    }
+
+    if (!this.isValueValid(selected)) {
+      console.error('Value validation failed');
+      return;
+    }
+
+    // If all validations pass, create search criteria
     const searchCriteria: SearchCriteria = {
-      parent: selected.parentSelected || selected.parent,  // Use parentSelected if available, otherwise fall back to parent
+      parent: selected.parentSelected || selected.parent,
       field: {
         id: selected.field.id,
         label: selected.field.label
@@ -211,7 +311,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       value: selected.value || null
     };
 
-    // Emit the search criteria
+    // Emit the selected field (with validation state)
     this.searchSelectedField.emit(selected);
   }
 

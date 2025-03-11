@@ -62,7 +62,9 @@ export const DROPDOWN_DATA = {
         { "id": "empty", "en": "empty", "de": "leer" },
         { "id": "not_empty", "en": "not empty", "de": "nicht leer" },
         { "id": "contains", "en": "Contains", "de": "Enthält" },
-        { "id": "starts_with", "en": "Start-With", "de": "" }
+        { "id": "starts_with", "en": "Start-With", "de": "" },
+        { "id": "between", "en": "between", "de": "zwischen" },
+        { "id": "not_between", "en": "not between", "de": "nicht zwischen" },
     ],
 };
 

@@ -431,7 +431,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       case FieldType.Bool:
         return this.operationsDDData.boolOperations;
       case FieldType.Text:
-        return this.operationsDDData.tOperations;
+        return this.operationsDDData.stringOperations;
       case FieldType.Date:
         return this.operationsDDData.dateOperations;
       case FieldType.Number:
@@ -568,7 +568,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Update method to change both parent and field labels based on language
+  // Update method to change parent, field, and operator labels based on language
   updateSelectedFieldsParents(): void {
     if (this.selectedFields.length === 0) {
       return;
@@ -580,14 +580,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     const systemFieldsMap = new Map();
     if (this.systemFieldsAccData.length > 0) {
       this.extractFields(this.systemFieldsAccData, systemFieldsMap);
-
     } else {
       console.log('SYSTEM FIELDS MAP: Empty - No system fields data loaded');
     }
 
     // Loop through each selectedField and update labels efficiently
     this.selectedFields = this.selectedFields.map((selectedField, index) => {
-
       // 1. Update parent labels if we have systemTypeData
       if (selectedField.parent && selectedField.parent.id && this.systemTypeData.length > 0) {
         const currentSystemType = this.systemTypeData.find(item => item.id === selectedField.parent.id);
@@ -610,7 +608,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         // Case 1: Field from firstSystemFieldsData (empty parent)
         if (!selectedField.parent.id) {
           const firstSystemField = firstSystemFieldsMap.get(selectedField.field.id);
-
           if (firstSystemField) {
             selectedField.field = {
               id: selectedField.field.id,
@@ -636,6 +633,19 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
           }
         }
       }
+
+      // 3. Update operator labels based on current language
+      if (selectedField.operator && selectedField.operator.id &&
+        selectedField.operatorOptions && selectedField.operatorOptions.length > 0) {
+        const currentOperator = selectedField.operatorOptions.find(op => op.id === selectedField.operator.id);
+        if (currentOperator) {
+          selectedField.operator = {
+            id: selectedField.operator.id,
+            label: currentOperator[this.currentLanguage] || currentOperator.id
+          };
+        }
+      }
+
       console.log('SELECTED FIELD:', selectedField);
       return selectedField;
     });
@@ -749,6 +759,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   }
 
   // 2. Add a new method specifically for updating field labels without affecting the UI
+  // Update field labels without affecting UI
   updateSelectedFieldLabels(systemFieldsMap: Map<string, any>): void {
     // Prepare a map of all fields from firstSystemFieldsData for quick lookup
     const firstSystemFieldsMap = new Map();
@@ -789,6 +800,18 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
               label: systemField.label || ''
             };
           }
+        }
+      }
+
+      // 3. Update operator labels based on current language
+      if (selectedField.operator && selectedField.operator.id &&
+        selectedField.operatorOptions && selectedField.operatorOptions.length > 0) {
+        const currentOperator = selectedField.operatorOptions.find(op => op.id === selectedField.operator.id);
+        if (currentOperator) {
+          selectedField.operator = {
+            id: selectedField.operator.id,
+            label: currentOperator[this.currentLanguage] || currentOperator.id
+          };
         }
       }
 

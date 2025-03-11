@@ -19,4 +19,5 @@ export interface SelectedField {
     operatorTouched?: boolean;
     valueTouched?: boolean | boolean[];
     dropdownData?: any[];
+    parentTouched?: boolean;
 }
