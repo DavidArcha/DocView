@@ -10,6 +10,7 @@ import { SelectedField } from '../../../interfaces/selectedFields.interface';
 import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../../enums/field-types.enum';
 import { DualOperators, NoValueOperators, OperatorType } from '../../../enums/operator-types.enum';
 import { SearchCriteria } from '../../../interfaces/search-criteria.interface';
+import { SearchRequest } from '../../../interfaces/search-request.interface';
 
 @Component({
   selector: 'app-select-search',
@@ -546,62 +547,69 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     }
   }
 
- // New button: Store with simplified implementation
-storeTable(): void {
-  if (this.selectedFields.length === 0) {
-    alert('No fields selected to store');
-    return;
+  // New button: Store with simplified implementation
+  storeTable(): void {
+    if (this.selectedFields.length === 0) {
+      alert('No fields selected to store');
+      return;
+    }
+
+    // Validate all fields
+    const invalidFields = this.selectedFields.filter(field => {
+      // Apply the same validation logic here
+      field.parentTouched = true;
+      field.operatorTouched = true;
+      field.valueTouched = true;
+
+      // We need to access relation table's validation methods, so use simplified logic
+      const hasParent = field.parentSelected || (field.parent && field.parent.id);
+      const hasOperator = field.operator && field.operator.id && field.operator.id !== 'select';
+      const hasValue = field.value !== undefined && field.value !== null && field.value !== '';
+
+      // Simplified validation - for complete validation, should use relation table component
+      return !hasParent || !hasOperator || (!NoValueOperators.includes(field.operator?.id?.toLowerCase() as OperatorType) && !hasValue);
+    });
+
+    if (invalidFields.length > 0) {
+      alert('Please fix validation errors before saving');
+      return;
+    }
+
+    // Convert to search criteria format
+    const searchCriteria = this.selectedFields.map(field => ({
+      parent: field.parentSelected || field.parent,
+      field: {
+        id: field.field.id,
+        label: field.field.label
+      },
+      operator: {
+        id: field.operator?.id || '',
+        label: field.operator?.label || ''
+      },
+      value: field.value || null
+    }));
+
+    // Create a search request
+    const searchRequest: SearchRequest = {
+      searchId: '',
+      searchData: searchCriteria
+    };
+    console.log('Search criteria to save:', searchRequest);
+    localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
+    // Save to backend
+    // this.searchService.saveSearchCriteria(searchCriteria)
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe({
+    //     next: () => {
+    //       alert('Search criteria saved successfully');
+    //       localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
+    //     },
+    //     error: (error) => {
+    //       console.error('Error saving search criteria:', error);
+    //       alert('Failed to save search criteria. Please try again.');
+    //     }
+    //   });
   }
-  
-  // Validate all fields
-  const invalidFields = this.selectedFields.filter(field => {
-    // Apply the same validation logic here
-    field.parentTouched = true;
-    field.operatorTouched = true;
-    field.valueTouched = true;
-    
-    // We need to access relation table's validation methods, so use simplified logic
-    const hasParent = field.parentSelected || (field.parent && field.parent.id);
-    const hasOperator = field.operator && field.operator.id && field.operator.id !== 'select';
-    const hasValue = field.value !== undefined && field.value !== null && field.value !== '';
-    
-    // Simplified validation - for complete validation, should use relation table component
-    return !hasParent || !hasOperator || (!NoValueOperators.includes(field.operator?.id?.toLowerCase() as OperatorType) && !hasValue);
-  });
-  
-  if (invalidFields.length > 0) {
-    alert('Please fix validation errors before saving');
-    return;
-  }
-  
-  // Convert to search criteria format
-  const searchCriteria = this.selectedFields.map(field => ({
-    parent: field.parentSelected || field.parent,
-    field: {
-      id: field.field.id,
-      label: field.field.label
-    },
-    operator: {
-      id: field.operator?.id || '',
-      label: field.operator?.label || ''
-    },
-    value: field.value || null
-  }));
-  console.log('Search criteria to save:', searchCriteria);
-  // Save to backend
-  // this.searchService.saveSearchCriteria(searchCriteria)
-  //   .pipe(takeUntil(this.destroy$))
-  //   .subscribe({
-  //     next: () => {
-  //       alert('Search criteria saved successfully');
-  //       localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
-  //     },
-  //     error: (error) => {
-  //       console.error('Error saving search criteria:', error);
-  //       alert('Failed to save search criteria. Please try again.');
-  //     }
-  //   });
-}
 
   // Improved trackBy function for ngFor performance
   trackByFn(index: number, item: AccordionItem): string {
