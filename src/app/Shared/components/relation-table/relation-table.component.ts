@@ -111,7 +111,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
   getFieldType(selected: SelectedField): FieldType {
-    return FieldTypeMapping[selected.field.id.toLowerCase()] || FieldType.Text;
+    return FieldTypeMapping[selected.field.id] || FieldType.Text;
   }
 
 
@@ -226,12 +226,30 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       return true;
     }
 
+    // Get field type
+    const fieldType = this.getFieldType(selected);
+
     // Check for dual value operators
     if (DualOperators.includes(operatorId as OperatorType)) {
       // Must have an array with both values
-      return Array.isArray(selected.value) &&
-        selected.value.length === 2 &&
-        selected.value[0] !== undefined &&
+      if (!Array.isArray(selected.value) || selected.value.length !== 2) {
+        return false;
+      }
+
+      // For number fields, ensure both values are valid numbers
+      if (fieldType === FieldType.Number) {
+        return selected.value[0] !== undefined &&
+          selected.value[0] !== null &&
+          selected.value[0] !== '' &&
+          !isNaN(Number(selected.value[0])) &&
+          selected.value[1] !== undefined &&
+          selected.value[1] !== null &&
+          selected.value[1] !== '' &&
+          !isNaN(Number(selected.value[1]));
+      }
+
+      // For other field types, just check they're not empty
+      return selected.value[0] !== undefined &&
         selected.value[0] !== null &&
         selected.value[0] !== '' &&
         selected.value[1] !== undefined &&
@@ -239,7 +257,15 @@ export class RelationTableComponent implements OnInit, OnDestroy {
         selected.value[1] !== '';
     }
 
-    // For single value operators, just check that value exists
+    // For number fields, ensure value is a valid number
+    if (fieldType === FieldType.Number) {
+      return selected.value !== undefined &&
+        selected.value !== null &&
+        selected.value !== '' &&
+        !isNaN(Number(selected.value));
+    }
+
+    // For other fields, just check that value exists
     return selected.value !== undefined &&
       selected.value !== null &&
       selected.value !== '';
@@ -317,5 +343,49 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
   onDeleteSelectedField(index: number): void {
     this.deleteSelectedField.emit(index);
+  }
+
+  // Add these methods for numeric validation
+
+  // Validate single number input field
+  validateNumberInput(event: Event, selected: SelectedField): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+
+    // If empty, allow it (will be caught by required validation if needed)
+    if (!value) {
+      return;
+    }
+
+    // Check if value is numeric
+    if (!/^-?\d*\.?\d*$/.test(value)) {
+      // If not numeric, revert to previous valid value or empty string
+      input.value = selected.value || '';
+      selected.value = input.value;
+    }
+  }
+
+  // Validate dual number input fields
+  validateDualNumberInput(event: Event, selected: SelectedField, index: number): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+
+    // If empty, allow it (will be caught by required validation if needed)
+    if (!value) {
+      return;
+    }
+
+    // Check if value is numeric
+    if (!/^-?\d*\.?\d*$/.test(value)) {
+      // If not numeric, revert to previous valid value or empty string
+      if (Array.isArray(selected.value)) {
+        input.value = selected.value[index] || '';
+        selected.value[index] = input.value;
+      } else {
+        // Handle case where value isn't an array yet
+        selected.value = ['', ''];
+        input.value = '';
+      }
+    }
   }
 }

@@ -68,6 +68,57 @@
                                 </div>
                             </ng-template>
                         </ng-container>
+
+                        <!-- Number inputs -->
+                        <ng-container *ngSwitchCase="FieldType.Number">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualNumberInputs">
+                                <input type="number" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true"
+                                    (input)="validateNumberInput($event, selected)" />
+                                <!-- Single value validation error -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please enter a valid number.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualNumberInputs>
+                                <div class="dual-input-container">
+                                    <input type="number" [(ngModel)]="selected.value[0]"
+                                        (blur)="selected.valueTouched = true"
+                                        (input)="validateDualNumberInput($event, selected, 0)" />
+                                    <input type="number" [(ngModel)]="selected.value[1]"
+                                        (blur)="selected.valueTouched = true"
+                                        (input)="validateDualNumberInput($event, selected, 1)" />
+                                    <!-- Dual value validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please enter valid numbers in both fields.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
+
+                        <!-- Date inputs (can be expanded later) -->
+                        <ng-container *ngSwitchCase="FieldType.Date">
+                            <ng-container *ngIf="!getValueControl(selected).dual; else dualDateInputs">
+                                <input type="date" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true" />
+                                <!-- Single value validation error -->
+                                <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    Please select a date.
+                                </div>
+                            </ng-container>
+                            <ng-template #dualDateInputs>
+                                <div class="dual-input-container">
+                                    <input type="date" [(ngModel)]="selected.value[0]"
+                                        (blur)="selected.valueTouched = true" />
+                                    <input type="date" [(ngModel)]="selected.value[1]"
+                                        (blur)="selected.valueTouched = true" />
+                                    <!-- Dual value validation error -->
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                        Please select dates for both fields.
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </ng-container>
                     </ng-container>
                 </td>
                 <td *ngIf="(!getValueControl(selected).show || !isOperatorValid(selected)) && shouldShowValueColumn()">
