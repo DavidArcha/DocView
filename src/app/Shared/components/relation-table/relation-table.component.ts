@@ -206,22 +206,20 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
 
-  // Updated isParentEmpty to only show dropdown for empty parent or parentSelected
+  // Updated isParentEmpty to maintain dropdown visibility once it's been used
   isParentEmpty(selected: SelectedField): boolean {
-    // Only show dropdown when:
-    // 1. Parent is empty (normal case for selecting a new parent)
-    // 2. Multiple parents selected (parentSelected is an array)
-
+    // Case 1: Empty parent - show dropdown
     if (!selected.parent || !selected.parent.id) {
-      return true; // Empty parent - show dropdown
+      return true;
     }
-
-    // Check specifically for parentSelected being an array with multiple items
-    if (selected.parentSelected && Array.isArray(selected.parentSelected) && selected.parentSelected.length > 1) {
-      return true; // Multiple parents - show dropdown
+    
+    // Case 2: parentSelected exists (regardless of length) - show dropdown
+    // This ensures dropdown remains visible after interaction
+    if (selected.parentSelected !== undefined) {
+      return true;
     }
-
-    // Otherwise, don't show dropdown (show label instead)
+    
+    // Default case: don't show dropdown
     return false;
   }
 
@@ -240,18 +238,35 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
   // Handle parent value change for specific row
-  // Handle parent value change for specific row
-  onParentValueChange(selectedValues: DropdownItem[], rowIndex: number): void {
-    if (!this.selectedFields[rowIndex]) return;
-
-    // Store selection for this specific row without modifying parent
-    this.selectedFields[rowIndex].parentSelected = selectedValues.length > 0 ? selectedValues : null;
-
-    // Mark parent as touched for validation
-    this.selectedFields[rowIndex].parentTouched = true;
-
-    // Save to local storage if needed
-    this.saveToLocalStorage();
+  // Updated onParentValueChange to handle parent selection changes better
+  onParentValueChange(selectedItems: DropdownItem[], index: number): void {
+    const selected = this.selectedFields[index];
+    
+    // Special Case - Handle "empty" selection
+    if (!selectedItems || selectedItems.length === 0) {
+      // Clear parent
+      selected.parent = { id: '', label: '' };
+      
+      // Important: Keep parentSelected as an empty array to maintain dropdown visibility
+      selected.parentSelected = [];
+      
+      selected.parentTouched = true;
+      return;
+    }
+    
+    // Multiple selected items - store in parentSelected and use first as parent
+    if (selectedItems.length > 0) {
+      // Always maintain parentSelected for dropdown fields that have been interacted with
+      selected.parentSelected = selectedItems;
+      
+      // Set parent to first selected item
+      selected.parent = {
+        id: selectedItems[0].id || '',
+        label: selectedItems[0].label || ''
+      };
+      
+      selected.parentTouched = true;
+    }
   }
   // Helper method to save changes
   private saveToLocalStorage(): void {

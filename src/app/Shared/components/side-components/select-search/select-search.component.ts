@@ -931,20 +931,17 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
       // Handle parent - it could be an array or a single object
       let parent: { id: string; label: string };
-      let parentSelected = undefined;
-      
+      let parentSelected: any | undefined;
+
       // Check if item.parent is an array and handle it
       if (Array.isArray(item.parent)) {
         if (item.parent.length > 0) {
-          // For arrays with multiple items, use parentSelected
-          if (item.parent.length > 1) {
-            // Store the array as parentSelected for dropdown UI
-            parentSelected = item.parent.map(p => ({
-              id: p.id || '',
-              label: p.label || '' // Ensure label is never undefined
-            }));
-          }
-          
+          // For ANY array (even length 1), use parentSelected to maintain dropdown
+          parentSelected = item.parent.map(p => ({
+            id: p.id || '',
+            label: p.label || '' // Ensure label is never undefined
+          }));
+
           // Use first parent as the main parent, ensuring label is never undefined
           parent = {
             id: item.parent[0].id || '',
@@ -953,6 +950,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         } else {
           // Empty array case
           parent = { id: '', label: '' };
+          // Set empty array for parentSelected to keep dropdown visible
+          parentSelected = [];
         }
       } else if (item.parent && typeof item.parent === 'object') {
         // Single object case - DO NOT set parentSelected for single objects
@@ -960,9 +959,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
           id: item.parent.id || '',
           label: item.parent.label || '' // Ensure label is never undefined
         };
-        
-        // Do not set parentSelected for single parents to avoid showing dropdown
-        // parentSelected = undefined;
       } else {
         // Fallback case
         parent = { id: '', label: '' };
@@ -1051,7 +1047,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         valueTouched: false
       };
 
-      // Only set parentSelected when we have multiple parents
+      // Only set parentSelected when it exists (array case)
       if (parentSelected) {
         selectedField.parentSelected = parentSelected;
       }
