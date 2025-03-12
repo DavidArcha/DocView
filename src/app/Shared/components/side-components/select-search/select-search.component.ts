@@ -606,9 +606,19 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         formattedValue = field.value.id;
       }
 
-      // Return the search criteria without metadata
+      // Determine what to use for parent - handle parentSelected array
+      let parentValue;
+      if (field.parentSelected && Array.isArray(field.parentSelected) && field.parentSelected.length > 0) {
+        // Use the array of parents
+        parentValue = field.parentSelected;
+      } else {
+        // Use the single parent object
+        parentValue = field.parent;
+      }
+
+      // Return the search criteria with proper parent handling
       return {
-        parent: field.parentSelected || field.parent,
+        parent: parentValue,
         field: {
           id: field.field.id,
           label: field.field.label
@@ -919,12 +929,52 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       const operatorId = item.operator?.id?.toLowerCase() || '';
       const fieldId = item.field?.id || '';
 
+      // Handle parent - it could be an array or a single object
+      let parent: { id: string; label: string };
+      let parentSelected = undefined;
+      
+      // Check if item.parent is an array and handle it
+      if (Array.isArray(item.parent)) {
+        if (item.parent.length > 0) {
+          // For arrays with multiple items, use parentSelected
+          if (item.parent.length > 1) {
+            // Store the array as parentSelected for dropdown UI
+            parentSelected = item.parent.map(p => ({
+              id: p.id || '',
+              label: p.label || '' // Ensure label is never undefined
+            }));
+          }
+          
+          // Use first parent as the main parent, ensuring label is never undefined
+          parent = {
+            id: item.parent[0].id || '',
+            label: item.parent[0].label || '' // Ensure label is never undefined
+          };
+        } else {
+          // Empty array case
+          parent = { id: '', label: '' };
+        }
+      } else if (item.parent && typeof item.parent === 'object') {
+        // Single object case - DO NOT set parentSelected for single objects
+        parent = {
+          id: item.parent.id || '',
+          label: item.parent.label || '' // Ensure label is never undefined
+        };
+        
+        // Do not set parentSelected for single parents to avoid showing dropdown
+        // parentSelected = undefined;
+      } else {
+        // Fallback case
+        parent = { id: '', label: '' };
+      }
+
       // Use FieldTypeMapping to determine the field type
-      const fieldType = FieldTypeMapping[fieldId] || FieldType.Text; // Default to Text if not found
+      const fieldType = FieldTypeMapping[fieldId] || FieldType.Text;
 
       // Check if this operator typically uses dual values
       const isDualOperator = DualOperators.includes(operatorId as OperatorType);
 
+      // Handle value formatting based on type and operator
       // If it's a string containing hyphens and it should be an array
       if (typeof value === 'string' && value.includes('-') && isDualOperator) {
         // Split by hyphen to get the array back
@@ -948,9 +998,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
             break;
 
           case FieldType.Dropdown:
-            // For dropdown fields, we might need to reconstruct objects from their IDs
-            // This depends on how your dropdown component expects values
-            // For now, we'll just keep the split values
             value = splitValues;
             break;
 
@@ -973,26 +1020,43 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
               console.error('Error formatting date:', e);
             }
             break;
-
-          // Other field types may need special handling here
         }
       }
 
-      // Get operator options for this field
-      const operatorOptions = this.getOperatorOptions(item.field.id);
+      // Get operator options for this field with proper type handling
+      const operatorOptions = this.getOperatorOptions(item.field.id) || [];
 
-      // Reconstruct the field structure
-      return {
-        parent: item.parent || { id: '', label: '' },
-        field: item.field,
-        operator: item.operator,
+      // Construct operator with proper type handling
+      const operator = {
+        id: item.operator?.id || '',
+        label: item.operator?.label || ''
+      };
+
+      // Construct field with proper type handling
+      const field = {
+        id: item.field?.id || '',
+        label: item.field?.label || ''
+      };
+
+      // Reconstruct the field structure with strict type adherence
+      const selectedField: SelectedField = {
+        parent: parent,
+        field: field,
+        operator: operator,
         operatorOptions: operatorOptions,
         value: value,
         // Initialize touched states
         parentTouched: false,
         operatorTouched: false,
         valueTouched: false
-      } as SelectedField;
+      };
+
+      // Only set parentSelected when we have multiple parents
+      if (parentSelected) {
+        selectedField.parentSelected = parentSelected;
+      }
+
+      return selectedField;
     });
   }
 

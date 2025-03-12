@@ -206,14 +206,27 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   }
 
 
-  // Check if parent should show dropdown (renamed to be clearer)
+  // Updated isParentEmpty to only show dropdown for empty parent or parentSelected
   isParentEmpty(selected: SelectedField): boolean {
-    // Show dropdown when parent is empty or null
-    return !selected.parent || !selected.parent.id;
+    // Only show dropdown when:
+    // 1. Parent is empty (normal case for selecting a new parent)
+    // 2. Multiple parents selected (parentSelected is an array)
+
+    if (!selected.parent || !selected.parent.id) {
+      return true; // Empty parent - show dropdown
+    }
+
+    // Check specifically for parentSelected being an array with multiple items
+    if (selected.parentSelected && Array.isArray(selected.parentSelected) && selected.parentSelected.length > 1) {
+      return true; // Multiple parents - show dropdown
+    }
+
+    // Otherwise, don't show dropdown (show label instead)
+    return false;
   }
 
   // Get selected values for specific row
-  getParentSelectedValues(selected: SelectedField, rowIndex: number): string[] {
+  getParentSelectedValues(selected: SelectedField): string[] {
     if (!selected.parentSelected) {
       return [];
     }

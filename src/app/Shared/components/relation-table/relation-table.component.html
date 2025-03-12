@@ -12,25 +12,21 @@
         <tbody>
             <tr *ngFor="let selected of selectedFields; let i = index">
                 <td class="parent">
-                    <!-- Case 1: If parent is empty or null, show dropdown -->
-                    <ng-container *ngIf="isParentEmpty(selected); else showParentLabel">
-                        <div class="parent-dropdown">
-                            <app-table-dropdown [data]="systemTypeData" [isTableView]="false"
-                                [selectedValues]="getParentSelectedValues(selected, i)"
-                                [selectedLanguage]="selectedLanguage" [multiSelect]="true"
-                                (selectedValuesChange)="onParentValueChange($event, i)">
-                            </app-table-dropdown>
-                            <!-- Parent validation error message -->
-                            <div class="validation-error" *ngIf="selected.parentTouched && !isParentValid(selected)">
-                                Please select a type.
-                            </div>
+                    <!-- Show dropdown for ALL cases where parentSelected exists or parent is empty -->
+                    <ng-container *ngIf="isParentEmpty(selected)">
+                        <app-table-dropdown [data]="systemTypeData" [isTableView]="false" [multiSelect]="true"
+                            [selectedValues]="getParentSelectedValues(selected)" [selectedLanguage]="selectedLanguage"
+                            (selectedValuesChange)="onParentValueChange($event, i)">
+                        </app-table-dropdown>
+                        <div class="validation-error" *ngIf="selected.parentTouched && !isParentValid(selected)">
+                            Please select a parent.
                         </div>
                     </ng-container>
 
-                    <!-- Case 2: If parent has data, show label -->
-                    <ng-template #showParentLabel>
+                    <!-- Only show label if there's no parentSelected and parent is valid -->
+                    <ng-container *ngIf="!isParentEmpty(selected)">
                         {{ selected.parent.label }}
-                    </ng-template>
+                    </ng-container>
                 </td>
                 <td class="field">{{ selected.field.label }}</td>
                 <!-- Operator column -->
@@ -53,31 +49,31 @@
                                 <!-- Text input for similar -->
                                 <ng-container *ngSwitchCase="FieldType.Text">
                                     <div class="similar-field-container">
-                                        <input type="text" [(ngModel)]="selected.value[0]" 
+                                        <input type="text" [(ngModel)]="selected.value[0]"
                                             (blur)="selected.valueTouched = true" />
                                         <span class="similar-text">similar to</span>
                                     </div>
                                 </ng-container>
-                                
+
                                 <!-- Number input for similar -->
                                 <ng-container *ngSwitchCase="FieldType.Number">
                                     <div class="similar-field-container">
-                                        <input type="number" [(ngModel)]="selected.value[0]" 
+                                        <input type="number" [(ngModel)]="selected.value[0]"
                                             (blur)="selected.valueTouched = true"
                                             (input)="validateNumberInput($event, selected)" />
                                         <span class="similar-text">similar to</span>
                                     </div>
                                 </ng-container>
-                                
+
                                 <!-- Date input for similar -->
                                 <ng-container *ngSwitchCase="FieldType.Date">
                                     <div class="similar-field-container">
-                                        <input type="date" [(ngModel)]="selected.value[0]" 
+                                        <input type="date" [(ngModel)]="selected.value[0]"
                                             (blur)="selected.valueTouched = true" />
                                         <span class="similar-text">similar to</span>
                                     </div>
                                 </ng-container>
-                                
+
                                 <!-- Dropdown input for similar -->
                                 <ng-container *ngSwitchCase="FieldType.Dropdown">
                                     <div class="similar-field-container">
@@ -90,13 +86,12 @@
                                         <span class="similar-text">similar to</span>
                                     </div>
                                 </ng-container>
-                                
+
                                 <!-- Button input for similar -->
                                 <ng-container *ngSwitchCase="FieldType.Button">
                                     <div class="similar-field-container">
-                                        <button class="field-button" 
-                                                (click)="onSimilarButtonClick(selected)"
-                                                [ngClass]="{'selected': selected.value[0]}">
+                                        <button class="field-button" (click)="onSimilarButtonClick(selected)"
+                                            [ngClass]="{'selected': selected.value[0]}">
                                             Select
                                         </button>
                                         <div class="display-text" *ngIf="selected.value[0]">
@@ -106,7 +101,7 @@
                                     </div>
                                 </ng-container>
                             </ng-container>
-                            
+
                             <!-- Second part: Brand dropdown (common for all field types when using similar) -->
                             <div class="similar-brand-container">
                                 <app-table-dropdown [data]="getValueControl(selected).similarDropdownData"
@@ -116,23 +111,25 @@
                                     (selectedValuesChange)="onSimilarBrandDropdownChange($event, i)">
                                 </app-table-dropdown>
                             </div>
-                            
+
                             <!-- Validation error message for similar -->
                             <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
                                 Please complete all similar fields.
                             </div>
                         </div>
                     </ng-container>
-                    
+
                     <!-- Regular controls (non-similar case) -->
                     <ng-template #regularControls>
                         <ng-container [ngSwitch]="getValueControl(selected).type">
                             <!-- Text inputs -->
                             <ng-container *ngSwitchCase="FieldType.Text">
                                 <ng-container *ngIf="!getValueControl(selected).dual; else dualTextInputs">
-                                    <input type="text" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true" />
+                                    <input type="text" [(ngModel)]="selected.value"
+                                        (blur)="selected.valueTouched = true" />
                                     <!-- Single value validation error -->
-                                    <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
                                         Please enter a value.
                                     </div>
                                 </ng-container>
@@ -154,10 +151,12 @@
                             <!-- Number inputs -->
                             <ng-container *ngSwitchCase="FieldType.Number">
                                 <ng-container *ngIf="!getValueControl(selected).dual; else dualNumberInputs">
-                                    <input type="number" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true"
+                                    <input type="number" [(ngModel)]="selected.value"
+                                        (blur)="selected.valueTouched = true"
                                         (input)="validateNumberInput($event, selected)" />
                                     <!-- Single value validation error -->
-                                    <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
                                         Please enter a valid number.
                                     </div>
                                 </ng-container>
@@ -181,9 +180,11 @@
                             <!-- Date inputs (can be expanded later) -->
                             <ng-container *ngSwitchCase="FieldType.Date">
                                 <ng-container *ngIf="!getValueControl(selected).dual; else dualDateInputs">
-                                    <input type="date" [(ngModel)]="selected.value" (blur)="selected.valueTouched = true" />
+                                    <input type="date" [(ngModel)]="selected.value"
+                                        (blur)="selected.valueTouched = true" />
                                     <!-- Single value validation error -->
-                                    <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
                                         Please select a date.
                                     </div>
                                 </ng-container>
@@ -267,7 +268,8 @@
                                         (selectedValuesChange)="onDropdownValueChange($event, i)">
                                     </app-table-dropdown>
                                     <!-- Dropdown validation error message -->
-                                    <div class="validation-error" *ngIf="selected.valueTouched && !isValueValid(selected)">
+                                    <div class="validation-error"
+                                        *ngIf="selected.valueTouched && !isValueValid(selected)">
                                         Please select a value.
                                     </div>
                                 </ng-container>
