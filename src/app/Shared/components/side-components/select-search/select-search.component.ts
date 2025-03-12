@@ -911,12 +911,16 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.updateLocalStorage();
   }
 
-  // Add this method to restore array values from hyphen-formatted strings
+  // Use existing field type mappings for a cleaner implementation
   restoreValueFormat(criteria: SearchCriteria[]): SelectedField[] {
     return criteria.map(item => {
       // Get the value to process
       let value = item.value;
       const operatorId = item.operator?.id?.toLowerCase() || '';
+      const fieldId = item.field?.id || '';
+
+      // Use FieldTypeMapping to determine the field type
+      const fieldType = FieldTypeMapping[fieldId] || FieldType.Text; // Default to Text if not found
 
       // Check if this operator typically uses dual values
       const isDualOperator = DualOperators.includes(operatorId as OperatorType);
@@ -924,7 +928,54 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       // If it's a string containing hyphens and it should be an array
       if (typeof value === 'string' && value.includes('-') && isDualOperator) {
         // Split by hyphen to get the array back
-        value = value.split('-');
+        const splitValues = value.split('-');
+
+        // Handle based on field type
+        switch (fieldType) {
+          case FieldType.Date:
+            // Format dates properly for HTML date input
+            value = splitValues.map(dateStr => {
+              try {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                  return this.formatDateForInput(date);
+                }
+              } catch (e) {
+                console.error('Error formatting date:', e);
+              }
+              return dateStr;
+            });
+            break;
+
+          case FieldType.Dropdown:
+            // For dropdown fields, we might need to reconstruct objects from their IDs
+            // This depends on how your dropdown component expects values
+            // For now, we'll just keep the split values
+            value = splitValues;
+            break;
+
+          default:
+            // For other field types, just use the split array
+            value = splitValues;
+        }
+      }
+      // Handle non-array values based on field type
+      else if (typeof value === 'string' && !isDualOperator) {
+        switch (fieldType) {
+          case FieldType.Date:
+            // Format single date for HTML date input
+            try {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = this.formatDateForInput(date);
+              }
+            } catch (e) {
+              console.error('Error formatting date:', e);
+            }
+            break;
+
+          // Other field types may need special handling here
+        }
       }
 
       // Get operator options for this field
@@ -943,6 +994,14 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         valueTouched: false
       } as SelectedField;
     });
+  }
+
+  // Helper method to format dates for HTML date input (YYYY-MM-DD format)
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   loadSavedSearchCriteria(): void {
