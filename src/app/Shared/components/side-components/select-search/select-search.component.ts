@@ -102,9 +102,16 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.loadSelectedSystemTypeValuesFromStorage();
 
     // Load table data from localStorage if available
-    const stored = localStorage.getItem('selectedFields');
+    const stored = localStorage.getItem('savedSearchFields');
     if (stored) {
-      this.selectedFields = JSON.parse(stored);
+      try {
+        const parsedCriteria = JSON.parse(stored) as SearchCriteria[];
+        // Restore proper value formats for arrays
+        this.selectedFields = this.restoreValueFormat(parsedCriteria);
+      } catch (e) {
+        console.error('Error loading saved search fields', e);
+        this.selectedFields = [];
+      }
     }
   }
 
@@ -561,13 +568,13 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       field.operatorTouched = true;
       field.valueTouched = true;
 
-      // We need to access relation table's validation methods, so use simplified logic
+      // Validation logic
       const hasParent = field.parentSelected || (field.parent && field.parent.id);
       const hasOperator = field.operator && field.operator.id && field.operator.id !== 'select';
       const hasValue = field.value !== undefined && field.value !== null && field.value !== '';
 
-      // Simplified validation - for complete validation, should use relation table component
-      return !hasParent || !hasOperator || (!NoValueOperators.includes(field.operator?.id?.toLowerCase() as OperatorType) && !hasValue);
+      return !hasParent || !hasOperator ||
+        (!NoValueOperators.includes(field.operator?.id?.toLowerCase() as OperatorType) && !hasValue);
     });
 
     if (invalidFields.length > 0) {
@@ -575,19 +582,44 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Convert to search criteria format
-    const searchCriteria = this.selectedFields.map(field => ({
-      parent: field.parentSelected || field.parent,
-      field: {
-        id: field.field.id,
-        label: field.field.label
-      },
-      operator: {
-        id: field.operator?.id || '',
-        label: field.operator?.label || ''
-      },
-      value: field.value || null
-    }));
+    // Convert to search criteria format with special handling for array values
+    const searchCriteria = this.selectedFields.map(field => {
+      // Format the value - if it's an array, join with "-"
+      let formattedValue = field.value;
+
+      // Check if value is an array and convert to hyphenated string
+      if (Array.isArray(field.value)) {
+        // Get values from the array - handle both primitive and object values
+        const values = field.value.map(item => {
+          // If item is an object with id/label (like dropdown items)
+          if (item && typeof item === 'object' && 'id' in item) {
+            return item.id;
+          }
+          // Otherwise return the item itself
+          return item;
+        });
+
+        // Join the values with "-"
+        formattedValue = values.join('-');
+      } else if (field.value && typeof field.value === 'object' && 'id' in field.value) {
+        // For single dropdown items that are objects
+        formattedValue = field.value.id;
+      }
+
+      // Return the search criteria without metadata
+      return {
+        parent: field.parentSelected || field.parent,
+        field: {
+          id: field.field.id,
+          label: field.field.label
+        },
+        operator: {
+          id: field.operator?.id || '',
+          label: field.operator?.label || ''
+        },
+        value: formattedValue
+      };
+    });
 
     // Create a search request
     const searchRequest: SearchRequest = {
@@ -597,15 +629,16 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       },
       fields: searchCriteria
     };
+
     console.log('Search criteria to save:', searchRequest);
     localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
-    // Save to backend
+
+    // Send to backend
     // this.searchService.saveSearchCriteria(searchCriteria)
     //   .pipe(takeUntil(this.destroy$))
     //   .subscribe({
     //     next: () => {
     //       alert('Search criteria saved successfully');
-    //       localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
     //     },
     //     error: (error) => {
     //       console.error('Error saving search criteria:', error);
@@ -876,5 +909,53 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Save updated fields to localStorage
     this.updateLocalStorage();
+  }
+
+  // Add this method to restore array values from hyphen-formatted strings
+  restoreValueFormat(criteria: SearchCriteria[]): SelectedField[] {
+    return criteria.map(item => {
+      // Get the value to process
+      let value = item.value;
+      const operatorId = item.operator?.id?.toLowerCase() || '';
+
+      // Check if this operator typically uses dual values
+      const isDualOperator = DualOperators.includes(operatorId as OperatorType);
+
+      // If it's a string containing hyphens and it should be an array
+      if (typeof value === 'string' && value.includes('-') && isDualOperator) {
+        // Split by hyphen to get the array back
+        value = value.split('-');
+      }
+
+      // Get operator options for this field
+      const operatorOptions = this.getOperatorOptions(item.field.id);
+
+      // Reconstruct the field structure
+      return {
+        parent: item.parent || { id: '', label: '' },
+        field: item.field,
+        operator: item.operator,
+        operatorOptions: operatorOptions,
+        value: value,
+        // Initialize touched states
+        parentTouched: false,
+        operatorTouched: false,
+        valueTouched: false
+      } as SelectedField;
+    });
+  }
+
+  loadSavedSearchCriteria(): void {
+    // this.searchService.getSavedSearchCriteria()
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe({
+    //     next: (criteria) => {
+    //       // Restore proper value formats for arrays
+    //       this.selectedFields = this.restoreValueFormat(criteria);
+    //     },
+    //     error: (error) => {
+    //       console.error('Error loading saved search criteria:', error);
+    //     }
+    //   });
   }
 }
