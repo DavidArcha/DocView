@@ -10,6 +10,7 @@ import { SelectedField } from '../../../interfaces/selectedFields.interface';
 import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../../enums/field-types.enum';
 import { DualOperators, NoValueOperators, OperatorType } from '../../../enums/operator-types.enum';
 import { SearchCriteria } from '../../../interfaces/search-criteria.interface';
+import { SearchRequest } from '../../../interfaces/search-request.interface';
 
 @Component({
   selector: 'app-select-search',
@@ -101,9 +102,16 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.loadSelectedSystemTypeValuesFromStorage();
 
     // Load table data from localStorage if available
-    const stored = localStorage.getItem('selectedFields');
+    const stored = localStorage.getItem('savedSearchFields');
     if (stored) {
-      this.selectedFields = JSON.parse(stored);
+      try {
+        const parsedCriteria = JSON.parse(stored) as SearchCriteria[];
+        // Restore proper value formats for arrays
+        this.selectedFields = this.restoreValueFormat(parsedCriteria);
+      } catch (e) {
+        console.error('Error loading saved search fields', e);
+        this.selectedFields = [];
+      }
     }
   }
 
@@ -406,6 +414,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Create a new SelectedField object with all required properties
     const selectedField: SelectedField = {
+      rowid: '',
       parent: parent,
       field: event.field,
       operator: defaultOperator,
@@ -511,6 +520,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   onSearchSelectedField(selectedRow: SelectedField): void {
     // Convert the selected row to a search criteria following the interface
     const searchCriteria: SearchCriteria = {
+      rowId: selectedRow.rowid || '', // Include rowId
       // Use parentSelected if available, otherwise fall back to parent
       parent: selectedRow.parentSelected || selectedRow.parent,
       field: {
@@ -546,16 +556,115 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  // New button: Store with implementation
+  // New button: Store with implementation including rowId
   storeTable(): void {
     if (this.selectedFields.length === 0) {
       alert('No fields selected to store');
       return;
     }
 
-    // Save selected fields to localStorage or elsewhere
-    localStorage.setItem('savedSearchFields', JSON.stringify(this.selectedFields));
-    alert('Search criteria saved successfully');
+    // Validate all fields
+    const invalidFields = this.selectedFields.filter(field => {
+      // Apply the same validation logic here
+      field.parentTouched = true;
+      field.operatorTouched = true;
+      field.valueTouched = true;
+
+      // Validation logic
+      const hasParent = field.parentSelected || (field.parent && field.parent.id);
+      const hasOperator = field.operator && field.operator.id && field.operator.id !== 'select';
+      const hasValue = field.value !== undefined && field.value !== null && field.value !== '';
+
+      return !hasParent || !hasOperator ||
+        (!NoValueOperators.includes(field.operator?.id?.toLowerCase() as OperatorType) && !hasValue);
+    });
+
+    if (invalidFields.length > 0) {
+      alert('Please fix validation errors before saving');
+      return;
+    }
+
+    // Convert to search criteria format with special handling for array values
+    const searchCriteria = this.selectedFields.map(field => {
+      // Format the value - if it's an array, join with "-"
+      let formattedValue = field.value;
+
+      // Check if value is an array and convert to hyphenated string
+      if (Array.isArray(field.value)) {
+        // Get values from the array - handle both primitive and object values
+        const values = field.value.map(item => {
+          // If item is an object with id/label (like dropdown items)
+          if (item && typeof item === 'object' && 'id' in item) {
+            return item.id;
+          }
+          // Otherwise return the item itself
+          return item;
+        });
+
+        // Join the values with "-"
+        formattedValue = values.join('-');
+      } else if (field.value && typeof field.value === 'object' && 'id' in field.value) {
+        // For single dropdown items that are objects
+        formattedValue = field.value.id;
+      }
+
+      // Determine what to use for parent - handle parentSelected array
+      let parentValue;
+      if (field.parentSelected && Array.isArray(field.parentSelected) && field.parentSelected.length > 0) {
+        // Use the array of parents
+        parentValue = field.parentSelected;
+      } else {
+        // Use the single parent object
+        parentValue = field.parent;
+      }
+
+      // Return the search criteria with proper parent handling and rowId
+      return {
+        rowId: field.rowid || '', // Include rowId, empty if not exists
+        parent: parentValue,
+        field: {
+          id: field.field.id,
+          label: field.field.label
+        },
+        operator: {
+          id: field.operator?.id || '',
+          label: field.operator?.label || ''
+        },
+        value: formattedValue
+      };
+    });
+
+    // Create a search request
+    const searchRequest: SearchRequest = {
+      title: {
+        id: 'search_request',
+        label: 'Search Request'
+      },
+      fields: searchCriteria
+    };
+
+    console.log('Search criteria to save:', searchRequest);
+    localStorage.setItem('savedSearchFields', JSON.stringify(searchCriteria));
+
+    // Send to backend
+    // this.searchService.saveSearchCriteria(searchCriteria)
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe({
+    //     next: (response) => {
+    //       alert('Search criteria saved successfully');
+          
+    //       // If the backend returns the saved criteria with assigned IDs, update local data
+    //       if (response && Array.isArray(response.fields)) {
+    //         const updatedCriteria = response.fields;
+    //         this.selectedFields = this.restoreValueFormat(updatedCriteria);
+    //         localStorage.setItem('savedSearchFields', JSON.stringify(updatedCriteria));
+    //       }
+    //     },
+    //     error: (error) => {
+    //       console.error('Error saving search criteria:', error);
+    //       alert('Failed to save search criteria. Please try again.');
+    //     }
+    //   });
   }
 
   // Improved trackBy function for ngFor performance
@@ -820,5 +929,164 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Save updated fields to localStorage
     this.updateLocalStorage();
+  }
+
+  // Use existing field type mappings for a cleaner implementation
+  restoreValueFormat(criteria: SearchCriteria[]): SelectedField[] {
+    return criteria.map(item => {
+      // Get the value to process
+      let value = item.value;
+      const operatorId = item.operator?.id?.toLowerCase() || '';
+      const fieldId = item.field?.id || '';
+      const rowId = item.rowId || ''; // Capture rowId from the backend
+
+      // Handle parent - it could be an array or a single object
+      let parent: { id: string; label: string };
+      let parentSelected: any | undefined;
+
+      // Check if item.parent is an array and handle it
+      if (Array.isArray(item.parent)) {
+        if (item.parent.length > 0) {
+          // For ANY array (even length 1), use parentSelected to maintain dropdown
+          parentSelected = item.parent.map(p => ({
+            id: p.id || '',
+            label: p.label || '' // Ensure label is never undefined
+          }));
+
+          // Use first parent as the main parent, ensuring label is never undefined
+          parent = {
+            id: item.parent[0].id || '',
+            label: item.parent[0].label || '' // Ensure label is never undefined
+          };
+        } else {
+          // Empty array case
+          parent = { id: '', label: '' };
+          // Set empty array for parentSelected to keep dropdown visible
+          parentSelected = [];
+        }
+      } else if (item.parent && typeof item.parent === 'object') {
+        // Single object case - DO NOT set parentSelected for single objects
+        parent = {
+          id: item.parent.id || '',
+          label: item.parent.label || '' // Ensure label is never undefined
+        };
+      } else {
+        // Fallback case
+        parent = { id: '', label: '' };
+      }
+
+      // Use FieldTypeMapping to determine the field type
+      const fieldType = FieldTypeMapping[fieldId] || FieldType.Text;
+
+      // Check if this operator typically uses dual values
+      const isDualOperator = DualOperators.includes(operatorId as OperatorType);
+
+      // Handle value formatting based on type and operator
+      // If it's a string containing hyphens and it should be an array
+      if (typeof value === 'string' && value.includes('-') && isDualOperator) {
+        // Split by hyphen to get the array back
+        const splitValues = value.split('-');
+
+        // Handle based on field type
+        switch (fieldType) {
+          case FieldType.Date:
+            // Format dates properly for HTML date input
+            value = splitValues.map(dateStr => {
+              try {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                  return this.formatDateForInput(date);
+                }
+              } catch (e) {
+                console.error('Error formatting date:', e);
+              }
+              return dateStr;
+            });
+            break;
+
+          case FieldType.Dropdown:
+            value = splitValues;
+            break;
+
+          default:
+            // For other field types, just use the split array
+            value = splitValues;
+        }
+      }
+      // Handle non-array values based on field type
+      else if (typeof value === 'string' && !isDualOperator) {
+        switch (fieldType) {
+          case FieldType.Date:
+            // Format single date for HTML date input
+            try {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                value = this.formatDateForInput(date);
+              }
+            } catch (e) {
+              console.error('Error formatting date:', e);
+            }
+            break;
+        }
+      }
+
+      // Get operator options for this field with proper type handling
+      const operatorOptions = this.getOperatorOptions(item.field.id) || [];
+
+      // Construct operator with proper type handling
+      const operator = {
+        id: item.operator?.id || '',
+        label: item.operator?.label || ''
+      };
+
+      // Construct field with proper type handling
+      const field = {
+        id: item.field?.id || '',
+        label: item.field?.label || ''
+      };
+
+      // Reconstruct the field structure with strict type adherence
+      const selectedField: SelectedField = {
+        rowid: rowId, // Include the rowId from backend
+        parent: parent,
+        field: field,
+        operator: operator,
+        operatorOptions: operatorOptions,
+        value: value,
+        // Initialize touched states
+        parentTouched: false,
+        operatorTouched: false,
+        valueTouched: false
+      };
+
+      // Only set parentSelected when it exists (array case)
+      if (parentSelected) {
+        selectedField.parentSelected = parentSelected;
+      }
+
+      return selectedField;
+    });
+  }
+
+  // Helper method to format dates for HTML date input (YYYY-MM-DD format)
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  loadSavedSearchCriteria(): void {
+    // this.searchService.getSavedSearchCriteria()
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe({
+    //     next: (criteria) => {
+    //       // Restore proper value formats for arrays
+    //       this.selectedFields = this.restoreValueFormat(criteria);
+    //     },
+    //     error: (error) => {
+    //       console.error('Error loading saved search criteria:', error);
+    //     }
+    //   });
   }
 }

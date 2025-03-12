@@ -4,7 +4,7 @@ export enum FieldType {
   Date = 'date',
   Number = 'number',
   Dropdown = 'dropdown',
-  Button = 'button'
+  Button = 'button',
 }
 
 // Sets of fields
