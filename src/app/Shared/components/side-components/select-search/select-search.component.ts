@@ -414,6 +414,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Create a new SelectedField object with all required properties
     const selectedField: SelectedField = {
+      rowid: '',
       parent: parent,
       field: event.field,
       operator: defaultOperator,
@@ -519,6 +520,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   onSearchSelectedField(selectedRow: SelectedField): void {
     // Convert the selected row to a search criteria following the interface
     const searchCriteria: SearchCriteria = {
+      rowId: selectedRow.rowid || '', // Include rowId
       // Use parentSelected if available, otherwise fall back to parent
       parent: selectedRow.parentSelected || selectedRow.parent,
       field: {
@@ -554,7 +556,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  // New button: Store with simplified implementation
+  // New button: Store with implementation including rowId
   storeTable(): void {
     if (this.selectedFields.length === 0) {
       alert('No fields selected to store');
@@ -616,8 +618,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         parentValue = field.parent;
       }
 
-      // Return the search criteria with proper parent handling
+      // Return the search criteria with proper parent handling and rowId
       return {
+        rowId: field.rowid || '', // Include rowId, empty if not exists
         parent: parentValue,
         field: {
           id: field.field.id,
@@ -647,8 +650,15 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     // this.searchService.saveSearchCriteria(searchCriteria)
     //   .pipe(takeUntil(this.destroy$))
     //   .subscribe({
-    //     next: () => {
+    //     next: (response) => {
     //       alert('Search criteria saved successfully');
+          
+    //       // If the backend returns the saved criteria with assigned IDs, update local data
+    //       if (response && Array.isArray(response.fields)) {
+    //         const updatedCriteria = response.fields;
+    //         this.selectedFields = this.restoreValueFormat(updatedCriteria);
+    //         localStorage.setItem('savedSearchFields', JSON.stringify(updatedCriteria));
+    //       }
     //     },
     //     error: (error) => {
     //       console.error('Error saving search criteria:', error);
@@ -928,6 +938,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       let value = item.value;
       const operatorId = item.operator?.id?.toLowerCase() || '';
       const fieldId = item.field?.id || '';
+      const rowId = item.rowId || ''; // Capture rowId from the backend
 
       // Handle parent - it could be an array or a single object
       let parent: { id: string; label: string };
@@ -1036,6 +1047,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
       // Reconstruct the field structure with strict type adherence
       const selectedField: SelectedField = {
+        rowid: rowId, // Include the rowId from backend
         parent: parent,
         field: field,
         operator: operator,

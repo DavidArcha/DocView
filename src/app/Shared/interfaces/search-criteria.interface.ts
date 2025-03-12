@@ -6,6 +6,7 @@ import { DropdownItem } from "./table-dropdown.interface";
  * as opposed to the display structure used by the UI components.
  */
 export interface SearchCriteria {
+    rowId?: string;
     // Parent information - single item for backward compatibility
     parent?: DropdownItem | DropdownItem[] | null;
     field: {

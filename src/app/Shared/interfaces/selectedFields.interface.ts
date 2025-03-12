@@ -1,6 +1,7 @@
 import { DropdownItem } from "./table-dropdown.interface";
 
 export interface SelectedField {
+    rowid?: string;
     parent: {
         id: string;
         label: string;
