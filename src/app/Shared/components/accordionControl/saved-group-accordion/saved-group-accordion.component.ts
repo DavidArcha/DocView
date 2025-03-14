@@ -1,5 +1,9 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
+import { DropdownItem } from '../../../interfaces/table-dropdown.interface';
+import { SearchCriteria } from '../../../interfaces/search-criteria.interface';
+import { SearchRequest } from '../../../interfaces/search-request.interface';
 
+// This interface is still needed as it represents the unique identifier structure
 interface FieldIdentifier {
   uniqueId?: string;
   fieldId?: string;
@@ -9,24 +13,7 @@ interface FieldIdentifier {
   operator?: string;
 }
 
-interface GroupField {
-  title: { id: string; title?: string; label?: string };
-  fields: Field[];
-}
-
-interface Group {
-  groupTitle: { id: string; title: string };
-  groupFields: GroupField[];
-}
-
-interface Field {
-  field?: { id: string; label: string } | string;
-  operator?: { id: string; label: string } | string;
-  value?: any;
-  _uniqueId?: string;
-  id?: string;
-}
-
+// This state interface is essential for storing accordion state
 interface AccordionState {
   expandedGroups: string[];
   expandedFields: string[];
@@ -40,7 +27,7 @@ interface AccordionState {
   styleUrl: './saved-group-accordion.component.scss'
 })
 export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
-  @Input() set groups(value: any[]) {
+  @Input() set groups(value: SearchRequest[] | any[]) {
     this._groups = this.processGroups(value);
   }
 
@@ -49,9 +36,9 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   }
 
   private _groups: any[] = [];
-  @Input() selectedField: any = null;
-  @Output() fieldSelected = new EventEmitter<any>();
-  @Output() groupFieldTitleClicked = new EventEmitter<any>();
+  @Input() selectedField: SearchCriteria | any = null;
+  @Output() fieldSelected = new EventEmitter<SearchCriteria>();
+  @Output() groupFieldTitleClicked = new EventEmitter<SearchRequest>();
 
   expandedGroups: Set<string> = new Set();
   expandedFields: Set<string> = new Set();
@@ -130,7 +117,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     this.saveState();
   }
 
-  onFieldClick(field: any, event: Event): void {
+  onFieldClick(field: SearchCriteria, event: Event): void {
     event.preventDefault();
     this.selectedField = field;
     this.fieldSelected.emit(field);
@@ -138,7 +125,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     this.saveState();
   }
 
-  onGroupFieldTitleClick(fieldGroup: any, event: Event): void {
+  onGroupFieldTitleClick(fieldGroup: SearchRequest, event: Event): void {
     event.preventDefault();
     console.log('On field group:', fieldGroup);
     this.groupFieldTitleClicked.emit(fieldGroup);
@@ -149,8 +136,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     event.preventDefault();
     console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
-    this.contextMenuPosition = { x: event.clientX - 100, y: event.clientY - 100 };
-    console.log('Context menu position set to:', this.contextMenuPosition);
+    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
     this.selectedFieldGroup = fieldGroup;
   }
 
@@ -179,7 +165,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     console.log('Right-click on:', group.groupTitle?.title);
   }
 
-  getFieldTitle(field: any): string {
+  getFieldTitle(field: SearchCriteria | any): string {
     if (!field) return '';
 
     if (field.field && typeof field.field === 'object' &&
@@ -191,7 +177,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  getFieldLabel(field: any): string {
+  getFieldLabel(field: SearchCriteria | any): string {
     if (!field) return '';
 
     if (field.field && typeof field.field === 'object' &&
@@ -203,7 +189,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     return field.id || '';
   }
 
-  isFieldSelected(field: any): boolean {
+  isFieldSelected(field: SearchCriteria | any): boolean {
     if (!this.selectedField || !field) return false;
 
     // Use the unique ID for comparison if available - most efficient check
@@ -251,7 +237,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     }, 300);
   }
 
-  getSelectedFieldIdentifier(field: any): FieldIdentifier {
+  getSelectedFieldIdentifier(field: SearchCriteria | any): FieldIdentifier {
     // Include the unique ID if available
     if (field._uniqueId) {
       return { uniqueId: field._uniqueId };
@@ -340,10 +326,12 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
+    // Improved event handling with proper type checking
+    if (!this.contextMenuVisible) return;
+
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
-      if (this.contextMenuVisible) {
-        console.log('Document click detected, hiding context menu');
+      if (!this.elementRef.nativeElement.contains(event.target)) {
         this.contextMenuVisible = false;
       }
     }, 50);
@@ -351,10 +339,11 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
 
   @HostListener('document:contextmenu', ['$event'])
   onDocumentRightClick(event: MouseEvent) {
+    if (!this.contextMenuVisible) return;
+
     clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
-      if (this.contextMenuVisible && !this.elementRef.nativeElement.contains(event.target)) {
-        console.log('Document right-click detected, hiding context menu');
+      if (!this.elementRef.nativeElement.contains(event.target)) {
         this.contextMenuVisible = false;
       }
     }, 50);
