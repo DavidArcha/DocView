@@ -31,8 +31,12 @@
 </div>
 
 <!-- Context Menu -->
-<div *ngIf="contextMenuVisible" [ngStyle]="{'top.px': contextMenuPosition.y, 'left.px': contextMenuPosition.x}"
-    class="context-menu" (click)="$event.stopPropagation()">
+<div *ngIf="contextMenuVisible" 
+    [style.position]="'fixed'"
+    [style.top.px]="contextMenuPosition.y" 
+    [style.left.px]="contextMenuPosition.x"
+    class="context-menu" 
+    (click)="$event.stopPropagation()">
     <ul>
         <li (click)="onEditGroupFieldTitle()">Edit</li>
         <li (click)="onDeleteGroupFieldTitle()">Delete</li>

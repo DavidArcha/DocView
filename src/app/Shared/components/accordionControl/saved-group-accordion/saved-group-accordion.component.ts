@@ -106,6 +106,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       this.expandedGroups.add(groupId);
     }
     this.saveState();
+    this.contextMenuVisible = false;
   }
 
   toggleField(fieldGroupId: string) {
@@ -115,10 +116,12 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       this.expandedFields.add(fieldGroupId);
     }
     this.saveState();
+    this.contextMenuVisible = false;
   }
 
   onFieldClick(field: SearchCriteria, event: Event): void {
     event.preventDefault();
+    this.contextMenuVisible = false;
     this.selectedField = field;
     this.fieldSelected.emit(field);
     console.log('Field clicked:', field);
@@ -127,6 +130,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
 
   onGroupFieldTitleClick(fieldGroup: SearchRequest, event: Event): void {
     event.preventDefault();
+    this.contextMenuVisible = false;
     console.log('On field group:', fieldGroup);
     this.groupFieldTitleClicked.emit(fieldGroup);
     this.saveState();
@@ -136,7 +140,15 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     event.preventDefault();
     console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
-    this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    // this.contextMenuPosition = { x: event.clientX, y: event.clientY };
+    // Position the context menu relative to the clicked element
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+
+    // Option 1: Position menu below the element
+    this.contextMenuPosition = {
+      x: rect.left,
+      y: rect.bottom
+    };
     this.selectedFieldGroup = fieldGroup;
   }
 
@@ -326,26 +338,26 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    // Improved event handling with proper type checking
+    // If context menu isn't visible, no need to do anything
     if (!this.contextMenuVisible) return;
 
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      if (!this.elementRef.nativeElement.contains(event.target)) {
-        this.contextMenuVisible = false;
-      }
-    }, 50);
+    // Get the context menu element
+    const contextMenu = this.elementRef.nativeElement.querySelector('.context-menu');
+
+    // Check if the click was outside the context menu
+    if (contextMenu && !contextMenu.contains(event.target as Node)) {
+      this.contextMenuVisible = false;
+    }
   }
 
   @HostListener('document:contextmenu', ['$event'])
   onDocumentRightClick(event: MouseEvent) {
+    // Similar logic for right-click
     if (!this.contextMenuVisible) return;
 
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => {
-      if (!this.elementRef.nativeElement.contains(event.target)) {
-        this.contextMenuVisible = false;
-      }
-    }, 50);
+    const contextMenu = this.elementRef.nativeElement.querySelector('.context-menu');
+    if (contextMenu && !contextMenu.contains(event.target as Node)) {
+      this.contextMenuVisible = false;
+    }
   }
 }
