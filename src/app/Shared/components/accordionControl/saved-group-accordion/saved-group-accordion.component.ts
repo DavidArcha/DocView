@@ -1,4 +1,37 @@
-import { Component, EventEmitter, Input, Output, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
+
+interface FieldIdentifier {
+  uniqueId?: string;
+  fieldId?: string;
+  operatorId?: string;
+  value?: any;
+  field?: string;
+  operator?: string;
+}
+
+interface GroupField {
+  title: { id: string; title?: string; label?: string };
+  fields: Field[];
+}
+
+interface Group {
+  groupTitle: { id: string; title: string };
+  groupFields: GroupField[];
+}
+
+interface Field {
+  field?: { id: string; label: string } | string;
+  operator?: { id: string; label: string } | string;
+  value?: any;
+  _uniqueId?: string;
+  id?: string;
+}
+
+interface AccordionState {
+  expandedGroups: string[];
+  expandedFields: string[];
+  selectedField: FieldIdentifier | null;
+}
 
 @Component({
   selector: 'app-saved-group-accordion',
@@ -6,7 +39,7 @@ import { Component, EventEmitter, Input, Output, OnInit, HostListener, ElementRe
   templateUrl: './saved-group-accordion.component.html',
   styleUrl: './saved-group-accordion.component.scss'
 })
-export class SavedGroupAccordionComponent implements OnInit {
+export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   @Input() set groups(value: any[]) {
     this._groups = this.processGroups(value);
   }
@@ -27,25 +60,42 @@ export class SavedGroupAccordionComponent implements OnInit {
   contextMenuVisible: boolean = false;
   contextMenuPosition = { x: 0, y: 0 };
 
+  // Performance optimization variables
+  private debounceTimer: any;
+  private saveStateTimer: any;
+  private lastGroupsInput: any[] | null = null;
+  private processedGroupsCache: any[] | null = null;
+
   constructor(private elementRef: ElementRef) { }
 
   ngOnInit() {
     this.restoreState();
   }
 
-  // Process incoming groups data and add unique IDs
+  ngOnDestroy() {
+    clearTimeout(this.debounceTimer);
+    clearTimeout(this.saveStateTimer);
+    this.lastGroupsInput = null;
+    this.processedGroupsCache = null;
+  }
+
+  // Process incoming groups data and add unique IDs with memoization
   private processGroups(groups: any[]): any[] {
     if (!groups) return [];
 
-    return groups.map(group => {
+    // Return cached result if input hasn't changed
+    if (this.lastGroupsInput === groups && this.processedGroupsCache) {
+      return this.processedGroupsCache;
+    }
+
+    const result = groups.map(group => {
       const processedGroup = { ...group };
       if (processedGroup.groupFields) {
         processedGroup.groupFields = processedGroup.groupFields.map((fieldGroup: any, fgIndex: number) => {
           const processedFieldGroup = { ...fieldGroup };
           if (processedFieldGroup.fields) {
             processedFieldGroup.fields = processedFieldGroup.fields.map((field: any, fIndex: number) => {
-              // Create a unique ID using group, fieldGroup, and field indices
-              const uniqueId = `field_${group.groupTitle.id}_${fieldGroup.title?.id || fgIndex}_${fIndex}`;
+              const uniqueId = `field_${group.groupTitle?.id || ''}_${fieldGroup.title?.id || fgIndex}_${fIndex}`;
               return { ...field, _uniqueId: uniqueId };
             });
           }
@@ -54,6 +104,12 @@ export class SavedGroupAccordionComponent implements OnInit {
       }
       return processedGroup;
     });
+
+    // Cache results
+    this.lastGroupsInput = groups;
+    this.processedGroupsCache = result;
+
+    return result;
   }
 
   toggleGroup(groupId: string) {
@@ -100,7 +156,9 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   onEditGroupFieldTitle() {
     if (this.selectedFieldGroup) {
-      const title = this.selectedFieldGroup.title || this.selectedFieldGroup.title.title;
+      const title = this.selectedFieldGroup.title && typeof this.selectedFieldGroup.title === 'object'
+        ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
+        : String(this.selectedFieldGroup.title || '');
       console.log('Edit Group Field Title:', title);
     }
     this.contextMenuVisible = false;
@@ -108,7 +166,9 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   onDeleteGroupFieldTitle() {
     if (this.selectedFieldGroup) {
-      const title = this.selectedFieldGroup.title || this.selectedFieldGroup.title.title;
+      const title = this.selectedFieldGroup.title && typeof this.selectedFieldGroup.title === 'object'
+        ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
+        : String(this.selectedFieldGroup.title || '');
       console.log('Delete Group Field Title:', title);
     }
     this.contextMenuVisible = false;
@@ -116,61 +176,82 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   onGroupRightClick(event: MouseEvent, group: any) {
     event.preventDefault();
-    console.log('Right-click on:', group.groupTitle.title);
+    console.log('Right-click on:', group.groupTitle?.title);
   }
 
   getFieldTitle(field: any): string {
-    if (field.field?.label && field.operator?.label) {
-      return `${field.field.label} ${field.operator.label} ${field.value}`;
+    if (!field) return '';
+
+    if (field.field && typeof field.field === 'object' &&
+      field.operator && typeof field.operator === 'object') {
+      return `${field.field.label || ''} ${field.operator.label || ''} ${field.value || ''}`;
     } else if (typeof field.field === 'string' && typeof field.operator === 'string') {
-      return `${field.field} ${field.operator} ${field.value}`;
-    } else {
-      return '';
+      return `${field.field} ${field.operator} ${field.value || ''}`;
     }
+    return '';
   }
 
   getFieldLabel(field: any): string {
-    if (field.field?.label && field.operator?.label) {
-      return `${field.field.label} ${field.operator.label} ${field.value}`;
+    if (!field) return '';
+
+    if (field.field && typeof field.field === 'object' &&
+      field.operator && typeof field.operator === 'object') {
+      return `${field.field.label || ''} ${field.operator.label || ''} ${field.value || ''}`;
     } else if (typeof field.field === 'string' && typeof field.operator === 'string') {
-      return `${field.field} ${field.operator} ${field.value}`;
-    } else {
-      return field.id || '';
+      return `${field.field} ${field.operator} ${field.value || ''}`;
     }
+    return field.id || '';
   }
 
   isFieldSelected(field: any): boolean {
-    if (!this.selectedField) return false;
+    if (!this.selectedField || !field) return false;
 
-    // Use the unique ID for comparison if available
+    // Use the unique ID for comparison if available - most efficient check
     if (field._uniqueId && this.selectedField._uniqueId) {
       return field._uniqueId === this.selectedField._uniqueId;
     }
 
-    // Fall back to previous comparison logic
-    if (field.field?.id && this.selectedField.field?.id) {
-      return field.field.id === this.selectedField.field.id &&
-        field.operator?.id === this.selectedField.operator?.id &&
-        field.value === this.selectedField.value;
-    } else if (field.id && this.selectedField.id) {
-      return field.id === this.selectedField.id;
-    }
+    // Fall back to checking object properties
+    const isMatchById = field.field?.id && this.selectedField.field?.id &&
+      field.field.id === this.selectedField.field.id &&
+      field.operator?.id === this.selectedField.operator?.id &&
+      field.value === this.selectedField.value;
 
+    if (isMatchById) return true;
+
+    const isMatchBySimpleId = field.id && this.selectedField.id &&
+      field.id === this.selectedField.id;
+
+    if (isMatchBySimpleId) return true;
+
+    // Last resort, direct reference comparison
     return field === this.selectedField;
   }
 
   saveState() {
-    const state = {
-      expandedGroups: Array.from(this.expandedGroups),
-      expandedFields: Array.from(this.expandedFields),
-      selectedField: this.selectedField
-        ? this.getSelectedFieldIdentifier(this.selectedField)
-        : null
-    };
-    localStorage.setItem('savedAccordionState', JSON.stringify(state));
+    // Clear any pending save operation
+    clearTimeout(this.saveStateTimer);
+
+    // Debounce save operations to avoid excessive localStorage writes
+    this.saveStateTimer = setTimeout(() => {
+      const state: AccordionState = {
+        expandedGroups: Array.from(this.expandedGroups),
+        expandedFields: Array.from(this.expandedFields),
+        selectedField: this.selectedField
+          ? this.getSelectedFieldIdentifier(this.selectedField)
+          : null
+      };
+
+      try {
+        const stateJson = JSON.stringify(state);
+        localStorage.setItem('savedAccordionState', stateJson);
+      } catch (err) {
+        console.error('Error saving accordion state:', err);
+      }
+    }, 300);
   }
 
-  getSelectedFieldIdentifier(field: any): any {
+  getSelectedFieldIdentifier(field: any): FieldIdentifier {
     // Include the unique ID if available
     if (field._uniqueId) {
       return { uniqueId: field._uniqueId };
@@ -196,7 +277,7 @@ export class SavedGroupAccordionComponent implements OnInit {
     const stored = localStorage.getItem('savedAccordionState');
     if (stored) {
       try {
-        const parsed = JSON.parse(stored);
+        const parsed = JSON.parse(stored) as AccordionState;
         if (parsed.expandedGroups) {
           this.expandedGroups = new Set<string>(parsed.expandedGroups);
         }
@@ -212,12 +293,14 @@ export class SavedGroupAccordionComponent implements OnInit {
     }
   }
 
-  findFieldObject(savedField: any): any {
+  findFieldObject(savedField: FieldIdentifier): any {
+    if (!this.groups || !savedField) return savedField;
+
     // Try to find by unique ID first if available
     if (savedField.uniqueId) {
       for (const g of this.groups) {
-        for (const fg of g.groupFields) {
-          for (const f of fg.fields) {
+        for (const fg of g.groupFields || []) {
+          for (const f of fg.fields || []) {
             if (f._uniqueId === savedField.uniqueId) {
               return f;
             }
@@ -228,20 +311,22 @@ export class SavedGroupAccordionComponent implements OnInit {
 
     // Fall back to previous field finding logic
     for (const g of this.groups) {
-      for (const fg of g.groupFields) {
-        for (const f of fg.fields) {
-          if (savedField.fieldId && f.field?.id === savedField.fieldId &&
+      for (const fg of g.groupFields || []) {
+        for (const f of fg.fields || []) {
+          const fieldIdMatch = savedField.fieldId && f.field?.id === savedField.fieldId &&
             (!savedField.operatorId || f.operator?.id === savedField.operatorId) &&
-            (!savedField.value || f.value === savedField.value)) {
-            return f;
-          } else if (savedField.field &&
+            (!savedField.value || f.value === savedField.value);
+
+          if (fieldIdMatch) return f;
+
+          const fieldLabelMatch = savedField.field &&
             ((typeof f.field === 'string' && f.field === savedField.field) ||
               (f.field?.label === savedField.field)) &&
             ((typeof f.operator === 'string' && f.operator === savedField.operator) ||
               (f.operator?.label === savedField.operator)) &&
-            (!savedField.value || f.value === savedField.value)) {
-            return f;
-          }
+            (!savedField.value || f.value === savedField.value);
+
+          if (fieldLabelMatch) return f;
         }
       }
     }
@@ -255,17 +340,23 @@ export class SavedGroupAccordionComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
-    if (this.contextMenuVisible) {
-      console.log('Document click detected, hiding context menu');
-      this.contextMenuVisible = false;
-    }
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      if (this.contextMenuVisible) {
+        console.log('Document click detected, hiding context menu');
+        this.contextMenuVisible = false;
+      }
+    }, 50);
   }
 
   @HostListener('document:contextmenu', ['$event'])
   onDocumentRightClick(event: MouseEvent) {
-    if (this.contextMenuVisible && !this.elementRef.nativeElement.contains(event.target)) {
-      console.log('Document right-click detected, hiding context menu');
-      this.contextMenuVisible = false;
-    }
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      if (this.contextMenuVisible && !this.elementRef.nativeElement.contains(event.target)) {
+        console.log('Document right-click detected, hiding context menu');
+        this.contextMenuVisible = false;
+      }
+    }, 50);
   }
 }
