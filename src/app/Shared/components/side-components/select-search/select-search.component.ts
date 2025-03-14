@@ -11,6 +11,7 @@ import { DropdownDataMapping, FieldType, FieldTypeMapping } from '../../../enums
 import { DualOperators, NoValueOperators, OperatorType } from '../../../enums/operator-types.enum';
 import { SearchCriteria } from '../../../interfaces/search-criteria.interface';
 import { SearchRequest } from '../../../interfaces/search-request.interface';
+import { updatedSearchGroupFields } from '../../../common/updatedsearch_groupfields';
 
 @Component({
   selector: 'app-select-search',
@@ -56,6 +57,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // For table data fields storage.
   public selectedFields: SelectedField[] = [];
   operationsDDData: any;
+
+  public savedGroupFields = updatedSearchGroupFields;
 
   set showGroupDataOutside(value: boolean) {
     this._showGroupDataOutside = value;
@@ -652,7 +655,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     //   .subscribe({
     //     next: (response) => {
     //       alert('Search criteria saved successfully');
-          
+
     //       // If the backend returns the saved criteria with assigned IDs, update local data
     //       if (response && Array.isArray(response.fields)) {
     //         const updatedCriteria = response.fields;
@@ -1088,5 +1091,168 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     //       console.error('Error loading saved search criteria:', error);
     //     }
     //   });
+  }
+
+  // Add these methods after the existing methods
+
+  // Scenario 1: Handle single field selection from saved group accordion
+  onSavedFieldSelected(field: SearchCriteria): void {
+    if (!field) return;
+
+    console.log('Selected field from saved group:', field);
+
+    // Convert the saved field to the SelectedField format
+    const selectedField = this.convertSavedFieldToSelectedField(field);
+
+    if (selectedField) {
+      // Add to selected fields array
+      this.selectedFields.push(selectedField);
+      this.updateLocalStorage();
+    }
+  }
+
+  // Scenario 2: Handle group field title selection
+  onSavedGroupFieldTitleClicked(groupField: SearchRequest): void {
+    if (!groupField || !groupField.fields || !Array.isArray(groupField.fields)) return;
+
+    console.log('Selected group field title:', groupField);
+
+    // Clear existing fields if needed, or just add to the existing ones
+    // Uncomment the following line if you want to replace rather than append
+    // this.selectedFields = [];
+
+    // Convert each field in the group to SelectedField format
+    const newSelectedFields = groupField.fields
+      .map(field => this.convertSavedFieldToSelectedField(field))
+      .filter(field => field !== null) as SelectedField[];
+
+    // Add to selected fields array
+    this.selectedFields.push(...newSelectedFields);
+    this.updateLocalStorage();
+  }
+
+  // Helper method to convert SearchCriteria to SelectedField format
+  private convertSavedFieldToSelectedField(field: SearchCriteria): SelectedField | null {
+    if (!field || !field.field) return null;
+
+    const fieldId = field.field.id || '';
+    const operatorId = field.operator?.id?.toLowerCase() || '';
+
+    // Get appropriate operator options for this field
+    const operatorOptions = this.getOperatorOptions(fieldId);
+
+    // Handle parent - it could be an array or a single object
+    let parent: { id: string; label: string };
+    let parentSelected: any | undefined;
+
+    // Check if field.parent is an array and handle it
+    if (Array.isArray(field.parent)) {
+      if (field.parent.length > 0) {
+        // For ANY array (even length 1), use parentSelected to maintain dropdown
+        parentSelected = field.parent.map(p => ({
+          id: p.id || '',
+          label: p.label || '' // Ensure label is never undefined
+        }));
+
+        // Use first parent as the main parent
+        parent = {
+          id: field.parent[0].id || '',
+          label: field.parent[0].label || ''
+        };
+      } else {
+        // Empty array case
+        parent = { id: '', label: '' };
+        parentSelected = [];
+      }
+    } else if (field.parent && typeof field.parent === 'object') {
+      // Single object case
+      parent = {
+        id: field.parent.id || '',
+        label: field.parent.label || ''
+      };
+    } else {
+      // Fallback case
+      parent = { id: '', label: '' };
+    }
+
+    // Process the value based on operator and field type
+    let value = field.value;
+
+    // Get field type
+    const fieldType = FieldTypeMapping[fieldId] || FieldType.Text;
+
+    // Check if this operator typically uses dual values
+    const isDualOperator = DualOperators.includes(operatorId as OperatorType);
+
+    // Format value for the relation table
+    if (typeof value === 'string' && value.includes('-') && isDualOperator) {
+      // Split by hyphen to get the array back
+      const splitValues = value.split('-');
+
+      // Handle based on field type
+      switch (fieldType) {
+        case FieldType.Date:
+          // Format dates properly for HTML date input
+          value = splitValues.map(dateStr => {
+            try {
+              const date = new Date(dateStr);
+              if (!isNaN(date.getTime())) {
+                return this.formatDateForInput(date);
+              }
+            } catch (e) { console.error('Error formatting date:', e); }
+            return dateStr;
+          });
+          break;
+
+        default:
+          // For other field types, just use the split array
+          value = splitValues;
+      }
+    }
+    // Handle non-array values based on field type
+    else if (typeof value === 'string' && !isDualOperator) {
+      switch (fieldType) {
+        case FieldType.Date:
+          // Format single date for HTML date input
+          try {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              value = this.formatDateForInput(date);
+            }
+          } catch (e) { console.error('Error formatting date:', e); }
+          break;
+      }
+    }
+
+    // Get dropdown data if needed
+    const dropdownData = this.getDropdownDataForField(fieldId) || [];
+
+    // Create the selected field
+    const selectedField: SelectedField = {
+      rowid: field.rowId || '',
+      parent: parent,
+      field: {
+        id: field.field.id || '',
+        label: field.field.label || ''
+      },
+      operator: {
+        id: field.operator?.id || '',
+        label: field.operator?.label || ''
+      },
+      operatorOptions: operatorOptions,
+      value: value,
+      dropdownData: dropdownData,
+      // Initialize touched states - already validated since coming from saved data
+      parentTouched: true,
+      operatorTouched: true,
+      valueTouched: true
+    };
+
+    // Only set parentSelected when it exists (array case)
+    if (parentSelected) {
+      selectedField.parentSelected = parentSelected;
+    }
+
+    return selectedField;
   }
 }

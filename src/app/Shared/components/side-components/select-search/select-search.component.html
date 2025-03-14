@@ -1,5 +1,20 @@
 <div class="simple-search">
+    <!-- Add the checkbox here -->
+    <div class="toggle-group-data">
+        <label>
+            <input type="checkbox" [(ngModel)]="showGroupDataOutside" />
+            Show Group Data
+        </label>
+    </div>
 
+    <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
+    <!-- Existing code... -->
+    <div *ngIf="showGroupDataOutside">
+        <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onSavedFieldSelected($event)"
+            (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)">
+        </app-saved-group-accordion>
+    </div>
+    <!-- Existing code... -->
     <div class="first-accordion-section">
         <!-- Accordion sections with trackBy for performance -->
         <app-accordion-section #firstAccordion *ngFor="let section of firstSystemFieldsData; trackBy: trackByFn"
