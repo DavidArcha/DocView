@@ -7,7 +7,15 @@ import { Component, EventEmitter, Input, Output, OnInit, HostListener, ElementRe
   styleUrl: './saved-group-accordion.component.scss'
 })
 export class SavedGroupAccordionComponent implements OnInit {
-  @Input() groups: any[] = [];
+  @Input() set groups(value: any[]) {
+    this._groups = this.processGroups(value);
+  }
+
+  get groups(): any[] {
+    return this._groups;
+  }
+
+  private _groups: any[] = [];
   @Input() selectedField: any = null;
   @Output() fieldSelected = new EventEmitter<any>();
   @Output() groupFieldTitleClicked = new EventEmitter<any>();
@@ -19,10 +27,33 @@ export class SavedGroupAccordionComponent implements OnInit {
   contextMenuVisible: boolean = false;
   contextMenuPosition = { x: 0, y: 0 };
 
-  constructor(private elementRef: ElementRef) {}
+  constructor(private elementRef: ElementRef) { }
 
   ngOnInit() {
     this.restoreState();
+  }
+
+  // Process incoming groups data and add unique IDs
+  private processGroups(groups: any[]): any[] {
+    if (!groups) return [];
+
+    return groups.map(group => {
+      const processedGroup = { ...group };
+      if (processedGroup.groupFields) {
+        processedGroup.groupFields = processedGroup.groupFields.map((fieldGroup: any, fgIndex: number) => {
+          const processedFieldGroup = { ...fieldGroup };
+          if (processedFieldGroup.fields) {
+            processedFieldGroup.fields = processedFieldGroup.fields.map((field: any, fIndex: number) => {
+              // Create a unique ID using group, fieldGroup, and field indices
+              const uniqueId = `field_${group.groupTitle.id}_${fieldGroup.title?.id || fgIndex}_${fIndex}`;
+              return { ...field, _uniqueId: uniqueId };
+            });
+          }
+          return processedFieldGroup;
+        });
+      }
+      return processedGroup;
+    });
   }
 
   toggleGroup(groupId: string) {
@@ -47,12 +78,14 @@ export class SavedGroupAccordionComponent implements OnInit {
     event.preventDefault();
     this.selectedField = field;
     this.fieldSelected.emit(field);
+    console.log('Field clicked:', field);
     this.saveState();
   }
 
   onGroupFieldTitleClick(fieldGroup: any, event: Event): void {
     event.preventDefault();
-    this.groupFieldTitleClicked.emit(fieldGroup.fields);
+    console.log('On field group:', fieldGroup);
+    this.groupFieldTitleClicked.emit(fieldGroup);
     this.saveState();
   }
 
@@ -60,21 +93,23 @@ export class SavedGroupAccordionComponent implements OnInit {
     event.preventDefault();
     console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
-    this.contextMenuPosition = { x: event.clientX-100, y: event.clientY-100 };
+    this.contextMenuPosition = { x: event.clientX - 100, y: event.clientY - 100 };
     console.log('Context menu position set to:', this.contextMenuPosition);
     this.selectedFieldGroup = fieldGroup;
   }
 
   onEditGroupFieldTitle() {
     if (this.selectedFieldGroup) {
-      console.log('Edit Group Field Title:', this.selectedFieldGroup.title.title);
+      const title = this.selectedFieldGroup.title || this.selectedFieldGroup.title.title;
+      console.log('Edit Group Field Title:', title);
     }
     this.contextMenuVisible = false;
   }
 
   onDeleteGroupFieldTitle() {
     if (this.selectedFieldGroup) {
-      console.log('Delete Group Field Title:', this.selectedFieldGroup.title.title);
+      const title = this.selectedFieldGroup.title || this.selectedFieldGroup.title.title;
+      console.log('Delete Group Field Title:', title);
     }
     this.contextMenuVisible = false;
   }
@@ -84,18 +119,77 @@ export class SavedGroupAccordionComponent implements OnInit {
     console.log('Right-click on:', group.groupTitle.title);
   }
 
+  getFieldTitle(field: any): string {
+    if (field.field?.label && field.operator?.label) {
+      return `${field.field.label} ${field.operator.label} ${field.value}`;
+    } else if (typeof field.field === 'string' && typeof field.operator === 'string') {
+      return `${field.field} ${field.operator} ${field.value}`;
+    } else {
+      return '';
+    }
+  }
+
+  getFieldLabel(field: any): string {
+    if (field.field?.label && field.operator?.label) {
+      return `${field.field.label} ${field.operator.label} ${field.value}`;
+    } else if (typeof field.field === 'string' && typeof field.operator === 'string') {
+      return `${field.field} ${field.operator} ${field.value}`;
+    } else {
+      return field.id || '';
+    }
+  }
+
+  isFieldSelected(field: any): boolean {
+    if (!this.selectedField) return false;
+
+    // Use the unique ID for comparison if available
+    if (field._uniqueId && this.selectedField._uniqueId) {
+      return field._uniqueId === this.selectedField._uniqueId;
+    }
+
+    // Fall back to previous comparison logic
+    if (field.field?.id && this.selectedField.field?.id) {
+      return field.field.id === this.selectedField.field.id &&
+        field.operator?.id === this.selectedField.operator?.id &&
+        field.value === this.selectedField.value;
+    } else if (field.id && this.selectedField.id) {
+      return field.id === this.selectedField.id;
+    }
+
+    return field === this.selectedField;
+  }
+
   saveState() {
     const state = {
       expandedGroups: Array.from(this.expandedGroups),
       expandedFields: Array.from(this.expandedFields),
       selectedField: this.selectedField
-        ? {
-          field: this.selectedField.field,
-          operator: this.selectedField.operator
-        }
+        ? this.getSelectedFieldIdentifier(this.selectedField)
         : null
     };
     localStorage.setItem('savedAccordionState', JSON.stringify(state));
+  }
+
+  getSelectedFieldIdentifier(field: any): any {
+    // Include the unique ID if available
+    if (field._uniqueId) {
+      return { uniqueId: field._uniqueId };
+    }
+
+    // Create a simplified identifier that can be used to find the field later
+    if (field.field?.id) {
+      return {
+        fieldId: field.field.id,
+        operatorId: field.operator?.id,
+        value: field.value
+      };
+    } else {
+      return {
+        field: field.field,
+        operator: field.operator,
+        value: field.value
+      };
+    }
   }
 
   restoreState() {
@@ -118,11 +212,34 @@ export class SavedGroupAccordionComponent implements OnInit {
     }
   }
 
-  findFieldObject(savedField: { field: string; operator: string }): any {
+  findFieldObject(savedField: any): any {
+    // Try to find by unique ID first if available
+    if (savedField.uniqueId) {
+      for (const g of this.groups) {
+        for (const fg of g.groupFields) {
+          for (const f of fg.fields) {
+            if (f._uniqueId === savedField.uniqueId) {
+              return f;
+            }
+          }
+        }
+      }
+    }
+
+    // Fall back to previous field finding logic
     for (const g of this.groups) {
       for (const fg of g.groupFields) {
         for (const f of fg.fields) {
-          if (f.field === savedField.field && f.operator === savedField.operator) {
+          if (savedField.fieldId && f.field?.id === savedField.fieldId &&
+            (!savedField.operatorId || f.operator?.id === savedField.operatorId) &&
+            (!savedField.value || f.value === savedField.value)) {
+            return f;
+          } else if (savedField.field &&
+            ((typeof f.field === 'string' && f.field === savedField.field) ||
+              (f.field?.label === savedField.field)) &&
+            ((typeof f.operator === 'string' && f.operator === savedField.operator) ||
+              (f.operator?.label === savedField.operator)) &&
+            (!savedField.value || f.value === savedField.value)) {
             return f;
           }
         }
