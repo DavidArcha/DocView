@@ -12,14 +12,17 @@
                     <span [class.expanded]="expandedFields.has(fieldGroup.title.id)"
                         (click)="toggleField(fieldGroup.title.id)">&#9656;</span>
                     <span class="save-icon" (click)="toggleField(fieldGroup.title.id)">💾</span>
-                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup, $event); $event.preventDefault();">{{ fieldGroup.title.title }}</a>
+                    <a href="#" (click)="onGroupFieldTitleClick(fieldGroup, $event); $event.preventDefault();">
+                        {{ fieldGroup.title.label || fieldGroup.title.title }}
+                    </a>
                 </div>
                 <div *ngIf="expandedFields.has(fieldGroup.title.id)" class="fields">
-                    <div *ngFor="let field of fieldGroup.fields" class="field"
-                        [title]="field.field + ' ' + field.operator"
-                        [class.selected]="field === selectedField">
+                    <div *ngFor="let field of fieldGroup.fields" class="field" [title]="getFieldTitle(field)"
+                        [class.selected]="isFieldSelected(field)">
                         <span class="save-icon">💾</span>
-                        <a href="#" (click)="onFieldClick(field, $event); $event.preventDefault();">{{ field.field }}</a>
+                        <a href="#" (click)="onFieldClick(field, $event); $event.preventDefault();">
+                            {{ getFieldLabel(field) }}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -28,7 +31,12 @@
 </div>
 
 <!-- Context Menu -->
-<div *ngIf="contextMenuVisible" [ngStyle]="{'top.px': contextMenuPosition.y, 'left.px': contextMenuPosition.x}" class="context-menu" (click)="$event.stopPropagation()">
+<div *ngIf="contextMenuVisible" 
+    [style.position]="'fixed'"
+    [style.top.px]="contextMenuPosition.y" 
+    [style.left.px]="contextMenuPosition.x"
+    class="context-menu" 
+    (click)="$event.stopPropagation()">
     <ul>
         <li (click)="onEditGroupFieldTitle()">Edit</li>
         <li (click)="onDeleteGroupFieldTitle()">Delete</li>
