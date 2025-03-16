@@ -58,6 +58,13 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   public selectedFields: SelectedField[] = [];
   operationsDDData: any;
 
+  // Add these new properties
+  showSaveContainer: boolean = false;
+  isEditMode: boolean = false;
+  isDeleteMode: boolean = false;
+  searchName: string = '';
+  currentGroupField: any = null;
+
   public savedGroupFields = updatedSearchGroupFields;
 
   set showGroupDataOutside(value: boolean) {
@@ -1255,4 +1262,80 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     return selectedField;
   }
+
+  // Add these new methods to handle edit and delete operations
+  onEditGroupFieldTitle(groupField: SearchRequest): void {
+    console.log('Edit group field title:', groupField);
+    this.currentGroupField = groupField;
+    this.isEditMode = true;
+    this.isDeleteMode = false;
+    this.showSaveContainer = true;
+
+    // Set the search name to the current title
+    this.searchName = groupField.title?.label || 'Search Request';
+  }
+
+  onDeleteGroupFieldTitle(groupField: SearchRequest): void {
+    console.log('Delete group field title:', groupField);
+    this.currentGroupField = groupField;
+    this.isEditMode = false;
+    this.isDeleteMode = true;
+    this.showSaveContainer = true;
+
+    // Set the search name to the current title
+    this.searchName = groupField.title?.label || 'Search Request';
+  }
+
+  saveSearch(): void {
+    // Only used when not in edit mode - regular save
+    console.log('Saving search with name:', this.searchName);
+    // Reset the UI state
+    this.cancelSave();
+  }
+
+  saveAsSearch(): void {
+    // Used when in edit mode - save as new or update
+    console.log('Save As search with name:', this.searchName);
+
+    if (this.currentGroupField) {
+      // Create a search request based on the current group field
+      const searchRequest: SearchRequest = {
+        title: {
+          id: this.currentGroupField.title?.id || 'search_request',
+          label: this.searchName
+        },
+        fields: this.currentGroupField.fields || []
+      };
+
+      // Call your API to save/update the search
+      // this.searchService.updateSearch(searchRequest).subscribe(...);
+    }
+
+    // Reset the UI state
+    this.cancelSave();
+  }
+
+  confirmDelete(): void {
+    // Delete the current group field
+    if (this.currentGroupField && this.currentGroupField.title?.id) {
+      console.log('Confirming delete for:', this.currentGroupField.title.id);
+
+      // Call your API to delete the search
+      // this.searchService.deleteSearch(this.currentGroupField.title.id).subscribe(...);
+    }
+
+    // Reset the UI state
+    this.cancelSave();
+  }
+
+  cancelSave(): void {
+    // Reset all state variables
+    this.showSaveContainer = false;
+    this.isEditMode = false;
+    this.isDeleteMode = false;
+    this.searchName = '';
+    this.currentGroupField = null;
+  }
+
+
 }

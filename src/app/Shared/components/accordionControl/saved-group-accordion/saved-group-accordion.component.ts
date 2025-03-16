@@ -39,6 +39,9 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   @Input() selectedField: SearchCriteria | any = null;
   @Output() fieldSelected = new EventEmitter<SearchCriteria>();
   @Output() groupFieldTitleClicked = new EventEmitter<SearchRequest>();
+  // Add these two new outputs
+  @Output() editGroupFieldTitle = new EventEmitter<SearchRequest>();
+  @Output() deleteGroupFieldTitle = new EventEmitter<SearchRequest>();
 
   expandedGroups: Set<string> = new Set();
   expandedFields: Set<string> = new Set();
@@ -158,6 +161,9 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
         ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
         : String(this.selectedFieldGroup.title || '');
       console.log('Edit Group Field Title:', title);
+
+      // Emit the event with the selected group
+      this.editGroupFieldTitle.emit(this.selectedFieldGroup);
     }
     this.contextMenuVisible = false;
   }
@@ -168,6 +174,9 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
         ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
         : String(this.selectedFieldGroup.title || '');
       console.log('Delete Group Field Title:', title);
+
+      // Emit the event with the selected group
+      this.deleteGroupFieldTitle.emit(this.selectedFieldGroup);
     }
     this.contextMenuVisible = false;
   }

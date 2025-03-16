@@ -11,7 +11,9 @@
     <!-- Existing code... -->
     <div *ngIf="showGroupDataOutside">
         <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onSavedFieldSelected($event)"
-            (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)">
+            (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)"
+            (editGroupFieldTitle)="onEditGroupFieldTitle($event)"
+            (deleteGroupFieldTitle)="onDeleteGroupFieldTitle($event)">
         </app-saved-group-accordion>
     </div>
     <!-- Existing code... -->
@@ -34,9 +36,6 @@
             (selectedValuesChange)="onSelectedSystemTypeValueChange($event)">
         </app-table-dropdown>
     </div>
-    <!-- Action buttons -->
-
-
     <!-- Loading indicator for accordion data -->
     <div *ngIf="isLoading" class="loading-indicator">
         <span>Loading fields...</span>
@@ -55,5 +54,18 @@
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>
         <button [disabled]="selectedFields.length === 0" (click)="searchTable()">Search</button>
         <button [disabled]="selectedFields.length === 0" (click)="storeTable()">Save</button>
+    </div>
+    <!-- New save container -->
+    <div *ngIf="showSaveContainer" class="save-container">
+        <div class="form-group">
+            <label for="searchName">Search Name:</label>
+            <input type="text" id="searchName" [(ngModel)]="searchName" placeholder="Enter search name">
+        </div>
+        <div class="save-buttons">
+            <button *ngIf="!isEditMode" (click)="saveSearch()">Save</button>
+            <button *ngIf="isEditMode" (click)="saveAsSearch()">Save As</button>
+            <button *ngIf="isDeleteMode" (click)="confirmDelete()">Delete</button>
+            <button (click)="cancelSave()">Cancel</button>
+        </div>
     </div>
 </div>
