@@ -10,14 +10,12 @@
     <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
     <!-- Existing code... -->
     <div *ngIf="showGroupDataOutside && savedGroupFields.length > 0">
-        <div *ngIf="showGroupDataOutside && savedGroupFields.length > 0">
-            <app-saved-group-accordion #savedGroupAccordion [groups]="savedGroupFields"
-                (fieldSelected)="onSavedFieldSelected($event)"
-                (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)"
-                (editGroupFieldTitle)="onEditGroupFieldTitle($event)"
-                (deleteGroupFieldTitle)="onDeleteGroupFieldTitle($event)">
-            </app-saved-group-accordion>
-        </div>
+        <app-saved-group-accordion #savedGroupAccordion [groups]="savedGroupFields"
+            (fieldSelected)="onSavedFieldSelected($event)"
+            (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)"
+            (editGroupFieldTitle)="onEditGroupFieldTitle($event)"
+            (deleteGroupFieldTitle)="onDeleteGroupFieldTitle($event)">
+        </app-saved-group-accordion>
     </div>
     <!-- Existing code... -->
     <div class="first-accordion-section">

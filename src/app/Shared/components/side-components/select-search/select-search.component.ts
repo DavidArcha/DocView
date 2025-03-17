@@ -388,6 +388,10 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle saved field selection
   onSavedFieldSelected(field: SearchCriteria): void {
     if (!field) return;
+
+    // First clear existing fields and table data
+    this.selectionService.clearFields();
+
     this.selectionService.addSavedField(field);
   }
 
