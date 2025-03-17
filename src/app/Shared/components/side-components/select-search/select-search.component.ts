@@ -442,16 +442,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Check if the title and title.id exists
     if (groupField.title && groupField.title.id) {
-      console.log('Saved group title found with ID:', groupField.title.id);
-      console.log('Title label:', groupField.title.label);
       this.isEditMode = true;
       this.searchName = groupField.title.label;
       this.searchNameId = groupField.title.id;
     } else {
       console.log('Saved group field has no title ID');
     }
-
-    console.log('Saved group field clicked:', groupField);
     this.selectionService.addSavedGroup(groupField);
   }
 
@@ -548,7 +544,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     // Convert selected fields to search criteria format
     const searchCriteria = this.selectionService.convertSelectedFieldsToSearchCriteria(this.selectedFields);
     this.searchCriteria = searchCriteria;
-    console.log('searchCriteria', searchCriteria);
 
     // Execute the search via the search service
     this.isLoading = true;
@@ -581,6 +576,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please add fields before saving.';
       return;
     }
+    console.log('Store Table fields:', this.selectedFields, ' and EditMode', this.isEditMode);
     // Show the save container
     this.showSaveContainer = true;
     this.isDeleteMode = false;
@@ -608,19 +604,77 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Save the current search
   saveSearch(): void {
-    if (!this.searchName || this.searchName.trim() === '') {
+
+    this.saveFreshSearchData(this.searchName);
+    this.cancelSave();
+  }
+
+  // Add this new method to handle fresh search data saving
+  saveFreshSearchData(searchName: string): void {
+    // Validate the search name
+    if (!searchName || searchName.trim() === '') {
       this.hasError = true;
       this.errorMessage = 'Please enter a name for your search.';
       return;
     }
 
-    // Call the service with the correct parameters
-    this.searchCriteriaService.saveSearchGroup(
-      this.searchName,             // Pass the name
-      this.isEditMode,             // Pass whether it's edit mode
-      this.currentGroupField       // Pass the current group field if editing
-    );
+    // Validate selected fields
+    if (this.selectedFields.length === 0) {
+      this.hasError = true;
+      this.errorMessage = 'Please add fields before saving.';
+      return;
+    }
 
+    // Step 1: Convert selectedFields to searchCriteria
+    const searchCriteria = this.selectionService.convertSelectedFieldsToSearchCriteria(this.selectedFields);
+
+    // Step 2: Create a searchRequest object with the criteria
+    const searchRequest: SearchRequest = {
+      title: {
+        id: '',
+        label: searchName.trim()
+      },
+      fields: searchCriteria
+    };
+
+    // Step 3: Save the search request
+    this.saveSearchRequest(searchRequest);
+  }
+
+  // Helper method to save the search request (e.g., to backend API)
+  private saveSearchRequest(searchRequest: SearchRequest): void {
+    // Show loading state
+    // this.isLoading = true;
+    // this.loadingSubject.next(true);
+    console.log('Save search request:', searchRequest);
+
+    // Example API call with FormData (implement as needed)
+    // const formData = new FormData();
+    // formData.append('searchRequest', JSON.stringify(searchRequest));
+
+    // Call your search service API
+    // this.searchService.saveSearchRequest(formData)
+    //   .pipe(takeUntil(this.destroy$))
+    //   .subscribe({
+    //     next: (response) => {
+    //       // Handle successful save
+    //       this.isLoading = false;
+    //       this.loadingSubject.next(false);
+    //       this.cancelSave();
+    //       
+    //       // Update saved groups list
+    //       this.savedGroupFields = [...this.savedGroupFields, searchRequest];
+    //     },
+    //     error: (error) => {
+    //       this.isLoading = false;
+    //       this.loadingSubject.next(false);
+    //       this.hasError = true;
+    //       this.errorMessage = 'Failed to save search. Please try again.';
+    //     }
+    //   });
+
+    // For now, use the existing searchCriteriaService to save locally
+    this.searchCriteriaService.saveCustomSearchRequest(searchRequest);
     this.cancelSave();
   }
 

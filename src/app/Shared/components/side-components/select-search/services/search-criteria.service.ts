@@ -18,15 +18,6 @@ export class SearchCriteriaService {
     private storageService: StorageService,
     private selectionService: SelectionService
   ) {
-    // Verify that the updatedSearchGroupFields import is working
-    console.log('SearchCriteriaService constructor');
-    console.log('updatedSearchGroupFields imported:', !!updatedSearchGroupFields);
-
-    if (updatedSearchGroupFields && updatedSearchGroupFields.length > 0) {
-      console.log('First item in updatedSearchGroupFields:',
-        JSON.stringify(updatedSearchGroupFields[0].groupTitle || 'no groupTitle'));
-    }
-
     this.loadSavedGroupFieldsFromStorage();
   }
 
@@ -34,11 +25,8 @@ export class SearchCriteriaService {
    * Loads saved group fields from local storage or defaults to hardcoded data
    */
   private loadSavedGroupFieldsFromStorage(): void {
-    console.log('loadSavedGroupFieldsFromStorage called');
 
     const stored = this.storageService.getItem('savedGroupFields');
-    console.log('Stored savedGroupFields:', stored ? 'Found' : 'Not found');
-
     if (stored) {
       try {
         const parsedGroups = JSON.parse(stored) as SearchRequest[];
@@ -48,11 +36,9 @@ export class SearchCriteriaService {
         console.error('Error parsing saved groups:', e);
         // If there's an error parsing the stored data, 
         // initialize with the hardcoded data
-        console.log('Falling back to default groups due to parse error');
         this.loadDefaultGroups();
       }
     } else {
-      console.log('No stored groups found, loading default groups');
       // If nothing in storage, initialize with the hardcoded data
       this.loadDefaultGroups();
     }
@@ -62,9 +48,6 @@ export class SearchCriteriaService {
    * Load default groups from the hardcoded data
    */
   private loadDefaultGroups(): void {
-    console.log('loadDefaultGroups called');
-    console.log('updatedSearchGroupFields available:', !!updatedSearchGroupFields);
-
     // Make sure the data is imported
     if (!updatedSearchGroupFields) {
       console.error('updatedSearchGroupFields is not defined! Check import.');
@@ -73,14 +56,10 @@ export class SearchCriteriaService {
     }
 
     if (updatedSearchGroupFields.length > 0) {
-      console.log('updatedSearchGroupFields length:', updatedSearchGroupFields.length);
-      console.log('First item structure:', JSON.stringify(Object.keys(updatedSearchGroupFields[0])));
 
       try {
         // The hardcoded data structure has a single outer container with groupFields
         if (updatedSearchGroupFields[0].groupFields && Array.isArray(updatedSearchGroupFields[0].groupFields)) {
-          console.log('Found groupFields array, length:', updatedSearchGroupFields[0].groupFields.length);
-
           // These are already in the format we need, just map them to ensure proper typing
           const groupRequestsFromData = updatedSearchGroupFields[0].groupFields.map(groupField => {
             return {
@@ -91,8 +70,6 @@ export class SearchCriteriaService {
               fields: this.mapFieldsToSearchCriteria(groupField.fields || [])
             } as SearchRequest;
           });
-
-          console.log('Mapped group requests, count:', groupRequestsFromData.length);
           this.savedGroupFieldsSubject.next(groupRequestsFromData);
 
           // Also save to storage so they persist
@@ -101,7 +78,6 @@ export class SearchCriteriaService {
         }
 
         // Fallback approach if the structure is different
-        console.log('Using fallback approach for mapping');
         const defaultGroups: SearchRequest[] = updatedSearchGroupFields.map(group => {
           return {
             title: {
@@ -112,7 +88,6 @@ export class SearchCriteriaService {
           };
         });
 
-        console.log('Mapped default groups, count:', defaultGroups.length);
         this.savedGroupFieldsSubject.next(defaultGroups);
         this.storageService.setItem('savedGroupFields', JSON.stringify(defaultGroups));
       } catch (error) {
@@ -120,7 +95,6 @@ export class SearchCriteriaService {
         this.savedGroupFieldsSubject.next([]);
       }
     } else {
-      console.log('updatedSearchGroupFields is empty');
       this.savedGroupFieldsSubject.next([]);
     }
   }
@@ -219,17 +193,38 @@ export class SearchCriteriaService {
   }
 
   /**
+ * Save a custom search request directly
+ * @param searchRequest - The complete search request to save
+ */
+  saveCustomSearchRequest(searchRequest: SearchRequest): void {
+    if (!searchRequest || !searchRequest.fields || searchRequest.fields.length === 0) {
+      return;
+    }
+
+    let savedGroups = this.getSavedGroupFields();
+
+    // Add as a new group
+    savedGroups = [...savedGroups, searchRequest];
+
+    // Save to store and localStorage
+    this.savedGroupFieldsSubject.next(savedGroups);
+    this.storageService.setItem('savedGroupFields', JSON.stringify(savedGroups));
+  }
+
+  /**
    * Save a search group
    * @param name - Name of the search group
    * @param isEditMode - Whether we're editing an existing group or creating new
    * @param currentGroupField - The current group being edited (if in edit mode)
    */
   saveSearchGroup(name: string, isEditMode: boolean = false, currentGroupField: SearchRequest | null = null): void {
+    console.log('Saving search group initial data:', name, isEditMode, currentGroupField);
     const searchRequest = this.createSearchRequest(name);
     if (!searchRequest) {
       return;
-    }    
+    }
     let savedGroups = this.getSavedGroupFields();
+    console.log('Saved groups before save:', savedGroups);
 
     // Handle edit mode
     if (isEditMode && currentGroupField && currentGroupField.title) {
@@ -244,7 +239,7 @@ export class SearchCriteriaService {
       // Add as a new group
       savedGroups = [...savedGroups, searchRequest];
     }
-console.log('savedGroups:', savedGroups);
+    console.log('Saved groups after save:', savedGroups);
     // Save to store and localStorage
     this.savedGroupFieldsSubject.next(savedGroups);
     this.storageService.setItem('savedGroupFields', JSON.stringify(savedGroups));

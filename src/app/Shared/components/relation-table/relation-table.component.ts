@@ -107,8 +107,6 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     }
 
     const operatorId = selected.operator.id.toLowerCase();
-    console.log(`Operator ID: ${operatorId}`);
-
     // Scenario-1: No need to display any control
     if (NoValueOperators.includes(operatorId as OperatorType)) {
       control.show = false;

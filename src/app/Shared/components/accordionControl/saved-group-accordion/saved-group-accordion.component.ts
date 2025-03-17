@@ -190,23 +190,19 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     this.contextMenuVisible = false;
     this.selectedField = field;
     this.fieldSelected.emit(field);
-    console.log('Field clicked:', field);
     this.saveState();
   }
 
   onGroupFieldTitleClick(fieldGroup: SearchRequest, event: Event): void {
     event.preventDefault();
     this.contextMenuVisible = false;
-    console.log('On group field title click at accordion:', fieldGroup);
     this.groupFieldTitleClicked.emit(fieldGroup);
     this.saveState();
   }
 
   onGroupFieldTitleRightClick(event: MouseEvent, fieldGroup: any) {
     event.preventDefault();
-    console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
-    // this.contextMenuPosition = { x: event.clientX, y: event.clientY };
     // Position the context menu relative to the clicked element
     const rect = (event.target as HTMLElement).getBoundingClientRect();
 
@@ -223,8 +219,6 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       const title = this.selectedFieldGroup.title && typeof this.selectedFieldGroup.title === 'object'
         ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
         : String(this.selectedFieldGroup.title || '');
-      console.log('Edit Group Field Title:', title);
-
       // Emit the event with the selected group
       this.editGroupFieldTitle.emit(this.selectedFieldGroup);
     }
@@ -236,8 +230,6 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       const title = this.selectedFieldGroup.title && typeof this.selectedFieldGroup.title === 'object'
         ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
         : String(this.selectedFieldGroup.title || '');
-      console.log('Delete Group Field Title:', title);
-
       // Emit the event with the selected group
       this.deleteGroupFieldTitle.emit(this.selectedFieldGroup);
     }
@@ -246,7 +238,6 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
 
   onGroupRightClick(event: MouseEvent, group: any) {
     event.preventDefault();
-    console.log('Right-click on:', group.groupTitle?.title);
   }
 
   getFieldTitle(field: SearchCriteria | any): string {
