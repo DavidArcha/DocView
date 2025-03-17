@@ -198,7 +198,7 @@ export class SearchCriteriaService {
     const invalidFields = fields.filter(field =>
       !field.operator ||
       field.operator.id === 'select' ||
-      (field.value === null && field.operator.id !== 'isnull' && field.operator.id !== 'isnotnull')
+      (field.value === null && field.operator.id !== 'empty' && field.operator.id !== 'not_empty')
     );
 
     if (invalidFields.length > 0) {
@@ -211,7 +211,7 @@ export class SearchCriteriaService {
     // Create the search request
     return {
       title: {
-        id: this.generateUniqueId(),
+        id: '',
         label: title || 'Search Request'
       },
       fields: searchCriteria
@@ -228,8 +228,7 @@ export class SearchCriteriaService {
     const searchRequest = this.createSearchRequest(name);
     if (!searchRequest) {
       return;
-    }
-
+    }    
     let savedGroups = this.getSavedGroupFields();
 
     // Handle edit mode

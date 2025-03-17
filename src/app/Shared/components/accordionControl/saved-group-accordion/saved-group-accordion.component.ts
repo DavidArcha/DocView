@@ -197,7 +197,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   onGroupFieldTitleClick(fieldGroup: SearchRequest, event: Event): void {
     event.preventDefault();
     this.contextMenuVisible = false;
-    console.log('On field group:', fieldGroup);
+    console.log('On group field title click at accordion:', fieldGroup);
     this.groupFieldTitleClicked.emit(fieldGroup);
     this.saveState();
   }

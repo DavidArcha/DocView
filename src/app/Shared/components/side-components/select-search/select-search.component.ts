@@ -68,6 +68,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   public isEditMode: boolean = false;
   public isDeleteMode: boolean = false;
   public searchName: string = '';
+  public searchNameId: string = '';
   public currentGroupField: SearchRequest | null = null;
 
   // Saved search groups (from backend or local storage)
@@ -339,7 +340,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // First accordion items always have no parent
     const emptyParent = { id: '', label: '' };
-
+    this.isEditMode = false;
     this.selectionService.addField(field, emptyParent, '', this.currentLanguage);
   }
 
@@ -378,6 +379,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       parentObj = { id: '', label: '' };
     }
 
+    this.isEditMode = false;
+
     this.selectionService.addField(
       field,
       parentObj,
@@ -398,6 +401,19 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle saved group field title clicked
   onSavedGroupFieldTitleClicked(groupField: SearchRequest): void {
     this.selectionService.clearFields();
+
+    // Check if the title and title.id exists
+    if (groupField.title && groupField.title.id) {
+      console.log('Saved group title found with ID:', groupField.title.id);
+      console.log('Title label:', groupField.title.label);
+      this.isEditMode = true;
+      this.searchName = groupField.title.label;
+      this.searchNameId = groupField.title.id;
+    } else {
+      console.log('Saved group field has no title ID');
+    }
+
+    console.log('Saved group field clicked:', groupField);
     this.selectionService.addSavedGroup(groupField);
   }
 
@@ -494,6 +510,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     // Convert selected fields to search criteria format
     const searchCriteria = this.selectionService.convertSelectedFieldsToSearchCriteria(this.selectedFields);
     this.searchCriteria = searchCriteria;
+    console.log('searchCriteria', searchCriteria);
 
     // Execute the search via the search service
     this.isLoading = true;
@@ -526,10 +543,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please add fields before saving.';
       return;
     }
-
     // Show the save container
     this.showSaveContainer = true;
-    this.isEditMode = false;
     this.isDeleteMode = false;
     this.searchName = '';
     this.currentGroupField = null;
@@ -561,7 +576,13 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.searchCriteriaService.saveSearchGroup(this.searchName, this.isEditMode, this.currentGroupField);
+    // Call the service with the correct parameters
+    this.searchCriteriaService.saveSearchGroup(
+      this.searchName,             // Pass the name
+      this.isEditMode,             // Pass whether it's edit mode
+      this.currentGroupField       // Pass the current group field if editing
+    );
+
     this.cancelSave();
   }
 

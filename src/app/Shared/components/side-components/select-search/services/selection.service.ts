@@ -122,7 +122,7 @@ export class SelectionService {
     path: string = '',
     currentLanguage: string = 'en'
   ): void {
-    console.log('Adding field:', field, parent, path, currentLanguage);
+
     const operatorOptions = this.getOperatorOptions(field.id);
     const defaultOperator = {
       id: 'select',

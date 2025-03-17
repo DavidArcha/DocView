@@ -59,7 +59,7 @@ export function isFieldValid(field: SelectedField): boolean {
   }
 
   // For 'isnull' and 'isnotnull' operators, we don't need a value
-  if (field.operator.id === 'isnull' || field.operator.id === 'isnotnull') {
+  if (field.operator.id === 'empty' || field.operator.id === 'not_empty') {
     return true;
   }
 

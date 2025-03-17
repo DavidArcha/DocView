@@ -9,8 +9,6 @@ export enum OperatorType {
   StartsWith = 'startswith',
   EndsWith = 'endswith',
   Between = 'between',
-  IsNull = 'isnull',
-  IsNotNull = 'isnotnull',
   In = 'in',
   NotIn = 'notin',
   Select = 'select',
@@ -33,8 +31,6 @@ export const DualOperators: OperatorType[] = [
 
 // Operators that don't require any value
 export const NoValueOperators: OperatorType[] = [
-  OperatorType.IsNull,
-  OperatorType.IsNotNull,
   OperatorType.Empty,
   OperatorType.NotEmpty,
   OperatorType.Yes,
