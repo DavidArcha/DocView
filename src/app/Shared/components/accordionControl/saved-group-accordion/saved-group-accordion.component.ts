@@ -69,7 +69,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     this.processedGroupsCache = null;
   }
 
-  // Process incoming groups data and add unique IDs with memoization
+  // Process incoming groups data with minimal transformation
   private processGroups(groups: any[]): any[] {
     if (!groups) return [];
 
@@ -78,20 +78,79 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       return this.processedGroupsCache;
     }
 
+    // Process the groups, but keep the original structure as much as possible
+    // Just ensure we have the necessary properties for rendering
     const result = groups.map(group => {
+      // Create a shallow copy to avoid modifying the original
       const processedGroup = { ...group };
-      if (processedGroup.groupFields) {
-        processedGroup.groupFields = processedGroup.groupFields.map((fieldGroup: any, fgIndex: number) => {
+
+      // If we have groupTitle, use it, otherwise use title if available
+      if (!processedGroup.groupTitle && processedGroup.title) {
+        processedGroup.groupTitle = processedGroup.title;
+      }
+
+      // If still no groupTitle, create a default one
+      if (!processedGroup.groupTitle) {
+        processedGroup.groupTitle = {
+          id: 'default-group',
+          label: 'Saved Groups'
+        };
+      }
+
+      // If we have groupFields, use it, otherwise use fields array directly
+      if (!processedGroup.groupFields) {
+        // Check if "fields" property exists and is an array
+        if (Array.isArray(processedGroup.fields)) {
+          // These are likely the individual search criteria items
+          // We need to wrap them in a "groupField" structure for rendering
+          processedGroup.groupFields = [{
+            title: {
+              id: 'default-field-group',
+              label: 'Search Criteria'
+            },
+            fields: processedGroup.fields.map((field: any, index: number) => {
+              // Add a unique ID for tracking
+              return {
+                ...field,
+                _uniqueId: `field_default_${index}`
+              };
+            })
+          }];
+        } else {
+          // Default to empty array if no fields found
+          processedGroup.groupFields = [];
+        }
+      } else {
+        // We already have groupFields, just ensure uniqueIds for fields
+        processedGroup.groupFields = processedGroup.groupFields.map((fieldGroup: any, groupIndex: number) => {
+          // Make a copy to avoid modifying original
           const processedFieldGroup = { ...fieldGroup };
-          if (processedFieldGroup.fields) {
-            processedFieldGroup.fields = processedFieldGroup.fields.map((field: any, fIndex: number) => {
-              const uniqueId = `field_${group.groupTitle?.id || ''}_${fieldGroup.title?.id || fgIndex}_${fIndex}`;
-              return { ...field, _uniqueId: uniqueId };
+
+          // Ensure title exists
+          if (!processedFieldGroup.title) {
+            processedFieldGroup.title = {
+              id: `group-${groupIndex}`,
+              label: `Group ${groupIndex + 1}`
+            };
+          }
+
+          // Ensure fields array exists
+          if (!Array.isArray(processedFieldGroup.fields)) {
+            processedFieldGroup.fields = [];
+          } else {
+            // Add unique IDs to fields
+            processedFieldGroup.fields = processedFieldGroup.fields.map((field: any, fieldIndex: number) => {
+              return {
+                ...field,
+                _uniqueId: `field_${processedGroup.groupTitle?.id || 'default'}_${groupIndex}_${fieldIndex}`
+              };
             });
           }
+
           return processedFieldGroup;
         });
       }
+
       return processedGroup;
     });
 
@@ -103,6 +162,8 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   }
 
   toggleGroup(groupId: string) {
+    if (!groupId) return; // Skip if invalid ID
+
     if (this.expandedGroups.has(groupId)) {
       this.expandedGroups.delete(groupId);
     } else {
@@ -113,6 +174,8 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   }
 
   toggleField(fieldGroupId: string) {
+    if (!fieldGroupId) return; // Skip if invalid ID
+
     if (this.expandedFields.has(fieldGroupId)) {
       this.expandedFields.delete(fieldGroupId);
     } else {

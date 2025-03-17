@@ -9,7 +9,7 @@
 
     <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
     <!-- Existing code... -->
-    <div *ngIf="showGroupDataOutside">
+    <div *ngIf="showGroupDataOutside && savedGroupFields.length > 0">
         <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onSavedFieldSelected($event)"
             (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)"
             (editGroupFieldTitle)="onEditGroupFieldTitle($event)"

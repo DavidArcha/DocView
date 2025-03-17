@@ -1,12 +1,10 @@
 export enum FieldType {
-  Text = 'text',
-  Number = 'number',
-  Date = 'date',
   Bool = 'bool',
+  Text = 'text',
+  Date = 'date',
+  Number = 'number',
   Dropdown = 'dropdown',
-  Time = 'time',
-  Unknown = 'unknown',
-  Button = 'button'
+  Button = 'button',
 }
 
 // Sets of fields
@@ -56,11 +54,7 @@ export const DropdownDataMapping: { [key: string]: string } = {
   'DD-EN-9': 'brandData',
   'DD-EN-10': 'stateData',
   // Fallback for any other dropdown fields
-  'default': 'brandData',
-  // Map field IDs to dropdown data sources
-  'status': 'statusData',
-  'category': 'categoryData',
-  'type': 'typeData'
+  'default': 'brandData'
 };
 
 // Combined field type mapping for easy lookup
@@ -69,5 +63,5 @@ export const FieldTypeMapping: { [key: string]: FieldType } = {
   ...StringFieldMapping,
   ...DateFieldMapping,
   ...DropdownFieldMapping,
-  ...ButtonFieldMapping,
+  ...ButtonFieldMapping
 };

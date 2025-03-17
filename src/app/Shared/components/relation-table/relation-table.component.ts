@@ -212,13 +212,13 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     if (!selected.parent || !selected.parent.id) {
       return true;
     }
-    
+
     // Case 2: parentSelected exists (regardless of length) - show dropdown
     // This ensures dropdown remains visible after interaction
     if (selected.parentSelected !== undefined) {
       return true;
     }
-    
+
     // Default case: don't show dropdown
     return false;
   }
@@ -241,30 +241,30 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   // Updated onParentValueChange to handle parent selection changes better
   onParentValueChange(selectedItems: DropdownItem[], index: number): void {
     const selected = this.selectedFields[index];
-    
+
     // Special Case - Handle "empty" selection
     if (!selectedItems || selectedItems.length === 0) {
       // Clear parent
       selected.parent = { id: '', label: '' };
-      
+
       // Important: Keep parentSelected as an empty array to maintain dropdown visibility
       selected.parentSelected = [];
-      
+
       selected.parentTouched = true;
       return;
     }
-    
+
     // Multiple selected items - store in parentSelected and use first as parent
     if (selectedItems.length > 0) {
       // Always maintain parentSelected for dropdown fields that have been interacted with
       selected.parentSelected = selectedItems;
-      
+
       // Set parent to first selected item
       selected.parent = {
         id: selectedItems[0].id || '',
         label: selectedItems[0].label || ''
       };
-      
+
       selected.parentTouched = true;
     }
   }
