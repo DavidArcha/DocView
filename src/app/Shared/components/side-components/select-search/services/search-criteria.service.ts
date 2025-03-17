@@ -244,7 +244,7 @@ export class SearchCriteriaService {
       // Add as a new group
       savedGroups = [...savedGroups, searchRequest];
     }
-
+console.log('savedGroups:', savedGroups);
     // Save to store and localStorage
     this.savedGroupFieldsSubject.next(savedGroups);
     this.storageService.setItem('savedGroupFields', JSON.stringify(savedGroups));

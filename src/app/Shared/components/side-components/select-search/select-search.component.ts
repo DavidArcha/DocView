@@ -200,6 +200,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          // Update selectedSystemTypeValue with the new language labels
+          this.updateSelectedSystemTypeLabelsForLanguage();
+
           // After loading system types, load first accordion data
           this.fieldService.loadFirstAccordionData(this.currentLanguage)
             .pipe(takeUntil(this.destroy$))
@@ -230,6 +233,41 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
           this.errorMessage = 'Failed to load data. Please try again.';
         }
       });
+  }
+
+  // Add this new method to update the selectedSystemTypeValue labels
+  private updateSelectedSystemTypeLabelsForLanguage(): void {
+    if (!this.selectedSystemTypeValue) return;
+
+    // Create a map for quick lookup of new labels
+    const systemTypeMap = new Map<string, DropdownItem>();
+    this.systemTypeData.forEach(item => systemTypeMap.set(item.id, item));
+
+    if (Array.isArray(this.selectedSystemTypeValue)) {
+      // Update the labels for each item in the array
+      this.selectedSystemTypeValue = this.selectedSystemTypeValue.map(item => {
+        const updatedType = systemTypeMap.get(item.id);
+        if (updatedType) {
+          return {
+            id: item.id,
+            label: updatedType.label
+          };
+        }
+        return item;
+      });
+    } else {
+      // Update the label for the single item
+      const updatedType = systemTypeMap.get(this.selectedSystemTypeValue.id);
+      if (updatedType) {
+        this.selectedSystemTypeValue = {
+          id: this.selectedSystemTypeValue.id,
+          label: updatedType.label
+        };
+      }
+    }
+
+    // Make sure to update the state service too
+    this.stateService.setSelectedSystemTypeValue(this.selectedSystemTypeValue);
   }
 
   // Load selected values from localStorage
