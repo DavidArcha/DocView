@@ -260,10 +260,10 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       selected.parentSelected = selectedItems;
 
       // Set parent to first selected item
-      selected.parent = {
-        id: selectedItems[0].id || '',
-        label: selectedItems[0].label || ''
-      };
+      // selected.parent = {
+      //   id: selectedItems[0].id || '',
+      //   label: selectedItems[0].label || ''
+      // };
 
       selected.parentTouched = true;
     }
