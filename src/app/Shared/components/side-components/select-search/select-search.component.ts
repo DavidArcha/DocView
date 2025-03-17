@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -18,6 +18,7 @@ import { trackByFn, getAllSelectedSystemTypeIds, isFieldValid } from './utils/se
 import { SearchAccordionService } from './services/search-accordion.service';
 import { AccordionSectionComponent } from '../../accordionControl/accordion-section/accordion-section.component';
 import { updatedSearchGroupFields } from '../../../common/updatedsearch_groupfields';
+import { TableDropdownComponent } from '../../dropdownControl/table-dropdown/table-dropdown.component';
 
 @Component({
   selector: 'app-select-search',
@@ -34,7 +35,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   @ViewChildren(AccordionSectionComponent) accordionSections!: QueryList<AccordionSectionComponent>;
   @ViewChildren('firstAccordion') firstAccordionSections!: QueryList<AccordionSectionComponent>;
   @ViewChildren('systemAccordion') systemAccordionSections!: QueryList<AccordionSectionComponent>;
-
+  @ViewChild('systemTypeDropdown') systemTypeDropdown!: TableDropdownComponent;
+  // Add ViewChild for saved group accordion
+  @ViewChild('savedGroupAccordion') savedGroupAccordion: any; // Use specific type if available
   // First System Fields Accordion Data
   public firstSystemFieldsData: AccordionItem[] = [];
 
@@ -90,7 +93,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     private fieldService: FieldService,
     private searchCriteriaService: SearchCriteriaService,
     private stateService: StateManagementService,
-    private accordionService: SearchAccordionService
+    private accordionService: SearchAccordionService,
+    private storageService: StorageService
   ) { }
 
   ngOnInit(): void {
@@ -385,18 +389,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   onSavedFieldSelected(field: SearchCriteria): void {
     if (!field) return;
     this.selectionService.addSavedField(field);
-
-    // Check if we need to load any system types for this field
-    this.loadMissingSystemTypesForFields();
   }
 
   // Handle saved group field title clicked
   onSavedGroupFieldTitleClicked(groupField: SearchRequest): void {
     this.selectionService.clearFields();
     this.selectionService.addSavedGroup(groupField);
-
-    // Load necessary system types based on the selected fields
-    this.loadMissingSystemTypesForFields();
   }
 
   // Handle operator change in relation table
@@ -429,8 +427,54 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Clear the relation table - matches clearTable() in HTML
   clearTable(): void {
+    // Clear selected fields in relation table
     this.selectionService.clearFields();
+
+    // Clear accordion selections and state
     this.accordionService.clearAccordionState();
+
+    // Reset all application state
+    this.stateService.resetAllState();
+
+    // Update component state to match
+    this.selectedSystemTypeValue = null;
+    this.selectedSystemTypeValueIds = [];
+
+    // Clear system fields accordion data
+    this.fieldService.clearSystemFieldsAccData();
+
+    // Clear localStorage items to ensure persistence across page refreshes
+    this.storageService.removeItem('selectedFields');
+    this.storageService.removeItem('selectedSystemTypeValues');
+    this.storageService.removeItem('savedAccordionState');
+
+    // Clear saved-group-accordion's state
+    localStorage.removeItem('savedAccordionState');
+
+    // Force expansion state reset on accordion sections using ViewChildren reference
+    if (this.firstAccordionSections) {
+      this.firstAccordionSections.forEach(section => section.collapse());
+    }
+    if (this.systemAccordionSections) {
+      this.systemAccordionSections.forEach(section => section.collapse());
+    }
+
+    // Reset saved group accordion if it exists
+    if (this.savedGroupAccordion) {
+      this.savedGroupAccordion.reset();
+    }
+
+    // Reset the dropdown component if it exists
+    if (this.systemTypeDropdown) {
+      this.systemTypeDropdown.reset();
+    }
+
+    // Reset any error messages
+    this.hasError = false;
+    this.errorMessage = '';
+
+    // Force change detection to ensure UI updates immediately
+    this.changeDtr.detectChanges();
   }
 
   // Handle search button click - matches searchTable() in HTML
@@ -485,41 +529,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.isDeleteMode = false;
     this.searchName = '';
     this.currentGroupField = null;
-  }
-
-  // Load system types that might be needed based on selected fields
-  loadMissingSystemTypesForFields(): void {
-    const fieldSystemTypeIds = getAllSelectedSystemTypeIds(this.selectedFields);
-    if (fieldSystemTypeIds.length === 0) return;
-
-    // Determine which system types are already loaded
-    let needsLoading = false;
-    const currentIds = this.selectedSystemTypeValueIds;
-
-    // Check if any new system type IDs need to be loaded
-    fieldSystemTypeIds.forEach(id => {
-      if (!currentIds.includes(id)) {
-        needsLoading = true;
-      }
-    });
-
-    if (needsLoading) {
-      // Find the system type objects
-      const systemTypes = this.systemTypeData.filter(
-        st => fieldSystemTypeIds.includes(st.id)
-      );
-
-      // Update system type selection
-      this.stateService.setSelectedSystemTypeValue(
-        systemTypes.length === 1 ? systemTypes[0] : systemTypes
-      );
-      this.updateSelectedSystemTypeValueIds();
-
-      // Load field data for the system types
-      this.fieldService.loadAccordionData(fieldSystemTypeIds, this.currentLanguage)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe();
-    }
   }
 
   // Handle edit group field action

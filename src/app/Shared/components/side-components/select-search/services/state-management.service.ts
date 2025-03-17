@@ -159,7 +159,36 @@ export class StateManagementService implements OnDestroy {
     const updatedGroups = currentGroups.filter(group => group.title.id !== groupId);
     this.setSavedGroupFields(updatedGroups);
   }
+  /**
+   * Resets all application state to default values
+   * Used for the "Clear" operation
+   */
+  resetAllState(): void {
+    // Reset system type selection
+    this.setSelectedSystemTypeValue(null);
 
+    // Don't reset group data display preference as it's a UI setting
+    // Don't reset saved group fields as they should persist
+
+    // Clear storage items for complete reset across page refreshes
+    this.storageService.removeItem('selectedSystemTypeValues');
+    this.storageService.removeItem('savedAccordionState');
+
+    // Clear selection-related storage
+    this.storageService.removeItem('selectedFields');
+
+    // Find and clear any accordion localStorage keys
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (
+        key.startsWith('accordion-') ||
+        key.includes('-system-') ||
+        key.includes('-first-')
+      )) {
+        localStorage.removeItem(key);
+      }
+    }
+  }
   /**
    * Clean up resources when service is destroyed
    */

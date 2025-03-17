@@ -211,9 +211,15 @@ export class SelectionService {
   }
 
   // Clear all fields
+  // Clear fields and ensure proper cleanup
   clearFields(): void {
+    // Update the subject with empty array
     this.selectedFieldsSubject.next([]);
-    this.storageService.setItem('selectedFields', JSON.stringify([]));
+
+    // Clear from storage to ensure persistence
+    this.storageService.removeItem('selectedFields');
+    this.storageService.removeItem('savedSearchFields'); // Clear legacy key too
+
   }
 
   /**

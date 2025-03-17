@@ -432,4 +432,24 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       this.contextMenuVisible = false;
     }
   }
+
+  /**
+ * Reset the accordion to its initial state
+ * Collapses all groups and clears selections
+ */
+  public reset(): void {
+    // Clear expanded groups and fields
+    this.expandedGroups.clear();
+    this.expandedFields.clear();
+
+    // Clear selected field
+    this.selectedField = null;
+    this.selectedFieldGroup = null;
+
+    // Close any open context menu
+    this.contextMenuVisible = false;
+
+    // Remove saved state from localStorage
+    localStorage.removeItem('savedAccordionState');
+  }
 }

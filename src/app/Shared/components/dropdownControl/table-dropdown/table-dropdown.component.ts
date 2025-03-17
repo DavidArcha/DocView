@@ -283,4 +283,14 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
       this.isOpen = false;
     }
   }
+
+  /**
+ * Reset the dropdown to its initial state with no selection
+ */
+  public reset(): void {
+    this.selectedValues = [];
+    this.selectedOption = '';
+    this.selectedOptions = [];
+    this.selectedValuesChange.emit([]);
+  }
 }

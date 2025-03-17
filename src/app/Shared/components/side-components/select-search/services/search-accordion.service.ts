@@ -128,7 +128,18 @@ export class SearchAccordionService {
   clearAccordionState(): void {
     this.firstAccordionExpandedState.clear();
     this.systemAccordionExpandedState.clear();
+
+    // More aggressive localStorage clearing for accordion state
     this.storageService.removeItem('savedAccordionState');
+
+    // Clear any accordion section keys in localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('accordion-') || key.includes('Accordion'))) {
+        localStorage.removeItem(key);
+      }
+    }
+
     this.accordionStateChangedSubject.next('clear');
   }
 }
