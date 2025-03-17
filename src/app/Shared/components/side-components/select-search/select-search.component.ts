@@ -72,7 +72,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   public currentGroupField: SearchRequest | null = null;
 
   // Saved search groups (from backend or local storage)
-  public savedGroupFields = updatedSearchGroupFields;
+  public savedGroupFields: any;
+  // Add loading state for saved groups
+  public loadingSavedGroups: boolean = false;
 
   // Computed property for group data display
   set showGroupDataOutside(value: boolean) {
@@ -158,13 +160,14 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.errorMessage = error.message;
       });
 
+   
     // Subscribe to saved group fields changes
-    // this.searchCriteriaService.savedGroupFields$
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe(groups => {
-    //     this.savedGroupFields = groups;
-    //     console.log('Saved group fields:', groups);
-    //   });
+    this.searchCriteriaService.savedGroupFields$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(groups => {
+        this.savedGroupFields = groups;
+        console.log('Saved group fields:', groups);
+      });
 
     // Subscribe to system type value changes
     this.stateService.selectedSystemTypeValue$
@@ -432,6 +435,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // First clear existing fields and table data
     this.selectionService.clearFields();
+    this.isEditMode = true;
+    console.log('Saved field selected:', field);
 
     this.selectionService.addSavedField(field);
   }
@@ -649,29 +654,31 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     console.log('Save search request:', searchRequest);
 
     // Example API call with FormData (implement as needed)
-    // const formData = new FormData();
-    // formData.append('searchRequest', JSON.stringify(searchRequest));
+    const formData = new FormData();
+    formData.append('searchRequest', JSON.stringify(searchRequest));
+    console.log('Form data:', formData);
 
     // Call your search service API
-    // this.searchService.saveSearchRequest(formData)
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe({
-    //     next: (response) => {
-    //       // Handle successful save
-    //       this.isLoading = false;
-    //       this.loadingSubject.next(false);
-    //       this.cancelSave();
-    //       
-    //       // Update saved groups list
-    //       this.savedGroupFields = [...this.savedGroupFields, searchRequest];
-    //     },
-    //     error: (error) => {
-    //       this.isLoading = false;
-    //       this.loadingSubject.next(false);
-    //       this.hasError = true;
-    //       this.errorMessage = 'Failed to save search. Please try again.';
-    //     }
-    //   });
+    this.searchService.saveSearchRequest(searchRequest)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          // Handle successful save
+          this.isLoading = false;
+          this.loadingSubject.next(false);
+          this.cancelSave();
+          console.log('Search saved:', response);
+
+          // Update saved groups list
+          // this.savedGroupFields = [...this.savedGroupFields, searchRequest];
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.loadingSubject.next(false);
+          this.hasError = true;
+          this.errorMessage = 'Failed to save search. Please try again.';
+        }
+      });
 
     // For now, use the existing searchCriteriaService to save locally
     this.searchCriteriaService.saveCustomSearchRequest(searchRequest);
