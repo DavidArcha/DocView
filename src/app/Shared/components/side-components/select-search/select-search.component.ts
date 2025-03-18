@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
 
 import { AccordionItem } from '../../../interfaces/accordian-list.interface';
 import { DropdownItem } from '../../../interfaces/table-dropdown.interface';
@@ -72,7 +72,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   public currentGroupField: SearchRequest | null = null;
 
   // Saved search groups (from backend or local storage)
-  public savedGroupFields: any;
+  public savedGroupFields: any[] = [];
+
+  public savedGroupFieldsData: any[] = updatedSearchGroupFields;
   // Add loading state for saved groups
   public loadingSavedGroups: boolean = false;
 
@@ -101,6 +103,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+
     // Subscribe to language changes
     this.languageService.language$
       .pipe(takeUntil(this.destroy$))
@@ -160,7 +163,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.errorMessage = error.message;
       });
 
-   
+
     // Subscribe to saved group fields changes
     this.searchCriteriaService.savedGroupFields$
       .pipe(takeUntil(this.destroy$))

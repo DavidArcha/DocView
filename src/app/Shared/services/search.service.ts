@@ -98,6 +98,7 @@ export class SearchService {
   getSearch(gSearchId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/GetSearch/${gSearchId}`);
   }
+
   getAllSavedSearches(): Observable<any> {
     let url = `${this.apiUrl}${RestAPICallUrl.getAllSavedSearches}`;
     return this.http.get(url);

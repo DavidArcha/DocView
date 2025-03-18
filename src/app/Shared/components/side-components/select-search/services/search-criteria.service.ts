@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, map } from 'rxjs';
 import { SelectedField } from '../../../../interfaces/selectedFields.interface';
 import { SearchCriteria } from '../../../../interfaces/search-criteria.interface';
 import { SearchRequest } from '../../../../interfaces/search-request.interface';
 import { StorageService } from './storage.service';
 import { SelectionService } from './selection.service';
 import { updatedSearchGroupFields } from '../../../../common/updatedsearch_groupfields';
+import { SearchService } from '../../../../services/search.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,9 +17,82 @@ export class SearchCriteriaService {
 
   constructor(
     private storageService: StorageService,
-    private selectionService: SelectionService
+    private selectionService: SelectionService,
+    private searchService: SearchService,
   ) {
-    this.loadSavedGroupFieldsFromStorage();
+    this.loadAllSavedSearches();
+  }
+
+  // Method to load all saved searches from the API
+  loadAllSavedSearches(): void {
+    this.searchService.getAllSavedSearches()
+      .pipe(
+        map(response => {
+          // Transform the data similar to your component code
+          let transformedData: any[] = [];
+
+          if (response && response.groupTitle && response.groupFields) {
+            // Deep clone the response to avoid reference issues
+            const clonedResponse = JSON.parse(JSON.stringify(response));
+
+            // Normalize the groupFields data, checking each field
+            if (clonedResponse.groupFields && Array.isArray(clonedResponse.groupFields)) {
+              clonedResponse.groupFields.forEach((group: any) => {
+                if (group.fields && Array.isArray(group.fields)) {
+                  group.fields.forEach((field: any) => {
+                    // Ensure parent property is correctly formatted
+                    if (field.parent) {
+                      // If parent is not an array but should be (based on model)
+                      if (!Array.isArray(field.parent) && typeof field.parent === 'object') {
+                        // Ensure id is the right type (convert string to number if needed)
+                        if (field.parent.id && typeof field.parent.id === 'string' && !isNaN(Number(field.parent.id))) {
+                          field.parent.id = Number(field.parent.id);
+                        }
+                      }
+                      // If parent is array, ensure each item is formatted correctly
+                      else if (Array.isArray(field.parent)) {
+                        field.parent.forEach((parent: any) => {
+                          if (parent.id && typeof parent.id === 'string' && !isNaN(Number(parent.id))) {
+                            parent.id = Number(parent.id);
+                          }
+                        });
+                      }
+                    }
+
+                    // Similar logic for field IDs if needed
+                    if (field.field && field.field.id && typeof field.field.id === 'string' && !isNaN(Number(field.field.id))) {
+                      field.field.id = Number(field.field.id);
+                    }
+
+                    // Ensure rowId exists (even if empty)
+                    if (!field.hasOwnProperty('rowId')) {
+                      field.rowId = "";
+                    }
+                  });
+                }
+              });
+            }
+
+            transformedData = [clonedResponse];
+          } else if (Array.isArray(response)) {
+            // Already an array, but still normalize the data
+            transformedData = JSON.parse(JSON.stringify(response));
+            // Apply same normalization as above...
+          }
+
+          return transformedData;
+        })
+      )
+      .subscribe({
+        next: (savedSearches) => {
+          this.savedGroupFieldsSubject.next(savedSearches);
+        },
+        error: (err) => {
+          console.error('Failed to load saved searches', err);
+          // You could emit an empty array or keep the current value
+          // depending on your error handling strategy
+        }
+      });
   }
 
   /**
