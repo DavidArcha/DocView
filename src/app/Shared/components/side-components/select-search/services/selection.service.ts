@@ -22,10 +22,19 @@ export class SelectionService {
     private storageService: StorageService,
     private searchService: SearchService
   ) {
-    // Load operators data
-    this.loadOperatorsData();
-    // Load saved fields from storage
-    this.loadSavedFields();
+    // Load operators first, then load saved fields when operators are ready
+    this.searchService.getDropdownData().subscribe({
+      next: (data) => {
+        this.operatorsDdDataSubject.next(data);
+        // Now load saved fields after operators are available
+        this.loadSavedFields();
+      },
+      error: (err) => {
+        console.error('Failed to load operators data', err);
+        // Still try to load saved fields even if operators failed
+        this.loadSavedFields();
+      }
+    });
   }
 
   private loadSavedFields(): void {
@@ -37,18 +46,33 @@ export class SelectionService {
       stored = this.storageService.getItem('savedSearchFields');
     }
 
+    // Wait for operators data to be loaded before restoring fields
+    this.loadOperatorsData();
+
     if (stored) {
       try {
         // If it's in the SearchCriteria format, convert it
         if (stored.includes('rowId')) {
           const parsedCriteria = JSON.parse(stored) as SearchCriteria[];
           const fields = this.restoreValueFormat(parsedCriteria);
-          console.log('Parsed fields from SearchCriteria:', fields);
           this.selectedFieldsSubject.next(fields);
         } else {
           // Otherwise parse directly as SelectedField[]
           const fields = JSON.parse(stored) as SelectedField[];
-          console.log('Parsed fields from SelectedField:', fields);
+
+          // Ensure operator labels are set properly
+          fields.forEach(field => {
+            if (field.operator && field.operatorOptions) {
+              const foundOperator = field.operatorOptions.find(op => op.id === field.operator.id);
+              if (foundOperator) {
+                field.operator = {
+                  id: field.operator.id,
+                  label: foundOperator.label || field.operator.id
+                };
+              }
+            }
+          });
+
           this.selectedFieldsSubject.next(fields);
         }
       } catch (e) {
@@ -175,8 +199,6 @@ export class SelectionService {
     if (index < 0 || index >= currentFields.length) return;
 
     const field = currentFields[index];
-    console.log('field-1', field);
-
     // Handle 'select' option selection
     if (newOperatorId === 'select') {
       field.operator = {
@@ -212,7 +234,6 @@ export class SelectionService {
 
     field.operatorTouched = true;
 
-    console.log('Updated field:', currentFields);
     // Save updated fields
     this.selectedFieldsSubject.next([...currentFields]);
     this.storageService.setItem('selectedFields', JSON.stringify(currentFields));
@@ -372,7 +393,6 @@ export class SelectionService {
       }
       return selectedField;
     });
-    console.log('Updated fields: map', updatedFields);
 
     this.selectedFieldsSubject.next(updatedFields);
     this.storageService.setItem('selectedFields', JSON.stringify(updatedFields));
@@ -536,13 +556,10 @@ export class SelectionService {
   addSavedGroup(groupField: SearchRequest): void {
     if (!groupField || !groupField.fields || !Array.isArray(groupField.fields)) return;
 
-
-    console.log('groupField', groupField);
     // Convert each field in the group
     const newSelectedFields = groupField.fields
       .map(field => this.convertSavedFieldToSelectedField(field))
       .filter(field => field !== null) as SelectedField[];
-    console.log('newSelectedFields', newSelectedFields);
     if (newSelectedFields.length > 0) {
       const currentFields = this.selectedFieldsSubject.getValue();
       const updatedFields = [...currentFields, ...newSelectedFields];
@@ -704,15 +721,6 @@ export class SelectionService {
         formattedValue = field.value.id;
       }
 
-      // Determine what to use for parent - handle parentSelected array
-      // let parentValue;
-      // if (field.parentSelected && Array.isArray(field.parentSelected) && field.parentSelected.length > 0) {
-      //   // Use the array of parents
-      //   parentValue = field.parentSelected;
-      // } else {
-      //   // Use the single parent object
-      //   parentValue = field.parent;
-      // }
 
       // Return the search criteria with proper parent handling and rowId
       return {

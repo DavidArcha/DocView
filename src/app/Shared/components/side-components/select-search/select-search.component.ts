@@ -40,6 +40,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   @ViewChild('systemTypeDropdown') systemTypeDropdown!: TableDropdownComponent;
   // Add ViewChild for saved group accordion
   @ViewChild('savedGroupAccordion') savedGroupAccordion: any; // Use specific type if available
+  @ViewChild('relationTable') relationTable: any;
   // Use specific type if available
   // First System Fields Accordion Data
   public firstSystemFieldsData: AccordionItem[] = [];
@@ -116,13 +117,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
         this.loadDataForCurrentLanguage();
       });
 
-    // Subscribe to selected fields changes
-    this.selectionService.selectedFields$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(fields => {
-        console.log('Selected fields from NG:', fields);
-        this.selectedFields = fields;
-      });
+
 
     // Subscribe to system fields data changes
     this.fieldService.firstSystemFieldsData$
@@ -182,6 +177,13 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       .subscribe(value => {
         this.selectedSystemTypeValue = value;
         this.updateSelectedSystemTypeValueIds();
+      });
+
+    // Subscribe to selected fields changes
+    this.selectionService.selectedFields$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(fields => {
+        this.selectedFields = fields;
       });
 
     // Load stored values from localStorage
@@ -508,6 +510,14 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please add fields before saving.';
       return;
     }
+
+    const validationResult = this.relationTable.validateAllFields();
+    if (!validationResult.isValid) {
+      this.hasError = true;
+      this.errorMessage = `Please complete all required fields: ${validationResult.invalidFields.join(', ')}`;
+      return;
+    }
+    
     // Show the save container
     this.showSaveContainer = true;
     this.isDeleteMode = false;
@@ -557,7 +567,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please add fields before saving.';
       return;
     }
-    console.log('Selected fields:', this.selectedFields);
 
     // Step 1: Convert selectedFields to searchCriteria
     const searchCriteria = this.selectionService.convertSelectedFieldsToSearchCriteria(this.selectedFields);

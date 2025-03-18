@@ -50,7 +50,7 @@
         [section]="section" [parentPath]="''" [isLoading]="isLoading" [sectionType]="'system'"
         (fieldSelected)="onFieldSelected($event)">
     </app-accordion-section>
-    <app-relation-table [selectedFields]="selectedFields" [selectedLanguage]="currentLanguage"
+    <app-relation-table #relationTable [selectedFields]="selectedFields" [selectedLanguage]="currentLanguage"
         (operatorChange)="onOperatorChange($event)" (deleteSelectedField)="onDeleteSelectedField($event)"
         (searchSelectedField)="onSearchSelectedField($event)" (parentValueChange)="onParentValueChange($event)">
     </app-relation-table>

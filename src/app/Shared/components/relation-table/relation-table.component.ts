@@ -166,8 +166,6 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     // Get data source name from mapping
     const dataSource = DropdownDataMapping[fieldId] || DropdownDataMapping['default'];
 
-    console.log(`Getting dropdown data for field: ${fieldId}, data source: ${dataSource}`);
-
     // Return the appropriate data based on data source name
     switch (dataSource) {
       case 'brandData':
@@ -250,8 +248,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       selected.parentSelected = [];
 
       selected.parentTouched = true;
-       // Emit the event for persistent storage
-    this.parentValueChange.emit({ selectedValues: [], index });
+      // Emit the event for persistent storage
+      this.parentValueChange.emit({ selectedValues: [], index });
       return;
     }
 
@@ -261,7 +259,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       selected.parentSelected = selectedItems;
       selected.parentTouched = true;
       // Emit the event for persistent storage
-    this.parentValueChange.emit({ selectedValues: selectedItems, index });
+      this.parentValueChange.emit({ selectedValues: selectedItems, index });
     }
   }
   // Helper method to save changes
@@ -421,7 +419,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   // Initialize the values properly for each field based on operator type
   // Initialize the values properly for each field based on operator type
   initializeValueForOperator(selected: SelectedField): void {
-    const operatorId = selected.operator?.id?.toLowerCase() || '';
+    const operatorId = selected.operator?.id || '';
 
     // Special handling for similar operator
     if (operatorId === 'similar') {
@@ -497,6 +495,41 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
     // Emit the selected field (with validation state)
     this.searchSelectedField.emit(selected);
+  }
+
+  // Add this method to the class
+  validateAllFields(): { isValid: boolean, invalidFields: string[] } {
+    const invalidFieldsMessages: string[] = [];
+
+    // Loop through each field and check for validation issues
+    this.selectedFields.forEach((field, index) => {
+      // Check parent validation
+      field.parentTouched = true;
+      if (!this.isParentValid(field)) {
+        invalidFieldsMessages.push(`Row ${index + 1}: Parent selection`);
+      }
+
+      // Check operator validation
+      field.operatorTouched = true;
+      if (!this.isOperatorValid(field)) {
+        invalidFieldsMessages.push(`Row ${index + 1}: Operator selection`);
+      }
+
+      // Check value validation if needed based on operator
+      const valueControl = this.getValueControl(field);
+      if (valueControl.show && this.isOperatorValid(field)) {
+        field.valueTouched = true;
+        if (!this.isValueValid(field)) {
+          const fieldName = field.field?.label || `Field ${index + 1}`;
+          invalidFieldsMessages.push(`Row ${index + 1}: Value for ${fieldName}`);
+        }
+      }
+    });
+
+    return {
+      isValid: invalidFieldsMessages.length === 0,
+      invalidFields: invalidFieldsMessages
+    };
   }
 
   onDeleteSelectedField(index: number): void {

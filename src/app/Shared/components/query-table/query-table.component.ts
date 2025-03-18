@@ -190,7 +190,7 @@ export class QueryTableComponent implements OnInit, OnDestroy {
   }
   // Helper method to save changes
   private saveToLocalStorage(): void {
-    localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
+    // localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
   }
 
   // Get selected parent items as array for display
