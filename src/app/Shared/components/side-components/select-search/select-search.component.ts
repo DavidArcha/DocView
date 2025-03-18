@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChildren, QueryList, ChangeDetectorRef, ViewChild, viewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 
@@ -19,6 +19,7 @@ import { SearchAccordionService } from './services/search-accordion.service';
 import { AccordionSectionComponent } from '../../accordionControl/accordion-section/accordion-section.component';
 import { updatedSearchGroupFields } from '../../../common/updatedsearch_groupfields';
 import { TableDropdownComponent } from '../../dropdownControl/table-dropdown/table-dropdown.component';
+import { RelationTableComponent } from '../../relation-table/relation-table.component';
 
 @Component({
   selector: 'app-select-search',
@@ -38,8 +39,10 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   @ViewChild('systemTypeDropdown') systemTypeDropdown!: TableDropdownComponent;
   // Add ViewChild for saved group accordion
   @ViewChild('savedGroupAccordion') savedGroupAccordion: any; // Use specific type if available
+  // Use specific type if available
   // First System Fields Accordion Data
   public firstSystemFieldsData: AccordionItem[] = [];
+  public isParentArray: boolean = false;
 
   // Loading state management
   public isLoading$ = this.loadingSubject.asObservable();
@@ -382,10 +385,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     const field = this.extractFieldFromItem(item);
     if (!field) return;
 
+    this.isParentArray = true; // Reset parent array state
+
     // First accordion items always have no parent
     const emptyParent = { id: '', label: '' };
     this.isEditMode = false;
-    this.selectionService.addField(field, emptyParent, '', this.currentLanguage);
+    this.selectionService.addField(field, emptyParent, '', this.currentLanguage, this.isParentArray);
   }
 
   // Handle accordion item selection from system accordion
@@ -462,7 +467,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle operator change in relation table
   onOperatorChange(event: any): void {
     if (!event) return;
-
     // Handle both formats for compatibility
     const index = event.index !== undefined ? event.index : event.rowIndex;
     const operatorId = event.newOperator !== undefined ? event.newOperator : event.operatorId;
@@ -473,6 +477,16 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     }
 
     this.selectionService.updateOperator(index, operatorId, this.currentLanguage);
+  }
+
+  // Handle parent value change in relation table
+  onParentValueChange(event: { selectedValues: DropdownItem[], index: number }): void {
+    if (!event) return;
+
+    const { selectedValues, index } = event;
+
+    // Update the parent selection in the selection service
+    this.selectionService.updateParentSelection(index, selectedValues, this.currentLanguage);
   }
 
   // Handle delete field action in relation table
@@ -612,7 +626,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Save the current search
   saveSearch(): void {
-
     this.saveFreshSearchData(this.searchName);
     this.cancelSave();
   }
@@ -635,7 +648,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
     // Step 1: Convert selectedFields to searchCriteria
     const searchCriteria = this.selectionService.convertSelectedFieldsToSearchCriteria(this.selectedFields);
-
+    console.log('Search criteria:', searchCriteria);
     // Step 2: Create a searchRequest object with the criteria
     const searchRequest: SearchRequest = {
       title: {
@@ -652,8 +665,8 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Helper method to save the search request (e.g., to backend API)
   private saveSearchRequest(searchRequest: SearchRequest): void {
     // Show loading state
-    // this.isLoading = true;
-    // this.loadingSubject.next(true);
+    this.isLoading = true;
+    this.loadingSubject.next(true);
     console.log('Save search request:', searchRequest);
 
     // Example API call with FormData (implement as needed)
@@ -670,10 +683,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.loadingSubject.next(false);
           this.cancelSave();
-          console.log('Search saved:', response);
-
-          // Update saved groups list
-          // this.savedGroupFields = [...this.savedGroupFields, searchRequest];
+          console.log('Search saved successfully:', response);
+          // Reload saved searches via the service instead of updating the array directly
+          this.searchCriteriaService.loadAllSavedSearches();
         },
         error: (error) => {
           this.isLoading = false;

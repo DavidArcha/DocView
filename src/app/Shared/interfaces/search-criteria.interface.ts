@@ -7,8 +7,11 @@ import { DropdownItem } from "./table-dropdown.interface";
  */
 export interface SearchCriteria {
     rowId?: string;
-    // Parent information - single item for backward compatibility
-    parent?: DropdownItem | DropdownItem[] | null;
+    parent: {
+        id: string;
+        label: string;
+    };
+    parentSelected?: DropdownItem | DropdownItem[] | null;
     field: {
         id: string;
         label: string;

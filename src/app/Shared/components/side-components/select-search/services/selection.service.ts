@@ -7,6 +7,7 @@ import { SearchCriteria } from '../../../../interfaces/search-criteria.interface
 import { SearchRequest } from '../../../../interfaces/search-request.interface';
 import { StorageService } from './storage.service';
 import { SearchService } from '../../../../services/search.service';
+import { DropdownItem } from '../../../../interfaces/table-dropdown.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -120,7 +121,8 @@ export class SelectionService {
     field: { id: string, label: string },
     parent: { id: string, label: string },
     path: string = '',
-    currentLanguage: string = 'en'
+    currentLanguage: string = 'en',
+    isParentArray: boolean = false
   ): void {
 
     const operatorOptions = this.getOperatorOptions(field.id);
@@ -142,7 +144,8 @@ export class SelectionService {
       dropdownData: dropdownData,
       parentTouched: false,
       operatorTouched: false,
-      valueTouched: false
+      valueTouched: false,
+      isParentArray: isParentArray,
     };
     // Get current fields and add the new one
     const currentFields = this.selectedFieldsSubject.getValue();
@@ -153,9 +156,21 @@ export class SelectionService {
     this.storageService.setItem('selectedFields', JSON.stringify(updatedFields));
   }
 
+  // Update parent selection and save to localStorage
+  updateParentSelection(index: number, selectedValues: DropdownItem[], currentLanguage: string): void {
+    const fields = this.selectedFieldsSubject.getValue();
+    if (!fields[index]) return;
+    const field = fields[index];
+    field.parentSelected = selectedValues.length > 0 ? selectedValues : null;
+    field.parentTouched = true;
+    this.selectedFieldsSubject.next(fields);
+    this.saveFieldsToStorage(fields);
+  }
+
   // Update operator and reset value
   updateOperator(index: number, newOperatorId: string, currentLanguage: string): void {
     const currentFields = this.selectedFieldsSubject.getValue();
+    console.log('currentFields', currentFields);
     if (index < 0 || index >= currentFields.length) return;
 
     const field = currentFields[index];
@@ -516,11 +531,13 @@ export class SelectionService {
   addSavedGroup(groupField: SearchRequest): void {
     if (!groupField || !groupField.fields || !Array.isArray(groupField.fields)) return;
 
+
+    console.log('groupField', groupField);
     // Convert each field in the group
     const newSelectedFields = groupField.fields
       .map(field => this.convertSavedFieldToSelectedField(field))
       .filter(field => field !== null) as SelectedField[];
-
+    console.log('newSelectedFields', newSelectedFields);
     if (newSelectedFields.length > 0) {
       const currentFields = this.selectedFieldsSubject.getValue();
       const updatedFields = [...currentFields, ...newSelectedFields];
@@ -629,6 +646,7 @@ export class SelectionService {
     const selectedField: SelectedField = {
       rowid: field.rowId || '',
       parent: parent,
+      parentSelected: parentSelected,
       field: {
         id: field.field.id || '',
         label: field.field.label || ''
@@ -682,19 +700,20 @@ export class SelectionService {
       }
 
       // Determine what to use for parent - handle parentSelected array
-      let parentValue;
-      if (field.parentSelected && Array.isArray(field.parentSelected) && field.parentSelected.length > 0) {
-        // Use the array of parents
-        parentValue = field.parentSelected;
-      } else {
-        // Use the single parent object
-        parentValue = field.parent;
-      }
+      // let parentValue;
+      // if (field.parentSelected && Array.isArray(field.parentSelected) && field.parentSelected.length > 0) {
+      //   // Use the array of parents
+      //   parentValue = field.parentSelected;
+      // } else {
+      //   // Use the single parent object
+      //   parentValue = field.parent;
+      // }
 
       // Return the search criteria with proper parent handling and rowId
       return {
         rowId: field.rowid || '', // Include rowId, empty if not exists
-        parent: parentValue,
+        parent: field.parent,
+        parentSelected: field.parentSelected,
         field: {
           id: field.field.id,
           label: field.field.label

@@ -24,6 +24,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   @Output() operatorChange = new EventEmitter<{ newOperator: string, index: number }>();
   @Output() searchSelectedField = new EventEmitter<SelectedField>();
   @Output() deleteSelectedField = new EventEmitter<number>();
+  @Output() parentValueChange = new EventEmitter<{ selectedValues: DropdownItem[], index: number }>();
 
   systemTypeData: DropdownItem[] = [];
   brandData: DropdownItem[] = [];
@@ -249,6 +250,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
       selected.parentSelected = [];
 
       selected.parentTouched = true;
+       // Emit the event for persistent storage
+    this.parentValueChange.emit({ selectedValues: [], index });
       return;
     }
 
@@ -256,14 +259,9 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     if (selectedItems.length > 0) {
       // Always maintain parentSelected for dropdown fields that have been interacted with
       selected.parentSelected = selectedItems;
-
-      // Set parent to first selected item
-      // selected.parent = {
-      //   id: selectedItems[0].id || '',
-      //   label: selectedItems[0].label || ''
-      // };
-
       selected.parentTouched = true;
+      // Emit the event for persistent storage
+    this.parentValueChange.emit({ selectedValues: selectedItems, index });
     }
   }
   // Helper method to save changes
@@ -484,7 +482,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
     // If all validations pass, create search criteria
     const searchCriteria: SearchCriteria = {
-      parent: selected.parentSelected || selected.parent,
+      parent: selected.parent,
+      parentSelected: selected.parentSelected,
       field: {
         id: selected.field.id,
         label: selected.field.label
