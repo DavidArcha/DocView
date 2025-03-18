@@ -57,7 +57,7 @@
     <div class="action-buttons">
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>
         <button [disabled]="selectedFields.length === 0" (click)="searchTable()">Search</button>
-        <button [disabled]="selectedFields.length === 0" (click)="storeTable()">Save</button>
+        <button [disabled]="selectedFields.length === 0" (click)="saveTable()">Save</button>
     </div>
     <!-- New save container -->
     <div *ngIf="showSaveContainer" class="save-container">

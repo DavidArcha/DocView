@@ -20,6 +20,7 @@ import { AccordionSectionComponent } from '../../accordionControl/accordion-sect
 import { updatedSearchGroupFields } from '../../../common/updatedsearch_groupfields';
 import { TableDropdownComponent } from '../../dropdownControl/table-dropdown/table-dropdown.component';
 import { RelationTableComponent } from '../../relation-table/relation-table.component';
+import { SearchProcessService } from './services/search-process.service';
 
 @Component({
   selector: 'app-select-search',
@@ -102,11 +103,11 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     private searchCriteriaService: SearchCriteriaService,
     private stateService: StateManagementService,
     private accordionService: SearchAccordionService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private searchProcessService: SearchProcessService
   ) { }
 
   ngOnInit(): void {
-
     // Subscribe to language changes
     this.languageService.language$
       .pipe(takeUntil(this.destroy$))
@@ -119,6 +120,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.selectionService.selectedFields$
       .pipe(takeUntil(this.destroy$))
       .subscribe(fields => {
+        console.log('Selected fields from NG:', fields);
         this.selectedFields = fields;
       });
 
@@ -172,7 +174,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(groups => {
         this.savedGroupFields = groups;
-        console.log('Saved group fields:', groups);
       });
 
     // Subscribe to system type value changes
@@ -320,69 +321,11 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Extract field object from various input formats
-   * @param item - The item from which to extract field data
-   * @returns Field object or null if invalid
-   */
-  private extractFieldFromItem(item: any): { id: string, label: string } | null {
-    if (!item) return null;
 
-    // Handle different item formats
-    if (item.field) {
-      return {
-        id: item.field.id,
-        label: item.field.label
-      };
-    } else if (item.item) {
-      return {
-        id: item.item.id,
-        label: item.item.label
-      };
-    } else if (item.id) {
-      return {
-        id: item.id,
-        label: item.label || item.id
-      };
-    }
 
-    return null;
-  }
-
-  /**
-   * Extract parent object from system type or event
-   * @param event - The event that might contain parent information
-   * @returns Parent object
-   */
-  private getParentObject(event: any = null): { id: string, label: string } {
-    // Always use the selected system type as the parent for system fields
-    // regardless of what might be in event.parent
-    if (this.selectedSystemTypeValue) {
-      // Handle both single and multiple selection
-      if (Array.isArray(this.selectedSystemTypeValue)) {
-        // For multiple selections, use the first one as parent
-        if (this.selectedSystemTypeValue.length > 0) {
-          const firstItem = this.selectedSystemTypeValue[0];
-          return {
-            id: firstItem.id || '', // Add fallback for undefined id
-            label: firstItem.label || '' // Add fallback for undefined label
-          };
-        }
-      } else {
-        // Single system type selection
-        return {
-          id: this.selectedSystemTypeValue.id || '', // Add fallback for undefined id
-          label: this.selectedSystemTypeValue.label || '' // Add fallback for undefined label
-        };
-      }
-    }
-
-    // Default empty parent if no system type selected
-    return { id: '', label: '' };
-  }
   // Handle accordion item selection from first accordion
   onFirstAccFieldSelected(item: any): void {
-    const field = this.extractFieldFromItem(item);
+    const field = this.searchProcessService.extractFieldFromItem(item);
     if (!field) return;
 
     this.isParentArray = true; // Reset parent array state
@@ -395,7 +338,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Handle accordion item selection from system accordion
   onFieldSelected(event: any): void {
-    const field = this.extractFieldFromItem(event);
+    const field = this.searchProcessService.extractFieldFromItem(event);
     if (!field) return;
 
     // For system fields, get the appropriate parent from the selectedSystemTypeValue
@@ -482,10 +425,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   // Handle parent value change in relation table
   onParentValueChange(event: { selectedValues: DropdownItem[], index: number }): void {
     if (!event) return;
-
     const { selectedValues, index } = event;
-
-    // Update the parent selection in the selection service
     this.selectionService.updateParentSelection(index, selectedValues, this.currentLanguage);
   }
 
@@ -496,8 +436,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Handle search action from relation table
   onSearchSelectedField(event: any): void {
-    // This would typically trigger field-specific search operations
-    // For now, just log the event
     console.log('Search for field', event);
   }
 
@@ -505,28 +443,21 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
   clearTable(): void {
     // Clear selected fields in relation table
     this.selectionService.clearFields();
-
     // Clear accordion selections and state
     this.accordionService.clearAccordionState();
-
     // Reset all application state
     this.stateService.resetAllState();
-
     // Update component state to match
     this.selectedSystemTypeValue = null;
     this.selectedSystemTypeValueIds = [];
-
     // Clear system fields accordion data
     this.fieldService.clearSystemFieldsAccData();
-
     // Clear localStorage items to ensure persistence across page refreshes
     this.storageService.removeItem('selectedFields');
     this.storageService.removeItem('selectedSystemTypeValues');
     this.storageService.removeItem('savedAccordionState');
-
     // Clear saved-group-accordion's state
     localStorage.removeItem('savedAccordionState');
-
     // Force expansion state reset on accordion sections using ViewChildren reference
     if (this.firstAccordionSections) {
       this.firstAccordionSections.forEach(section => section.collapse());
@@ -534,21 +465,17 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     if (this.systemAccordionSections) {
       this.systemAccordionSections.forEach(section => section.collapse());
     }
-
     // Reset saved group accordion if it exists
     if (this.savedGroupAccordion) {
       this.savedGroupAccordion.reset();
     }
-
     // Reset the dropdown component if it exists
     if (this.systemTypeDropdown) {
       this.systemTypeDropdown.reset();
     }
-
     // Reset any error messages
     this.hasError = false;
     this.errorMessage = '';
-
     // Force change detection to ensure UI updates immediately
     this.changeDtr.detectChanges();
   }
@@ -571,34 +498,16 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.loadingSubject.next(true);
     this.hasError = false;
-
-    // this.searchService.executeSearch(searchCriteria)
-    //   .pipe(takeUntil(this.destroy$))
-    //   .subscribe({
-    //     next: (results) => {
-    //       // Handle search results
-    //       this.isLoading = false;
-    //       this.loadingSubject.next(false);
-    //       // Emit results or update UI
-    //     },
-    //     error: () => {
-    //       this.isLoading = false;
-    //       this.loadingSubject.next(false);
-    //       this.hasError = true;
-    //       this.errorMessage = 'Search failed. Please try again.';
-    //     }
-    //   });
   }
 
   // Handle store button click - matches storeTable() in HTML
-  storeTable(): void {
+  saveTable(): void {
     // Check if there are fields to save
     if (this.selectedFields.length === 0) {
       this.hasError = true;
       this.errorMessage = 'Please add fields before saving.';
       return;
     }
-    console.log('Store Table fields:', this.selectedFields, ' and EditMode', this.isEditMode);
     // Show the save container
     this.showSaveContainer = true;
     this.isDeleteMode = false;
@@ -626,6 +535,9 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
 
   // Save the current search
   saveSearch(): void {
+    // Show loading state
+    this.isLoading = true;
+    this.loadingSubject.next(true);
     this.saveFreshSearchData(this.searchName);
     this.cancelSave();
   }
@@ -645,6 +557,7 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please add fields before saving.';
       return;
     }
+    console.log('Selected fields:', this.selectedFields);
 
     // Step 1: Convert selectedFields to searchCriteria
     const searchCriteria = this.selectionService.convertSelectedFieldsToSearchCriteria(this.selectedFields);
@@ -659,46 +572,12 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     };
 
     // Step 3: Save the search request
-    this.saveSearchRequest(searchRequest);
-  }
-
-  // Helper method to save the search request (e.g., to backend API)
-  private saveSearchRequest(searchRequest: SearchRequest): void {
-    // Show loading state
-    this.isLoading = true;
-    this.loadingSubject.next(true);
-    console.log('Save search request:', searchRequest);
-
-    // Example API call with FormData (implement as needed)
-    const formData = new FormData();
-    formData.append('searchRequest', JSON.stringify(searchRequest));
-    console.log('Form data:', formData);
-
-    // Call your search service API
-    this.searchService.saveSearchRequest(searchRequest)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response) => {
-          // Handle successful save
-          this.isLoading = false;
-          this.loadingSubject.next(false);
-          this.cancelSave();
-          console.log('Search saved successfully:', response);
-          // Reload saved searches via the service instead of updating the array directly
-          this.searchCriteriaService.loadAllSavedSearches();
-        },
-        error: (error) => {
-          this.isLoading = false;
-          this.loadingSubject.next(false);
-          this.hasError = true;
-          this.errorMessage = 'Failed to save search. Please try again.';
-        }
-      });
-
-    // For now, use the existing searchCriteriaService to save locally
-    this.searchCriteriaService.saveCustomSearchRequest(searchRequest);
+    // this.searchProcessService.saveSearchRequest(searchRequest);
+    this.isLoading = false;
+    this.loadingSubject.next(false);
     this.cancelSave();
   }
+
 
   // Save as a new search
   saveAsSearch(): void {
@@ -707,7 +586,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
       this.errorMessage = 'Please enter a name for your search.';
       return;
     }
-
     // Always save as a new search, regardless of current mode
     this.searchCriteriaService.saveSearchGroup(this.searchName);
     this.cancelSave();
@@ -719,7 +597,6 @@ export class SelectSearchComponent implements OnInit, OnDestroy {
     if (this.currentGroupField) {
       this.searchCriteriaService.deleteSearchGroup(this.currentGroupField);
     }
-
     // Reset the UI state
     this.cancelSave();
   }

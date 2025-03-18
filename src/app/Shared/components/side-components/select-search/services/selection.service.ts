@@ -22,11 +22,10 @@ export class SelectionService {
     private storageService: StorageService,
     private searchService: SearchService
   ) {
-    // Load saved fields from storage
-    this.loadSavedFields();
-
     // Load operators data
     this.loadOperatorsData();
+    // Load saved fields from storage
+    this.loadSavedFields();
   }
 
   private loadSavedFields(): void {
@@ -44,10 +43,12 @@ export class SelectionService {
         if (stored.includes('rowId')) {
           const parsedCriteria = JSON.parse(stored) as SearchCriteria[];
           const fields = this.restoreValueFormat(parsedCriteria);
+          console.log('Parsed fields from SearchCriteria:', fields);
           this.selectedFieldsSubject.next(fields);
         } else {
           // Otherwise parse directly as SelectedField[]
           const fields = JSON.parse(stored) as SelectedField[];
+          console.log('Parsed fields from SelectedField:', fields);
           this.selectedFieldsSubject.next(fields);
         }
       } catch (e) {
@@ -174,6 +175,7 @@ export class SelectionService {
     if (index < 0 || index >= currentFields.length) return;
 
     const field = currentFields[index];
+    console.log('field-1', field);
 
     // Handle 'select' option selection
     if (newOperatorId === 'select') {
@@ -184,6 +186,7 @@ export class SelectionService {
       field.value = null;
       field.operatorTouched = true;
 
+      console.log('Updated field:-1', field);
       // Save updated fields
       this.selectedFieldsSubject.next([...currentFields]);
       this.storageService.setItem('selectedFields', JSON.stringify(currentFields));
@@ -209,6 +212,7 @@ export class SelectionService {
 
     field.operatorTouched = true;
 
+    console.log('Updated field:', currentFields);
     // Save updated fields
     this.selectedFieldsSubject.next([...currentFields]);
     this.storageService.setItem('selectedFields', JSON.stringify(currentFields));
@@ -368,6 +372,7 @@ export class SelectionService {
       }
       return selectedField;
     });
+    console.log('Updated fields: map', updatedFields);
 
     this.selectedFieldsSubject.next(updatedFields);
     this.storageService.setItem('selectedFields', JSON.stringify(updatedFields));
