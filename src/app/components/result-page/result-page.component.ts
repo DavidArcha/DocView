@@ -21,6 +21,9 @@ export class ResultPageComponent implements OnInit {
   public paginationPageSize = 10;
   public paginatinonSizeSelector: number[] | boolean = [5, 10, 20, 50, 100];
   public selectedRows: any[] = [];
+  public totalCount: number = 1000;
+  public currentPage: number = 1;
+  public pageSize: number = 25; // Default page size
   // Control container state
   isControlCollapsed: boolean = false;
 
@@ -161,7 +164,6 @@ export class ResultPageComponent implements OnInit {
   downloadPdf(): void {
     if (this.selectedRows.length > 0) {
       console.log(this.selectedRows);
-      // Implement the logic to download the selected rows as a PDF
     }
   }
 
@@ -169,4 +171,15 @@ export class ResultPageComponent implements OnInit {
     this.gridApi.deselectAll();
     this.selectedRows = [];
   }
+
+  onPageChanged(zeroBasedPage: number) {
+    this.currentPage = zeroBasedPage + 1;    
+    console.log(`Current page changed to: ${this.currentPage}`);
+  }
+
+  onPageSizeChanged(size: number) {
+    this.pageSize = size; 
+    console.log(`Page size changed to: ${this.pageSize}`);  
+  }
+
 }

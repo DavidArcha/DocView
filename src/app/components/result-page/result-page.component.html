@@ -24,8 +24,10 @@
 
     <!-- Result Container -->
     <div class="result-container">
-        <div class="grid">   
-            GRID VALUES        
+        <div class="grid">
+            <app-pagination-control [totalRecords]="1000" [pageSize]="25" [currentPage]="2"
+                (pageChanged)="onPageChanged($event)" (pageSizeChanged)="onPageSizeChanged($event)">
+            </app-pagination-control>
         </div>
     </div>
 </div>
