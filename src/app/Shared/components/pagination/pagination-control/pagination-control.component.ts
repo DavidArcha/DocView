@@ -4,7 +4,7 @@ import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from
   selector: 'app-pagination-control',
   standalone: false,
   templateUrl: './pagination-control.component.html',
-  styleUrl: './pagination-control.component.scss'
+  styleUrls: ['./pagination-control.component.scss']
 })
 export class PaginationControlComponent implements OnChanges {
   @Input() totalRecords = 0;
@@ -87,6 +87,9 @@ export class PaginationControlComponent implements OnChanges {
     return this.totalRecords > 0;
   }
 
+  /**
+   * Emits zero-based page index for consistency.
+   */
   goToPage(page: number | string): void {
     if (typeof page === 'number' && page !== this.currentPage && page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -97,28 +100,28 @@ export class PaginationControlComponent implements OnChanges {
   goToFirst(): void {
     if (this.currentPage !== 1 && this.hasRecords) {
       this.currentPage = 1;
-      this.pageChanged.emit(0);
+      this.pageChanged.emit(this.currentPage - 1); // Emit zero-based index
     }
   }
 
   goToPrevious(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
-      this.pageChanged.emit(this.currentPage - 1);
+      this.pageChanged.emit(this.currentPage - 1); // Emit zero-based index
     }
   }
 
   goToNext(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      this.pageChanged.emit(this.currentPage - 1);
+      this.pageChanged.emit(this.currentPage - 1); // Emit zero-based index
     }
   }
 
   goToLast(): void {
     if (this.totalPages > 0 && this.currentPage !== this.totalPages) {
       this.currentPage = this.totalPages;
-      this.pageChanged.emit(this.currentPage - 1);
+      this.pageChanged.emit(this.currentPage - 1); // Emit zero-based index
     }
   }
 
