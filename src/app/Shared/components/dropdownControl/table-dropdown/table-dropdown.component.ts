@@ -135,6 +135,18 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
       : this.selectedValues.includes(item.id);
   }
 
+  /**
+ * Checks if all filtered items are currently selected
+ */
+  isAllSelected(): boolean {
+    if (this.filteredData.length === 0) {
+      return false;
+    }
+
+    // Check if all filtered items are in the selected items
+    return this.filteredData.every(item => this.isSelected(item));
+  }
+
   getDisplayLabel(item: DropdownItem): string {
     if (this.useTranslations && item.translations) {
       return item.translations[this.selectedLanguage] || item.label || '';
@@ -181,14 +193,43 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
     return item.tableData?.[column] || '';
   }
 
+  /**
+  * Toggles selection of all filtered items
+  */
   toggleSelectAll(): void {
-    if (this.selectedOptions.length === this.filteredData.length) {
-      this.selectedOptions = [];
+    if (this.isAllSelected()) {
+      // If all are selected, unselect all
+      this.selectedOptions = this.selectedOptions.filter(
+        selected => !this.filteredData.some(filtered => this.compareItems(filtered, selected))
+      );
     } else {
-      this.selectedOptions = [...this.filteredData];
+      // Otherwise, select all filtered items
+      const itemsToAdd = this.filteredData.filter(
+        item => !this.selectedOptions.some(selected => this.compareItems(item, selected))
+      );
+      this.selectedOptions = [...this.selectedOptions, ...itemsToAdd];
     }
+
+    this.emitSelectionChange();
+  }
+
+  /**
+ * Emits the current selection to parent components
+ */
+  private emitSelectionChange(): void {
     this.selectedValuesChange.emit(this.selectedOptions);
     this.cd.detectChanges();
+  }
+
+  /**
+ * Compares two dropdown items to determine if they represent the same item
+ * @param item1 First dropdown item to compare
+ * @param item2 Second dropdown item to compare
+ * @returns True if the items are considered to be the same
+ */
+  private compareItems(item1: DropdownItem, item2: DropdownItem): boolean {
+    // Compare by ID which is usually the most reliable identifier
+    return item1.id === item2.id;
   }
 
   onSearchChange(): void {
@@ -282,5 +323,15 @@ export class TableDropdownComponent implements OnInit, OnChanges, OnDestroy, Aft
       this.overlayRef = null;
       this.isOpen = false;
     }
+  }
+
+  /**
+ * Reset the dropdown to its initial state with no selection
+ */
+  public reset(): void {
+    this.selectedValues = [];
+    this.selectedOption = '';
+    this.selectedOptions = [];
+    this.selectedValuesChange.emit([]);
   }
 }

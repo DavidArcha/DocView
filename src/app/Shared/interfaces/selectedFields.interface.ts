@@ -21,4 +21,5 @@ export interface SelectedField {
     valueTouched?: boolean | boolean[];
     dropdownData?: any[];
     parentTouched?: boolean;
+    isParentArray?: boolean;
 }

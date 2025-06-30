@@ -9,8 +9,9 @@
 
     <!-- Conditionally render the SavedGroupAccordionComponent outside the accordion-container -->
     <!-- Existing code... -->
-    <div *ngIf="showGroupDataOutside">
-        <app-saved-group-accordion [groups]="savedGroupFields" (fieldSelected)="onSavedFieldSelected($event)"
+    <div *ngIf="showGroupDataOutside && savedGroupFields.length > 0">
+        <app-saved-group-accordion #savedGroupAccordion [groups]="savedGroupFields"
+            (fieldSelected)="onSavedFieldSelected($event)"
             (groupFieldTitleClicked)="onSavedGroupFieldTitleClicked($event)"
             (editGroupFieldTitle)="onEditGroupFieldTitle($event)"
             (deleteGroupFieldTitle)="onDeleteGroupFieldTitle($event)">
@@ -31,10 +32,13 @@
 
     <!-- Dropdown section -->
     <div class="dropdown-section">
-        <app-table-dropdown [data]="systemTypeData" [isTableView]="false" [selectedValues]="selectedSystemTypeValueIds"
-            [selectedLanguage]="currentLanguage" [multiSelect]="false"
-            (selectedValuesChange)="onSelectedSystemTypeValueChange($event)">
-        </app-table-dropdown>
+        <!-- Dropdown section -->
+        <div class="dropdown-section">
+            <app-table-dropdown #systemTypeDropdown [data]="systemTypeData" [isTableView]="false"
+                [selectedValues]="selectedSystemTypeValueIds" [selectedLanguage]="currentLanguage" [multiSelect]="false"
+                (selectedValuesChange)="onSelectedSystemTypeValueChange($event)">
+            </app-table-dropdown>
+        </div>
     </div>
     <!-- Loading indicator for accordion data -->
     <div *ngIf="isLoading" class="loading-indicator">
@@ -46,14 +50,14 @@
         [section]="section" [parentPath]="''" [isLoading]="isLoading" [sectionType]="'system'"
         (fieldSelected)="onFieldSelected($event)">
     </app-accordion-section>
-    <app-relation-table [selectedFields]="selectedFields" [selectedLanguage]="currentLanguage"
+    <app-relation-table #relationTable [selectedFields]="selectedFields" [selectedLanguage]="currentLanguage"
         (operatorChange)="onOperatorChange($event)" (deleteSelectedField)="onDeleteSelectedField($event)"
-        (searchSelectedField)="onSearchSelectedField($event)">
+        (searchSelectedField)="onSearchSelectedField($event)" (parentValueChange)="onParentValueChange($event)">
     </app-relation-table>
     <div class="action-buttons">
         <button [disabled]="selectedFields.length === 0" (click)="clearTable()">Clear</button>
         <button [disabled]="selectedFields.length === 0" (click)="searchTable()">Search</button>
-        <button [disabled]="selectedFields.length === 0" (click)="storeTable()">Save</button>
+        <button [disabled]="selectedFields.length === 0" (click)="saveTable()">Save</button>
     </div>
     <!-- New save container -->
     <div *ngIf="showSaveContainer" class="save-container">

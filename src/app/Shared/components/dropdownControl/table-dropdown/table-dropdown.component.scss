@@ -80,6 +80,23 @@
 /* Search container spacing */
 .search-container {
     margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.25rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.search-box {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    /* Important to include this */
+    margin: 0;
 }
 
 /**********************************************
@@ -153,4 +170,37 @@
     padding: 0.5rem;
     text-align: center;
     color: #666;
+}
+
+/**********************************************
+   * Search container spacing
+   **********************************************/
+.search-container {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.search-box {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.select-all-button {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.select-all-button:hover {
+    background-color: #e0e0e0;
 }

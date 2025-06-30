@@ -24,6 +24,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   @Output() operatorChange = new EventEmitter<{ newOperator: string, index: number }>();
   @Output() searchSelectedField = new EventEmitter<SelectedField>();
   @Output() deleteSelectedField = new EventEmitter<number>();
+  @Output() parentValueChange = new EventEmitter<{ selectedValues: DropdownItem[], index: number }>();
 
   systemTypeData: DropdownItem[] = [];
   brandData: DropdownItem[] = [];
@@ -107,8 +108,6 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     }
 
     const operatorId = selected.operator.id.toLowerCase();
-    console.log(`Operator ID: ${operatorId}`);
-
     // Scenario-1: No need to display any control
     if (NoValueOperators.includes(operatorId as OperatorType)) {
       control.show = false;
@@ -167,8 +166,6 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     // Get data source name from mapping
     const dataSource = DropdownDataMapping[fieldId] || DropdownDataMapping['default'];
 
-    console.log(`Getting dropdown data for field: ${fieldId}, data source: ${dataSource}`);
-
     // Return the appropriate data based on data source name
     switch (dataSource) {
       case 'brandData':
@@ -212,13 +209,13 @@ export class RelationTableComponent implements OnInit, OnDestroy {
     if (!selected.parent || !selected.parent.id) {
       return true;
     }
-    
+
     // Case 2: parentSelected exists (regardless of length) - show dropdown
     // This ensures dropdown remains visible after interaction
     if (selected.parentSelected !== undefined) {
       return true;
     }
-    
+
     // Default case: don't show dropdown
     return false;
   }
@@ -241,31 +238,28 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   // Updated onParentValueChange to handle parent selection changes better
   onParentValueChange(selectedItems: DropdownItem[], index: number): void {
     const selected = this.selectedFields[index];
-    
+
     // Special Case - Handle "empty" selection
     if (!selectedItems || selectedItems.length === 0) {
       // Clear parent
       selected.parent = { id: '', label: '' };
-      
+
       // Important: Keep parentSelected as an empty array to maintain dropdown visibility
       selected.parentSelected = [];
-      
+
       selected.parentTouched = true;
+      // Emit the event for persistent storage
+      this.parentValueChange.emit({ selectedValues: [], index });
       return;
     }
-    
+
     // Multiple selected items - store in parentSelected and use first as parent
     if (selectedItems.length > 0) {
       // Always maintain parentSelected for dropdown fields that have been interacted with
       selected.parentSelected = selectedItems;
-      
-      // Set parent to first selected item
-      selected.parent = {
-        id: selectedItems[0].id || '',
-        label: selectedItems[0].label || ''
-      };
-      
       selected.parentTouched = true;
+      // Emit the event for persistent storage
+      this.parentValueChange.emit({ selectedValues: selectedItems, index });
     }
   }
   // Helper method to save changes
@@ -425,7 +419,7 @@ export class RelationTableComponent implements OnInit, OnDestroy {
   // Initialize the values properly for each field based on operator type
   // Initialize the values properly for each field based on operator type
   initializeValueForOperator(selected: SelectedField): void {
-    const operatorId = selected.operator?.id?.toLowerCase() || '';
+    const operatorId = selected.operator?.id || '';
 
     // Special handling for similar operator
     if (operatorId === 'similar') {
@@ -486,7 +480,8 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
     // If all validations pass, create search criteria
     const searchCriteria: SearchCriteria = {
-      parent: selected.parentSelected || selected.parent,
+      parent: selected.parent,
+      parentSelected: selected.parentSelected,
       field: {
         id: selected.field.id,
         label: selected.field.label
@@ -500,6 +495,41 @@ export class RelationTableComponent implements OnInit, OnDestroy {
 
     // Emit the selected field (with validation state)
     this.searchSelectedField.emit(selected);
+  }
+
+  // Add this method to the class
+  validateAllFields(): { isValid: boolean, invalidFields: string[] } {
+    const invalidFieldsMessages: string[] = [];
+
+    // Loop through each field and check for validation issues
+    this.selectedFields.forEach((field, index) => {
+      // Check parent validation
+      field.parentTouched = true;
+      if (!this.isParentValid(field)) {
+        invalidFieldsMessages.push(`Row ${index + 1}: Parent selection`);
+      }
+
+      // Check operator validation
+      field.operatorTouched = true;
+      if (!this.isOperatorValid(field)) {
+        invalidFieldsMessages.push(`Row ${index + 1}: Operator selection`);
+      }
+
+      // Check value validation if needed based on operator
+      const valueControl = this.getValueControl(field);
+      if (valueControl.show && this.isOperatorValid(field)) {
+        field.valueTouched = true;
+        if (!this.isValueValid(field)) {
+          const fieldName = field.field?.label || `Field ${index + 1}`;
+          invalidFieldsMessages.push(`Row ${index + 1}: Value for ${fieldName}`);
+        }
+      }
+    });
+
+    return {
+      isValid: invalidFieldsMessages.length === 0,
+      invalidFields: invalidFieldsMessages
+    };
   }
 
   onDeleteSelectedField(index: number): void {

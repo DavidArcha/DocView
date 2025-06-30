@@ -69,7 +69,7 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     this.processedGroupsCache = null;
   }
 
-  // Process incoming groups data and add unique IDs with memoization
+  // Process incoming groups data with minimal transformation
   private processGroups(groups: any[]): any[] {
     if (!groups) return [];
 
@@ -78,20 +78,79 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       return this.processedGroupsCache;
     }
 
+    // Process the groups, but keep the original structure as much as possible
+    // Just ensure we have the necessary properties for rendering
     const result = groups.map(group => {
+      // Create a shallow copy to avoid modifying the original
       const processedGroup = { ...group };
-      if (processedGroup.groupFields) {
-        processedGroup.groupFields = processedGroup.groupFields.map((fieldGroup: any, fgIndex: number) => {
+
+      // If we have groupTitle, use it, otherwise use title if available
+      if (!processedGroup.groupTitle && processedGroup.title) {
+        processedGroup.groupTitle = processedGroup.title;
+      }
+
+      // If still no groupTitle, create a default one
+      if (!processedGroup.groupTitle) {
+        processedGroup.groupTitle = {
+          id: 'default-group',
+          label: 'Saved Groups'
+        };
+      }
+
+      // If we have groupFields, use it, otherwise use fields array directly
+      if (!processedGroup.groupFields) {
+        // Check if "fields" property exists and is an array
+        if (Array.isArray(processedGroup.fields)) {
+          // These are likely the individual search criteria items
+          // We need to wrap them in a "groupField" structure for rendering
+          processedGroup.groupFields = [{
+            title: {
+              id: 'default-field-group',
+              label: 'Search Criteria'
+            },
+            fields: processedGroup.fields.map((field: any, index: number) => {
+              // Add a unique ID for tracking
+              return {
+                ...field,
+                _uniqueId: `field_default_${index}`
+              };
+            })
+          }];
+        } else {
+          // Default to empty array if no fields found
+          processedGroup.groupFields = [];
+        }
+      } else {
+        // We already have groupFields, just ensure uniqueIds for fields
+        processedGroup.groupFields = processedGroup.groupFields.map((fieldGroup: any, groupIndex: number) => {
+          // Make a copy to avoid modifying original
           const processedFieldGroup = { ...fieldGroup };
-          if (processedFieldGroup.fields) {
-            processedFieldGroup.fields = processedFieldGroup.fields.map((field: any, fIndex: number) => {
-              const uniqueId = `field_${group.groupTitle?.id || ''}_${fieldGroup.title?.id || fgIndex}_${fIndex}`;
-              return { ...field, _uniqueId: uniqueId };
+
+          // Ensure title exists
+          if (!processedFieldGroup.title) {
+            processedFieldGroup.title = {
+              id: `group-${groupIndex}`,
+              label: `Group ${groupIndex + 1}`
+            };
+          }
+
+          // Ensure fields array exists
+          if (!Array.isArray(processedFieldGroup.fields)) {
+            processedFieldGroup.fields = [];
+          } else {
+            // Add unique IDs to fields
+            processedFieldGroup.fields = processedFieldGroup.fields.map((field: any, fieldIndex: number) => {
+              return {
+                ...field,
+                _uniqueId: `field_${processedGroup.groupTitle?.id || 'default'}_${groupIndex}_${fieldIndex}`
+              };
             });
           }
+
           return processedFieldGroup;
         });
       }
+
       return processedGroup;
     });
 
@@ -103,6 +162,8 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   }
 
   toggleGroup(groupId: string) {
+    if (!groupId) return; // Skip if invalid ID
+
     if (this.expandedGroups.has(groupId)) {
       this.expandedGroups.delete(groupId);
     } else {
@@ -113,6 +174,8 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
   }
 
   toggleField(fieldGroupId: string) {
+    if (!fieldGroupId) return; // Skip if invalid ID
+
     if (this.expandedFields.has(fieldGroupId)) {
       this.expandedFields.delete(fieldGroupId);
     } else {
@@ -127,23 +190,19 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     this.contextMenuVisible = false;
     this.selectedField = field;
     this.fieldSelected.emit(field);
-    console.log('Field clicked:', field);
     this.saveState();
   }
 
   onGroupFieldTitleClick(fieldGroup: SearchRequest, event: Event): void {
     event.preventDefault();
     this.contextMenuVisible = false;
-    console.log('On field group:', fieldGroup);
     this.groupFieldTitleClicked.emit(fieldGroup);
     this.saveState();
   }
 
   onGroupFieldTitleRightClick(event: MouseEvent, fieldGroup: any) {
     event.preventDefault();
-    console.log('Right-click detected on field group:', fieldGroup);
     this.contextMenuVisible = true;
-    // this.contextMenuPosition = { x: event.clientX, y: event.clientY };
     // Position the context menu relative to the clicked element
     const rect = (event.target as HTMLElement).getBoundingClientRect();
 
@@ -160,8 +219,6 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       const title = this.selectedFieldGroup.title && typeof this.selectedFieldGroup.title === 'object'
         ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
         : String(this.selectedFieldGroup.title || '');
-      console.log('Edit Group Field Title:', title);
-
       // Emit the event with the selected group
       this.editGroupFieldTitle.emit(this.selectedFieldGroup);
     }
@@ -173,8 +230,6 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
       const title = this.selectedFieldGroup.title && typeof this.selectedFieldGroup.title === 'object'
         ? this.selectedFieldGroup.title.title || this.selectedFieldGroup.title.label
         : String(this.selectedFieldGroup.title || '');
-      console.log('Delete Group Field Title:', title);
-
       // Emit the event with the selected group
       this.deleteGroupFieldTitle.emit(this.selectedFieldGroup);
     }
@@ -183,7 +238,6 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
 
   onGroupRightClick(event: MouseEvent, group: any) {
     event.preventDefault();
-    console.log('Right-click on:', group.groupTitle?.title);
   }
 
   getFieldTitle(field: SearchCriteria | any): string {
@@ -368,5 +422,25 @@ export class SavedGroupAccordionComponent implements OnInit, OnDestroy {
     if (contextMenu && !contextMenu.contains(event.target as Node)) {
       this.contextMenuVisible = false;
     }
+  }
+
+  /**
+ * Reset the accordion to its initial state
+ * Collapses all groups and clears selections
+ */
+  public reset(): void {
+    // Clear expanded groups and fields
+    this.expandedGroups.clear();
+    this.expandedFields.clear();
+
+    // Clear selected field
+    this.selectedField = null;
+    this.selectedFieldGroup = null;
+
+    // Close any open context menu
+    this.contextMenuVisible = false;
+
+    // Remove saved state from localStorage
+    localStorage.removeItem('savedAccordionState');
   }
 }

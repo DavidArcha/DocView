@@ -1,13 +1,13 @@
 export const updatedSearchGroupFields = [
     {
-        groupTitle: { id: 'saved_group', title: "Saved Groups" },
+        groupTitle: { id: 'saved_group', label: "Saved Groups" },
         groupFields: [
             {
                 title: {
                     id: "98765",
                     label: "Search Request"
                 },
-                "fields": [
+                fields: [
                     {
                         rowId: "",
                         parent: {
@@ -52,7 +52,7 @@ export const updatedSearchGroupFields = [
                     },
                     {
                         rowId: "",
-                    parent: {
+                        parent: {
                             id: "2",
                             label: "Linux-EN"
                         },
@@ -73,7 +73,7 @@ export const updatedSearchGroupFields = [
                     id: "9876590",
                     label: "Search Request - 2"
                 },
-                "fields": [
+                fields: [
                     {
                         rowId: "",
                         parent: {
@@ -118,7 +118,7 @@ export const updatedSearchGroupFields = [
                     },
                     {
                         rowId: "",
-                    parent: {
+                        parent: {
                             id: "2",
                             label: "Linux-EN"
                         },

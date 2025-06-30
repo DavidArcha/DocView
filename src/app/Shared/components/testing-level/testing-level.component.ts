@@ -162,7 +162,7 @@ export class TestingLevelComponent {
 
   // Save updated table data to localStorage
   updateLocalStorage(): void {
-    localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
+    // localStorage.setItem('selectedFields', JSON.stringify(this.selectedFields));
   }
 
   /**

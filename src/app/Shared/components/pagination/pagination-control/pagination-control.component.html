@@ -1,0 +1,52 @@
+<div class="pagination-wrapper" *ngIf="hasRecords; else noRecords">
+    <div class="pagination-container">
+        <div class="record-summary">
+            {{ startRecord }} to {{ endRecord }} of {{ totalRecords }}
+        </div>
+
+        <div class="pagination-buttons">
+            <button (click)="goToFirst()" 
+                    [disabled]="currentPage === 1" 
+                    aria-label="Go to first page">|&lt;</button>
+            
+            <button (click)="goToPrevious()" 
+                    [disabled]="currentPage === 1" 
+                    aria-label="Go to previous page">&lt;</button>
+
+            <ng-container *ngFor="let page of pages; trackBy: trackByFn">
+                <button *ngIf="page !== '...'" 
+                        [class.active]="page === currentPage" 
+                        (click)="goToPage(page)"
+                        [attr.aria-label]="'Go to page ' + page"
+                        [attr.aria-current]="page === currentPage ? 'page' : null">
+                    {{ page }}
+                </button>
+                <span *ngIf="page === '...'" aria-hidden="true">...</span>
+            </ng-container>
+
+            <button (click)="goToNext()" 
+                    [disabled]="currentPage === totalPages" 
+                    aria-label="Go to next page">&gt;</button>
+            
+            <button (click)="goToLast()" 
+                    [disabled]="currentPage === totalPages" 
+                    aria-label="Go to last page">&gt;|</button>
+        </div>
+
+        <div class="page-size-selector">
+            <select (change)="onPageSizeChange($event)" 
+                    [value]="pageSize"
+                    aria-label="Select page size">
+                <option *ngFor="let size of pageSizeOptions" [value]="size">
+                    {{ size }}
+                </option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<ng-template #noRecords>
+    <div class="record-summary">
+        No records found
+    </div>
+</ng-template>

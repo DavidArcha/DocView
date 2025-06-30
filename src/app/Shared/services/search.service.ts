@@ -85,4 +85,22 @@ export class SearchService {
     let url = `${this.apiUrl}${RestAPICallUrl.getBrandData}/${lang}`;
     return this.http.get<DropdownItem[]>(url);
   }
+
+  // Sends the search request as FormData
+  saveSearchRequest(searchRequest: any): Observable<any> {
+    const formData = new FormData();
+    formData.append('searchRequest', JSON.stringify(searchRequest));
+    let url = `${this.apiUrl}${RestAPICallUrl.saveSearchData}`;
+    return this.http.post(url, formData);
+  }
+
+  // Retrieves the saved search request by gSearchId
+  getSearch(gSearchId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/GetSearch/${gSearchId}`);
+  }
+
+  getAllSavedSearches(): Observable<any> {
+    let url = `${this.apiUrl}${RestAPICallUrl.getAllSavedSearches}`;
+    return this.http.get(url);
+  }
 }
