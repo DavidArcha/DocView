@@ -1,4 +1,7 @@
 import { TemplateRef, Type } from '@angular/core';
+
+export type ChildMinimizeBehavior = 'minimize' | 'close' | 'none';
+
 export interface ModalConfig {
   component?: Type<any>;
   template?: TemplateRef<any>;
@@ -9,7 +12,7 @@ export interface ModalConfig {
   minHeight?: string;
   maxWidth?: string;
   maxHeight?: string;
-  autoSize?: boolean; // Auto-size based on content
+  autoSize?: boolean;
   draggable?: boolean;
   headerColor?: string;
   showFooter?: boolean;
@@ -18,6 +21,7 @@ export interface ModalConfig {
   footerData?: any;
   destroyOnClose?: boolean;
   closeChildrenOnParentClose?: boolean;
+  childMinimizeBehavior?: ChildMinimizeBehavior; // New property
   title?: string;
   middleText?: string;
   preActionText?: string;

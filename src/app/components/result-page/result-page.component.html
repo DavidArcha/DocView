@@ -25,24 +25,121 @@
     <!-- Result Container -->
     <div class="result-container">
         <div class="grid">
-            <!-- <app-pagination-control [totalRecords]="1000"
-                (pageChanged)="onPageChanged($event)" (pageSizeChanged)="onPageSizeChanged($event)">
-            </app-pagination-control> -->
-            <button (click)="openDraggableModal()">
-                <fa-icon [icon]="faArrowRight"></fa-icon>Show
-            </button>
+            <h3>Modal Examples</h3>
+            
+            <!-- Size & Footer Examples -->
+            <div class="button-group">
+                <h4>Size & Footer Options</h4>
+                <button class="example-btn auto-size" (click)="openAutoSizeModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Auto-size with Footer Template
+                </button>
 
-             <button (click)="openDraggableModal1()">
-                <fa-icon [icon]="faArrowRight"></fa-icon>Show
-            </button>
+                <button class="example-btn fixed-size" (click)="openFixedSizeModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Fixed Size (No Footer)
+                </button>
 
-             <button (click)="openDraggableModal2()">
-                <fa-icon [icon]="faArrowRight"></fa-icon>Show
-            </button>
+                <button class="example-btn width-only" (click)="openWidthOnlyModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Width Only + Footer Component
+                </button>
+
+                <button class="example-btn height-only" (click)="openHeightOnlyModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Height Only + Custom Footer
+                </button>
+
+                <button class="example-btn constrained" (click)="openConstrainedAutoSizeModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Constrained Auto-size
+                </button>
+
+                <button class="example-btn no-footer" (click)="openNoFooterModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    No Footer Modal
+                </button>
+            </div>
+
+            <!-- Parent-Child Examples -->
+            <div class="button-group">
+                <h4>Parent-Child Relationships</h4>
+                <button class="example-btn parent-minimize" (click)="openParentChildMinimizeModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Parent-Child (Minimize Together)
+                </button>
+
+                <button class="example-btn parent-close" (click)="openParentChildCloseModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Parent-Child (Close Children)
+                </button>
+
+                <button class="example-btn parent-independent" (click)="openParentChildIndependentModal()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Parent-Child (Independent)
+                </button>
+            </div>
+
+            <!-- Multiple Modal Examples -->
+            <div class="button-group">
+                <h4>Multiple Modals & Controls</h4>
+                <button class="example-btn multiple" (click)="openMultipleModals()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Multiple Interactive Modals
+                </button>
+
+                <button class="example-btn close-all" (click)="closeAllModals()">
+                    <fa-icon [icon]="faArrowRight"></fa-icon>
+                    Close All Modals
+                </button>
+            </div>
+
+            <!-- Modal Count Display -->
+            <!-- <div class="modal-info">
+                <p>Active Modals: {{ modalService.activeModalCount }}</p>
+                <p>Background Blocked: {{ modalService.hasBlockingModal ? 'Yes' : 'No' }}</p>
+            </div> -->
         </div>
     </div>
 </div>
 
+<!-- Footer Templates -->
 <ng-template #myFooterTemplate let-data="data" let-modalRef="modalRef">
-    <button (click)="modalRef.close()">Close</button>
+    <div class="simple-footer">
+        <button class="btn btn-secondary" (click)="modalRef.close('cancelled')">Cancel</button>
+        <button class="btn btn-primary" (click)="save(); modalRef.close('saved')" 
+                [disabled]="!data?.saveEnabled">Save</button>
+    </div>
+</ng-template>
+
+<ng-template #customFooterTemplate let-data="data" let-modalRef="modalRef">
+    <div class="custom-footer-content">
+        <div class="footer-info">
+            <span *ngIf="data?.message">{{ data.message }}</span>
+            <span *ngIf="data?.lastSaved">Last saved: {{ data.lastSaved | date:'medium' }}</span>
+        </div>
+        <div class="footer-actions">
+            <button class="btn btn-outline" (click)="apply()">Apply</button>
+            <button class="btn btn-secondary" (click)="cancel(modalRef)">Cancel</button>
+            <button class="btn btn-primary" (click)="save(); modalRef.close('saved')">Save</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #advancedFooterTemplate let-data="data" let-modalRef="modalRef">
+    <div class="advanced-footer">
+        <div class="footer-left">
+            <span class="modal-type">{{ data?.type | titlecase }} Modal</span>
+            <span *ngIf="data?.parentTitle" class="parent-info">Parent: {{ data.parentTitle }}</span>
+            <span *ngIf="data?.childCount" class="child-info">Children: {{ data.childCount }}</span>
+        </div>
+        <div class="footer-right">
+            <button class="btn btn-sm btn-outline" (click)="modalRef.minimize ? modalRef.minimize() : null">
+                Minimize
+            </button>
+            <button class="btn btn-sm btn-secondary" (click)="modalRef.close('dismissed')">
+                Close
+            </button>
+        </div>
+    </div>
 </ng-template>
