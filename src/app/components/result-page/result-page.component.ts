@@ -190,10 +190,11 @@ export class ResultPageComponent implements OnInit {
   openDraggableModal() {
     const modalRef = this.modalService.open({
       component: TextsurveyComponent,
-      width: '400px',
+      title: 'Document Viewer',
+      middleText: 'Page 1 of 10',
+      preActionText: 'Saved',
+      headerColor: '#2c3e50',
       draggable: true,
-      title: 'Draggable Modal',
-      // ...other config
     });
     modalRef.afterClosed().subscribe(result => {
       console.log('Modal closed with result:', result);

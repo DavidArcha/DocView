@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ComponentFactoryResolver, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ComponentFactoryResolver, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { ModalConfig } from '../modal-config';
 import { ModalRef } from '../modal-ref';
 
@@ -6,7 +6,6 @@ let lastZIndex = 1000;
 @Component({
   selector: 'app-custom-modal-popup',
   standalone: false,
-
   templateUrl: './custom-modal-popup.component.html',
   styleUrl: './custom-modal-popup.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,12 +26,14 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
   constructor(
     public el: ElementRef,
-    private cfr: ComponentFactoryResolver
+    private cfr: ComponentFactoryResolver,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
     this.zIndex = ++lastZIndex;
-    setTimeout(() => this.centerModal());
+    // Initialize position to center immediately
+    this.initializePosition();
   }
 
   ngAfterViewInit() {
@@ -45,14 +46,33 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
       }
     }
     this.setupFocusTrap();
+    
+    // Ensure proper centering after view is initialized
+    setTimeout(() => this.centerModal(), 0);
+  }
+
+  initializePosition() {
+    // Set initial position to approximate center before DOM is ready
+    const defaultWidth = parseInt(this.config.width || '600');
+    const defaultHeight = parseInt(this.config.height || '400');
+    
+    this.top = Math.max((window.innerHeight - defaultHeight) / 2, 40);
+    this.left = Math.max((window.innerWidth - defaultWidth) / 2, 0);
   }
 
   centerModal() {
     const modalEl = this.el.nativeElement.querySelector('.custom-modal');
     if (!modalEl) return;
-    const w = modalEl.offsetWidth, h = modalEl.offsetHeight;
+    
+    const rect = modalEl.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    
     this.top = Math.max((window.innerHeight - h) / 2, 40);
     this.left = Math.max((window.innerWidth - w) / 2, 0);
+    
+    // Trigger change detection to update the position
+    this.cdr.detectChanges();
   }
 
   onBackdropClick(event: MouseEvent) {
@@ -75,6 +95,7 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     this.isMinimized = true;
     this.top = window.innerHeight - 40;
     this.left = 0;
+    this.cdr.detectChanges();
   }
 
   restore() {
@@ -82,11 +103,28 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     this.isMinimized = false;
     this.top = this.savedBounds.top;
     this.left = this.savedBounds.left;
+    this.cdr.detectChanges();
+  }
+
+  toggleMinimize() {
+    if (this.isMinimized) {
+      this.restore();
+    } else {
+      this.minimize();
+    }
   }
 
   onDragStart(event: MouseEvent) {
-    if (!this.config.draggable) return;
+    if (!this.config.draggable || this.isMinimized) return;
+
+    // Prevent dragging when clicking on action buttons
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('action-btn') || target.closest('.action-btn')) {
+      return;
+    }
+
     event.preventDefault();
+    event.stopPropagation();
     this.dragging = true;
     this.dragOffset.x = event.clientX - this.left;
     this.dragOffset.y = event.clientY - this.top;
@@ -98,6 +136,7 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     if (!this.dragging) return;
     this.left = event.clientX - this.dragOffset.x;
     this.top = event.clientY - this.dragOffset.y;
+    this.cdr.detectChanges();
   };
 
   onDragEnd = () => {

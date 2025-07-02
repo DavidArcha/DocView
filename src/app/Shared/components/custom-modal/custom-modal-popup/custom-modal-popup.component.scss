@@ -11,7 +11,7 @@
 }
 
 .custom-modal-header {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     font-weight: bold;
     display: flex;
     justify-content: space-between;
@@ -23,18 +23,112 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    gap: 1rem;
+
+    &.draggable {
+        cursor: move;
+    }
 }
 
-.modal-actions button {
-    margin-left: 6px;
-    min-width: 30px;
-    min-height: 30px;
-    font-size: 1.2em;
+.header-left {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.header-middle {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.middle-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pre-action-text {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.action-btn {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0.25rem;
+    font-size: 1.1em;
     background: transparent;
     border: none;
     color: inherit;
     cursor: pointer;
     outline: none;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    &:active {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    &:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 1px;
+    }
+}
+
+.drag-handle {
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.minimize-btn {
+    font-family: monospace;
+    font-size: 1.2em;
+}
+
+.close-btn {
+    font-size: 1.4em;
+    font-weight: bold;
 }
 
 .custom-modal-body {
@@ -63,6 +157,19 @@
     width: 300px !important;
     overflow: hidden;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+
+    .custom-modal-header {
+        border-radius: 6px;
+
+        .modal-title {
+            max-width: 150px;
+        }
+
+        .header-middle,
+        .pre-action-text {
+            display: none;
+        }
+    }
 }
 
 .modal-backdrop {
@@ -94,17 +201,30 @@
     animation: modalOpen 0.2s;
 }
 
-.modal-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    transition: opacity 0.2s ease;
-    opacity: 1;
-}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .custom-modal-header {
+        padding: 0.5rem 0.75rem;
+        gap: 0.5rem;
+    }
 
-.modal-backdrop.bg-interactive {
-    pointer-events: none;
+    .modal-title {
+        max-width: 120px;
+        font-size: 0.9rem;
+    }
+
+    .middle-text {
+        font-size: 0.8rem;
+    }
+
+    .pre-action-text {
+        display: none;
+        /* Hide on mobile to save space */
+    }
+
+    .action-btn {
+        min-width: 28px;
+        min-height: 28px;
+        font-size: 1em;
+    }
 }

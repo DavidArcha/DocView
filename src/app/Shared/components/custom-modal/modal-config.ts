@@ -11,7 +11,9 @@ export interface ModalConfig {
   destroyOnClose?: boolean;
   closeChildrenOnParentClose?: boolean;
   title?: string;
+  middleText?: string;
+  preActionText?: string;
   closeOnBackdropClick?: boolean;
   allowBackgroundInteraction?: boolean;
-  closeOnEscape?: boolean; // NEW: allows disabling ESC-to-close
+  closeOnEscape?: boolean;
 }
