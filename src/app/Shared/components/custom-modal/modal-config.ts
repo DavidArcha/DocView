@@ -5,6 +5,11 @@ export interface ModalConfig {
   data?: any;
   width?: string;
   height?: string;
+  minWidth?: string;
+  minHeight?: string;
+  maxWidth?: string;
+  maxHeight?: string;
+  autoSize?: boolean; // Auto-size based on content
   draggable?: boolean;
   headerColor?: string;
   showFooter?: boolean;

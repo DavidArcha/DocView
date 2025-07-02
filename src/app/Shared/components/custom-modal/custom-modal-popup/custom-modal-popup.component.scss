@@ -9,6 +9,19 @@
     transition: box-shadow 0.2s ease;
     opacity: 1;
 
+    // Auto-size specific styles
+    &.auto-size {
+        width: auto !important;
+        height: auto !important;
+
+        .custom-modal-body {
+            // Allow content to determine size
+            width: auto;
+            height: auto;
+            min-height: 100px;
+        }
+    }
+
     // Smooth dragging performance
     &.dragging {
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
@@ -35,6 +48,7 @@
     top: 0;
     z-index: 10;
     gap: 1rem;
+    flex-shrink: 0; // Prevent header from shrinking
 
     &.draggable {
         cursor: grab;
@@ -147,6 +161,15 @@
     padding: 1rem;
     flex: 1 1 auto;
     overflow-y: auto;
+    overflow-x: hidden;
+
+    // For auto-size modals, allow content to expand naturally
+    .custom-modal.auto-size & {
+        flex: 0 1 auto;
+        overflow: visible;
+        max-height: calc(90vh - 120px); // Account for header/footer
+        overflow-y: auto;
+    }
 }
 
 .custom-modal-footer {
@@ -157,6 +180,7 @@
     position: sticky;
     bottom: 0;
     z-index: 10;
+    flex-shrink: 0; // Prevent footer from shrinking
 }
 
 /* Minimized style */
@@ -215,6 +239,13 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .custom-modal {
+        &.auto-size {
+            max-width: 95vw !important;
+            max-height: 95vh !important;
+        }
+    }
+
     .custom-modal-header {
         padding: 0.5rem 0.75rem;
         gap: 0.5rem;
@@ -231,7 +262,6 @@
 
     .pre-action-text {
         display: none;
-        /* Hide on mobile to save space */
     }
 
     .action-btn {

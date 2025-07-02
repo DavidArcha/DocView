@@ -198,7 +198,12 @@ export class ResultPageComponent implements OnInit {
       headerColor: '#2c3e50',
       draggable: true,
       footerTemplate: this.footerTemplate,
-      footerData: { saveEnabled: true }
+      footerData: { saveEnabled: true },
+      autoSize: true,
+      minWidth: '400px',
+      maxWidth: '800px',
+      minHeight: '300px',
+      maxHeight: '700px'
     });
     modalRef.afterClosed().subscribe(result => {
       console.log('Modal closed with result:', result);

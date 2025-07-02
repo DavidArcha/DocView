@@ -2,15 +2,13 @@
     [ngStyle]="{ zIndex: zIndex - 1 }" (click)="onBackdropClick($event)">
 </div>
 
-<div class="custom-modal" [ngStyle]="{
-       width: config.width,
-       height: config.height,
-       top: top + 'px',
-       left: left + 'px',
-       position: 'fixed',
-       zIndex: zIndex,
-       borderRadius: '6px'
-     }" [class.minimized]="isMinimized" [attr.role]="'dialog'" aria-modal="true" tabindex="-1">
+<div class="custom-modal" 
+     [ngStyle]="getModalStyles()" 
+     [class.minimized]="isMinimized" 
+     [class.auto-size]="isAutoSize()"
+     [attr.role]="'dialog'" 
+     aria-modal="true" 
+     tabindex="-1">
 
     <div class="custom-modal-header" [ngStyle]="{ background: config.headerColor || '#2c3e50' }"
         [class.draggable]="config.draggable" (mousedown)="onDragStart($event)">

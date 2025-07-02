@@ -63,8 +63,60 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
     this.setupFocusTrap();
     
-    // Use requestAnimationFrame for smooth centering
-    requestAnimationFrame(() => this.centerModal());
+    // Wait for content to render, then center
+    setTimeout(() => {
+      this.centerModal();
+    }, 0);
+  }
+
+  /**
+   * Check if modal should auto-size based on content
+   */
+  isAutoSize(): boolean {
+    return this.config.autoSize === true || (!this.config.width && !this.config.height);
+  }
+
+  /**
+   * Get dynamic modal styles based on configuration
+   */
+  getModalStyles(): any {
+    const styles: any = {
+      position: 'fixed',
+      top: this.top + 'px',
+      left: this.left + 'px',
+      zIndex: this.zIndex,
+      borderRadius: '6px'
+    };
+
+    // Handle width
+    if (this.config.width) {
+      styles.width = this.config.width;
+    } else if (!this.isAutoSize()) {
+      styles.width = 'auto';
+    }
+
+    // Handle height
+    if (this.config.height) {
+      styles.height = this.config.height;
+    } else if (!this.isAutoSize()) {
+      styles.height = 'auto';
+    }
+
+    // Add min/max constraints
+    if (this.config.minWidth) styles.minWidth = this.config.minWidth;
+    if (this.config.minHeight) styles.minHeight = this.config.minHeight;
+    if (this.config.maxWidth) styles.maxWidth = this.config.maxWidth;
+    if (this.config.maxHeight) styles.maxHeight = this.config.maxHeight;
+
+    // Auto-size constraints
+    if (this.isAutoSize()) {
+      styles.maxWidth = this.config.maxWidth || '90vw';
+      styles.maxHeight = this.config.maxHeight || '90vh';
+      styles.minWidth = this.config.minWidth || '320px';
+      styles.minHeight = this.config.minHeight || '200px';
+    }
+
+    return styles;
   }
 
   /**
@@ -77,9 +129,21 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   initializePosition() {
-    // Set initial position to approximate center before DOM is ready
-    const defaultWidth = parseInt(this.config.width || '600');
-    const defaultHeight = parseInt(this.config.height || '400');
+    // For auto-size modals, use smaller default dimensions for initial positioning
+    let defaultWidth = 600;
+    let defaultHeight = 400;
+
+    if (this.config.width) {
+      defaultWidth = parseInt(this.config.width);
+    } else if (this.isAutoSize()) {
+      defaultWidth = 400; // Smaller initial size for auto-size
+    }
+
+    if (this.config.height) {
+      defaultHeight = parseInt(this.config.height);
+    } else if (this.isAutoSize()) {
+      defaultHeight = 300; // Smaller initial size for auto-size
+    }
     
     this.top = Math.max((window.innerHeight - defaultHeight) / 2, 40);
     this.left = Math.max((window.innerWidth - defaultWidth) / 2, 0);
@@ -88,14 +152,27 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   centerModal() {
     if (!this.modalElement) return;
     
-    const rect = this.modalElement.getBoundingClientRect();
-    const w = rect.width;
-    const h = rect.height;
-    
-    this.top = Math.max((window.innerHeight - h) / 2, 40);
-    this.left = Math.max((window.innerWidth - w) / 2, 0);
-    
-    this.cdr.detectChanges();
+    // Wait for content to fully render
+    setTimeout(() => {
+      const rect = this.modalElement!.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      
+      // Center based on actual rendered size
+      this.top = Math.max((window.innerHeight - h) / 2, 40);
+      this.left = Math.max((window.innerWidth - w) / 2, 0);
+      
+      // Ensure modal stays within viewport for auto-sized modals
+      if (this.isAutoSize()) {
+        const maxLeft = window.innerWidth - w - 20;
+        const maxTop = window.innerHeight - h - 20;
+        
+        this.left = Math.max(20, Math.min(this.left, maxLeft));
+        this.top = Math.max(20, Math.min(this.top, maxTop));
+      }
+      
+      this.cdr.detectChanges();
+    }, 10);
   }
 
   onBackdropClick(event: MouseEvent) {
@@ -109,17 +186,18 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   minimize() {
     if (this.isMinimized) return;
     
-    // Save current bounds
+    // Save current bounds including actual dimensions
+    const rect = this.modalElement?.getBoundingClientRect();
     this.savedBounds = {
       top: this.top,
       left: this.left,
-      width: this.config.width || (this.modalElement?.style.width) || '',
-      height: this.config.height || (this.modalElement?.style.height) || ''
+      width: rect ? rect.width + 'px' : (this.config.width || 'auto'),
+      height: rect ? rect.height + 'px' : (this.config.height || 'auto')
     };
     
     this.isMinimized = true;
-    this.top = window.innerHeight - 50; // Move to bottom
-    this.left = 20; // Small left margin
+    this.top = window.innerHeight - 50;
+    this.left = 20;
     this.cdr.detectChanges();
   }
 
@@ -129,7 +207,13 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     this.isMinimized = false;
     this.top = this.savedBounds.top;
     this.left = this.savedBounds.left;
-    this.cdr.detectChanges();
+    
+    // Re-center if it was an auto-size modal
+    if (this.isAutoSize()) {
+      setTimeout(() => this.centerModal(), 10);
+    } else {
+      this.cdr.detectChanges();
+    }
   }
 
   toggleMinimize() {
@@ -194,7 +278,7 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     this.left = Math.max(minLeft, Math.min(maxLeft, newLeft));
     this.top = Math.max(minTop, Math.min(maxTop, newTop));
     
-    // Apply position immediately using style properties instead of transform
+    // Apply position immediately using style properties
     if (this.modalElement) {
       this.modalElement.style.left = this.left + 'px';
       this.modalElement.style.top = this.top + 'px';
