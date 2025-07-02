@@ -13,4 +13,6 @@ export interface ModalConfig {
   destroyOnClose?: boolean;
   closeChildrenOnParentClose?: boolean;
   title?: string;
+  closeOnBackdropClick?: boolean;
+  allowBackgroundInteraction?: boolean;
 }

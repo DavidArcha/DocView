@@ -1,11 +1,14 @@
-<div class="modal-backdrop"></div>
+<div class="modal-backdrop" [class.bg-interactive]="config.allowBackgroundInteraction"
+    (click)="onBackdropClick($event)">
+</div>
 <div class="custom-modal" [ngStyle]="{
-      width: config.width,
-      height: config.height,
-      top: top + 'px',
-      left: left + 'px',
-      position: 'fixed'
-    }" [class.draggable]="config.draggable" [class.minimized]="isMinimized">
+    width: config.width,
+    height: config.height,
+    top: top + 'px',
+    left: left + 'px',
+    position: 'fixed',
+    zIndex: zIndex
+  }" [class.draggable]="config.draggable" [class.minimized]="isMinimized" tabindex="0" role="dialog" aria-modal="true">
     <div class="custom-modal-header" [ngStyle]="{ backgroundColor: config.headerColor || '#222' }"
         (mousedown)="onDragStart($event)" [style.cursor]="config.draggable && !isMinimized ? 'move' : 'default'">
         <span>{{ config.title || 'Modal Title' }}</span>
@@ -24,5 +27,9 @@
     </div>
     <div *ngIf="config.showFooter !== false && !isMinimized" class="custom-modal-footer">
         <ng-content select="[footer]"></ng-content>
+    </div>
+    <!-- ARIA live region for screen readers -->
+    <div aria-live="assertive" class="sr-only" style="position: absolute; width:1px; height:1px; overflow:hidden;">
+        Modal dialog opened: {{ config.title || 'Modal' }}
     </div>
 </div>
