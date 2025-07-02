@@ -1,6 +1,4 @@
-import { TemplateRef, Type } from "@angular/core";
-
-
+import { TemplateRef, Type } from '@angular/core';
 export interface ModalConfig {
   component?: Type<any>;
   template?: TemplateRef<any>;
@@ -15,4 +13,5 @@ export interface ModalConfig {
   title?: string;
   closeOnBackdropClick?: boolean;
   allowBackgroundInteraction?: boolean;
+  closeOnEscape?: boolean; // NEW: allows disabling ESC-to-close
 }

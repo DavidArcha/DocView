@@ -1,181 +1,136 @@
-import { AfterViewInit, Component, ComponentRef, ElementRef, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ComponentFactoryResolver, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { ModalConfig } from '../modal-config';
 import { ModalRef } from '../modal-ref';
 
+let lastZIndex = 1000;
 @Component({
   selector: 'app-custom-modal-popup',
   standalone: false,
 
   templateUrl: './custom-modal-popup.component.html',
-  styleUrl: './custom-modal-popup.component.scss'
+  styleUrl: './custom-modal-popup.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CustomModalPopupComponent implements OnInit, AfterViewInit {
+export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestroy {
   @Input() config!: ModalConfig;
   @Input() modalRef!: ModalRef;
 
-  @ViewChild('dynamicContent', { read: ViewContainerRef, static: true })
-  dynamicContent!: ViewContainerRef;
-
-  top = 0;
-  left = 0;
-  zIndex = 1000; // For stacking
-
-  private static lastZIndex = 1000;
-  private dragging = false;
-  private dragStartX = 0;
-  private dragStartY = 0;
-  private modalStartTop = 0;
-  private modalStartLeft = 0;
+  @ViewChild('dynamicContent', { read: ViewContainerRef }) dynamicContent!: ViewContainerRef;
 
   isMinimized = false;
-  private lastTop = 0;
-  private lastLeft = 0;
-  private lastWidth = '';
-  private lastHeight = '';
+  zIndex = 0;
+  top = 0;
+  left = 0;
+  private dragging = false;
+  private dragOffset = { x: 0, y: 0 };
+  private savedBounds: { top: number, left: number, width: string, height: string } | null = null;
 
-  private componentRef?: ComponentRef<any>;
-
-  // Accessibility
-  private focusableEls: HTMLElement[] = [];
-  private lastFocusedEl: HTMLElement | null = null;
-
-  constructor(private el: ElementRef) { }
+  constructor(
+    public el: ElementRef,
+    private cfr: ComponentFactoryResolver
+  ) { }
 
   ngOnInit() {
-    // Center modal on screen
-    setTimeout(() => this.centerModal(), 0);
-
-    // Assign zIndex for stacking
-    this.zIndex = ++CustomModalPopupComponent.lastZIndex;
+    this.zIndex = ++lastZIndex;
+    setTimeout(() => this.centerModal());
   }
 
   ngAfterViewInit() {
-    if (this.config.component && this.dynamicContent) {
-      this.dynamicContent.clear();
-      this.componentRef = this.dynamicContent.createComponent(this.config.component);
-      if (this.config.data) {
-        Object.assign(this.componentRef.instance, this.config.data);
-      }
-      if ('modalRef' in this.componentRef.instance) {
-        this.componentRef.instance.modalRef = this.modalRef;
+    if (this.config.component && !this.config.template && this.dynamicContent) {
+      const compFactory = this.cfr.resolveComponentFactory(this.config.component);
+      const compRef = this.dynamicContent.createComponent(compFactory);
+      Object.assign(compRef.instance, this.config.data || {});
+      if ('modalRef' in compRef.instance) {
+        (compRef.instance as any).modalRef = this.modalRef;
       }
     }
-    // ...focus trap and autofocus
     this.setupFocusTrap();
-    this.autoFocusFirstElement();
   }
 
   centerModal() {
     const modalEl = this.el.nativeElement.querySelector('.custom-modal');
-    if (modalEl) {
-      const { innerWidth, innerHeight } = window;
-      const { offsetWidth, offsetHeight } = modalEl;
-      this.left = Math.max((innerWidth - offsetWidth) / 2, 0);
-      this.top = Math.max((innerHeight - offsetHeight) / 2, 0);
-    }
+    if (!modalEl) return;
+    const w = modalEl.offsetWidth, h = modalEl.offsetHeight;
+    this.top = Math.max((window.innerHeight - h) / 2, 40);
+    this.left = Math.max((window.innerWidth - w) / 2, 0);
   }
 
-  onDragStart(event: MouseEvent) {
-    if (!this.config.draggable || this.isMinimized) return;
-
-    this.dragging = true;
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
-    this.modalStartLeft = this.left;
-    this.modalStartTop = this.top;
-
-    document.addEventListener('mousemove', this.onDragging);
-    document.addEventListener('mouseup', this.onDragEnd);
+  onBackdropClick(event: MouseEvent) {
+    if (this.config.closeOnBackdropClick) this.close();
   }
-
-  onDragging = (event: MouseEvent) => {
-    if (!this.dragging || this.isMinimized) return;
-    const dx = event.clientX - this.dragStartX;
-    const dy = event.clientY - this.dragStartY;
-    this.left = Math.max(this.modalStartLeft + dx, 0);
-    this.top = Math.max(this.modalStartTop + dy, 0);
-  };
-
-  onDragEnd = (_event: MouseEvent) => {
-    this.dragging = false;
-    document.removeEventListener('mousemove', this.onDragging);
-    document.removeEventListener('mouseup', this.onDragEnd);
-  };
 
   close() {
     this.modalRef.close();
   }
 
-  minimize(event: MouseEvent) {
-    event.stopPropagation();
+  minimize() {
+    if (this.isMinimized) return;
+    const modalEl = this.el.nativeElement.querySelector('.custom-modal');
+    this.savedBounds = {
+      top: this.top,
+      left: this.left,
+      width: this.config.width || modalEl.style.width || '',
+      height: this.config.height || modalEl.style.height || ''
+    };
     this.isMinimized = true;
-    this.lastTop = this.top;
-    this.lastLeft = this.left;
-    this.lastWidth = this.config.width || '';
-    this.lastHeight = this.config.height || '';
-    this.top = window.innerHeight - 60;
-    this.left = 20;
-    this.config.width = '300px';
-    this.config.height = '40px';
+    this.top = window.innerHeight - 40;
+    this.left = 0;
   }
 
-  restore(event: MouseEvent) {
-    event.stopPropagation();
+  restore() {
+    if (!this.isMinimized || !this.savedBounds) return;
     this.isMinimized = false;
-    this.top = this.lastTop;
-    this.left = this.lastLeft;
-    this.config.width = this.lastWidth;
-    this.config.height = this.lastHeight;
+    this.top = this.savedBounds.top;
+    this.left = this.savedBounds.left;
   }
 
-  onBackdropClick(event: MouseEvent) {
-    if (this.config.allowBackgroundInteraction) {
-      return;
-    }
-    if (this.config.closeOnBackdropClick) {
-      this.close();
-    }
+  onDragStart(event: MouseEvent) {
+    if (!this.config.draggable) return;
+    event.preventDefault();
+    this.dragging = true;
+    this.dragOffset.x = event.clientX - this.left;
+    this.dragOffset.y = event.clientY - this.top;
+    document.addEventListener('mousemove', this.onDragging);
+    document.addEventListener('mouseup', this.onDragEnd);
   }
 
-  // Focus Trap and Accessibility
+  onDragging = (event: MouseEvent) => {
+    if (!this.dragging) return;
+    this.left = event.clientX - this.dragOffset.x;
+    this.top = event.clientY - this.dragOffset.y;
+  };
+
+  onDragEnd = () => {
+    this.dragging = false;
+    document.removeEventListener('mousemove', this.onDragging);
+    document.removeEventListener('mouseup', this.onDragEnd);
+  };
+
   setupFocusTrap() {
     setTimeout(() => {
       const modalEl = this.el.nativeElement.querySelector('.custom-modal');
-      this.focusableEls = Array.from(
-        modalEl.querySelectorAll(
-          'a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])'
-        )
-      ) as HTMLElement[];
+      const focusableEls = modalEl.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+      if (focusableEls.length) (focusableEls[0] as HTMLElement).focus();
 
       modalEl.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Tab') {
-          if (!this.focusableEls.length) return;
-          const firstEl = this.focusableEls[0];
-          const lastEl = this.focusableEls[this.focusableEls.length - 1];
-          if (e.shiftKey) {
-            if (document.activeElement === firstEl) {
-              e.preventDefault();
-              lastEl.focus();
-            }
-          } else {
-            if (document.activeElement === lastEl) {
-              e.preventDefault();
-              firstEl.focus();
-            }
+          const first = focusableEls[0] as HTMLElement;
+          const last = focusableEls[focusableEls.length - 1] as HTMLElement;
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault(); last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault(); first.focus();
           }
         }
-        // ESC closes modal
-        if (e.key === 'Escape' && !this.isMinimized) {
+        // Only close on Escape if allowed
+        if (e.key === 'Escape' && !this.isMinimized && this.config.closeOnEscape !== false) {
           this.close();
         }
       });
     });
   }
 
-  autoFocusFirstElement() {
-    setTimeout(() => {
-      const el: HTMLElement | undefined = this.focusableEls[0];
-      if (el) el.focus();
-    });
+  ngOnDestroy() {
+    if (this.dragging) this.onDragEnd();
   }
 }

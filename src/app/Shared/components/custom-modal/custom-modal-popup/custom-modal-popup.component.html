@@ -1,35 +1,35 @@
 <div class="modal-backdrop" [class.bg-interactive]="config.allowBackgroundInteraction"
-    (click)="onBackdropClick($event)">
+    [ngStyle]="{ zIndex: zIndex - 1 }" (click)="onBackdropClick($event)">
 </div>
+
 <div class="custom-modal" [ngStyle]="{
-    width: config.width,
-    height: config.height,
-    top: top + 'px',
-    left: left + 'px',
-    position: 'fixed',
-    zIndex: zIndex
-  }" [class.draggable]="config.draggable" [class.minimized]="isMinimized" tabindex="0" role="dialog" aria-modal="true">
-    <div class="custom-modal-header" [ngStyle]="{ backgroundColor: config.headerColor || '#222' }"
-        (mousedown)="onDragStart($event)" [style.cursor]="config.draggable && !isMinimized ? 'move' : 'default'">
-        <span>{{ config.title || 'Modal Title' }}</span>
-        <span class="modal-actions">
-            <button *ngIf="!isMinimized" (click)="minimize($event)" title="Minimize">_</button>
-            <button *ngIf="isMinimized" (click)="restore($event)" title="Restore">&#x25A1;</button>
-            <button (click)="close()" title="Close">×</button>
-        </span>
+       width: config.width,
+       height: config.height,
+       top: top + 'px',
+       left: left + 'px',
+       position: 'fixed',
+       zIndex: zIndex,
+       borderRadius: '6px'
+     }" [attr.role]="'dialog'" aria-modal="true" tabindex="-1">
+
+    <div class="custom-modal-header" [ngStyle]="{ background: config.headerColor || '#2c3e50' }">
+        <span class="modal-title">{{ config.title }}</span>
+        <div class="header-actions">
+            <button *ngIf="config.draggable" class="drag-handle" (mousedown)="onDragStart($event)"
+                aria-label="Drag">&#x2630;</button>
+            <button (click)="minimize()" aria-label="Minimize">_</button>
+            <button (click)="close()" aria-label="Close">&times;</button>
+        </div>
     </div>
 
     <div class="custom-modal-body" *ngIf="!isMinimized">
-        <ng-template #dynamicContent></ng-template>
-        <ng-container *ngIf="config.template">
-            <ng-container *ngTemplateOutlet="config.template; context: { modal: modalRef }"></ng-container>
+        <ng-container *ngIf="config.template" [ngTemplateOutlet]="config.template"
+            [ngTemplateOutletContext]="{ data: config.data, modalRef: modalRef }">
         </ng-container>
+        <ng-container *ngIf="config.component && !config.template" #dynamicContent></ng-container>
     </div>
-    <div *ngIf="config.showFooter !== false && !isMinimized" class="custom-modal-footer">
+
+    <div class="custom-modal-footer" *ngIf="config.showFooter !== false && !isMinimized">
         <ng-content select="[footer]"></ng-content>
-    </div>
-    <!-- ARIA live region for screen readers -->
-    <div aria-live="assertive" class="sr-only" style="position: absolute; width:1px; height:1px; overflow:hidden;">
-        Modal dialog opened: {{ config.title || 'Modal' }}
     </div>
 </div>

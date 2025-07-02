@@ -8,6 +8,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CustomModalService } from '../../Shared/components/custom-modal/custom-modal.service';
 import { PaginationControlComponent } from '../../Shared/components/pagination/pagination-control/pagination-control.component';
 import { NotFoundComponent } from '../not-found/not-found.component';
+import { text } from 'express';
+import { TextsurveyComponent } from '../../Shared/components/textsurvey/textsurvey.component';
 
 @Component({
   selector: 'app-result-page',
@@ -187,8 +189,7 @@ export class ResultPageComponent implements OnInit {
 
   openDraggableModal() {
     const modalRef = this.modalService.open({
-      component: NotFoundComponent,
-      data: { myMessage: 'Hello Modal!' },
+      component: TextsurveyComponent,
       width: '400px',
       draggable: true,
       title: 'Draggable Modal',

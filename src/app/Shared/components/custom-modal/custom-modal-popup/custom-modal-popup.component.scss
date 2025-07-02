@@ -93,3 +93,18 @@
 .custom-modal {
     animation: modalOpen 0.2s;
 }
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    transition: opacity 0.2s ease;
+    opacity: 1;
+}
+
+.modal-backdrop.bg-interactive {
+    pointer-events: none;
+}

@@ -7,8 +7,15 @@ import { ModalRef } from './modal-ref';
 export class CustomModalService {
   private modals$ = new Subject<{ config: ModalConfig, modalRef: ModalRef }>();
 
-  open(config: ModalConfig): ModalRef {
+  /**
+   * Opens a modal with the given config. If a parent is provided, links parent-child.
+   */
+  open(config: ModalConfig, parentRef?: ModalRef): ModalRef {
     const modalRef = new ModalRef();
+    if (parentRef) {
+      modalRef.parent = parentRef;
+      parentRef.children.push(modalRef);
+    }
     this.modals$.next({ config, modalRef });
     return modalRef;
   }
