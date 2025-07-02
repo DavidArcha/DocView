@@ -5,7 +5,7 @@ import { ModalRef } from '../modal-ref';
 @Component({
   selector: 'app-custom-modal-popup',
   standalone: false,
-  
+
   templateUrl: './custom-modal-popup.component.html',
   styleUrl: './custom-modal-popup.component.scss'
 })
@@ -25,9 +25,16 @@ export class CustomModalPopupComponent implements OnInit, AfterViewInit {
   private modalStartTop = 0;
   private modalStartLeft = 0;
 
+  // Minimize/maximize state:
+  isMinimized = false;
+  private lastTop = 0;
+  private lastLeft = 0;
+  private lastWidth = '';
+  private lastHeight = '';
+
   private componentRef?: ComponentRef<any>;
 
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef) { }
 
   ngOnInit() {
     // Center modal on screen
@@ -58,7 +65,7 @@ export class CustomModalPopupComponent implements OnInit, AfterViewInit {
   }
 
   onDragStart(event: MouseEvent) {
-    if (!this.config.draggable) return;
+    if (!this.config.draggable || this.isMinimized) return;
 
     this.dragging = true;
     this.dragStartX = event.clientX;
@@ -71,7 +78,7 @@ export class CustomModalPopupComponent implements OnInit, AfterViewInit {
   }
 
   onDragging = (event: MouseEvent) => {
-    if (!this.dragging) return;
+    if (!this.dragging || this.isMinimized) return;
     const dx = event.clientX - this.dragStartX;
     const dy = event.clientY - this.dragStartY;
     this.left = Math.max(this.modalStartLeft + dx, 0);
@@ -86,5 +93,29 @@ export class CustomModalPopupComponent implements OnInit, AfterViewInit {
 
   close() {
     this.modalRef.close();
+  }
+
+  minimize(event: MouseEvent) {
+    event.stopPropagation();
+    this.isMinimized = true;
+    // Store last position and size
+    this.lastTop = this.top;
+    this.lastLeft = this.left;
+    this.lastWidth = this.config.width || '';
+    this.lastHeight = this.config.height || '';
+    // Move modal to bottom left and shrink it
+    this.top = window.innerHeight - 60; // 60px from top for minimized bar
+    this.left = 20;
+    this.config.width = '300px';
+    this.config.height = '40px';
+  }
+
+  restore(event: MouseEvent) {
+    event.stopPropagation();
+    this.isMinimized = false;
+    this.top = this.lastTop;
+    this.left = this.lastLeft;
+    this.config.width = this.lastWidth;
+    this.config.height = this.lastHeight;
   }
 }

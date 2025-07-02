@@ -1,23 +1,28 @@
 <div class="modal-backdrop"></div>
 <div class="custom-modal" [ngStyle]="{
-    width: config.width,
-    height: config.height,
-    top: top + 'px',
-    left: left + 'px',
-    position: 'fixed'
-  }" [class.draggable]="config.draggable">
+      width: config.width,
+      height: config.height,
+      top: top + 'px',
+      left: left + 'px',
+      position: 'fixed'
+    }" [class.draggable]="config.draggable" [class.minimized]="isMinimized">
     <div class="custom-modal-header" [ngStyle]="{ backgroundColor: config.headerColor || '#222' }"
-        (mousedown)="onDragStart($event)" [style.cursor]="config.draggable ? 'move' : 'default'">
+        (mousedown)="onDragStart($event)" [style.cursor]="config.draggable && !isMinimized ? 'move' : 'default'">
         <span>{{ config.title || 'Modal Title' }}</span>
-        <button (click)="close()">×</button>
+        <span class="modal-actions">
+            <button *ngIf="!isMinimized" (click)="minimize($event)" title="Minimize">_</button>
+            <button *ngIf="isMinimized" (click)="restore($event)" title="Restore">&#x25A1;</button>
+            <button (click)="close()" title="Close">×</button>
+        </span>
     </div>
-    <div class="custom-modal-body">
+
+    <div class="custom-modal-body" *ngIf="!isMinimized">
         <ng-template #dynamicContent></ng-template>
         <ng-container *ngIf="config.template">
             <ng-container *ngTemplateOutlet="config.template; context: { modal: modalRef }"></ng-container>
         </ng-container>
     </div>
-    <div *ngIf="config.showFooter !== false" class="custom-modal-footer">
+    <div *ngIf="config.showFooter !== false && !isMinimized" class="custom-modal-footer">
         <ng-content select="[footer]"></ng-content>
     </div>
 </div>
