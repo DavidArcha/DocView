@@ -216,20 +216,24 @@ export class ResultPageComponent implements OnInit {
     const modalRef = this.modalService.open({
       component: TextsurveyComponent,
       title: 'Parent Modal',
-      closeChildrenOnParentClose: true,
-      allowBackgroundInteraction: true
+      allowBackgroundInteraction: true,
+      draggable: true,
+      width: '600px',
+      height: '400px'
     });
     modalRef.afterClosed().subscribe(result => {
       console.log('Modal closed with result:', result);
     });
   }
 
-   openDraggableModal2() {
+  openDraggableModal2() {
     const modalRef = this.modalService.open({
       component: TextsurveyComponent,
       title: 'child Modal',
-      closeChildrenOnParentClose: true,
-      allowBackgroundInteraction: true
+      allowBackgroundInteraction: true,
+      draggable: true,
+      width: '500px',
+      height: '350px'
     });
     modalRef.afterClosed().subscribe(result => {
       console.log('Modal closed with result:', result);

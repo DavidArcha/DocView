@@ -6,6 +6,7 @@ import { ModalRef } from './modal-ref';
 @Injectable({ providedIn: 'root' })
 export class CustomModalService {
   private modals$ = new Subject<{ config: ModalConfig, modalRef: ModalRef }>();
+  private modalFocus$ = new Subject<ModalRef>();
   private activeModals: ModalRef[] = [];
 
   /**
@@ -38,6 +39,15 @@ export class CustomModalService {
   }
 
   /**
+   * Bring a specific modal to the front
+   */
+  focusModal(modalRef: ModalRef): void {
+    if (this.activeModals.includes(modalRef)) {
+      this.modalFocus$.next(modalRef);
+    }
+  }
+
+  /**
    * Close all open modals
    */
   closeAll(): void {
@@ -64,12 +74,14 @@ export class CustomModalService {
    * Check if there are any blocking modals (non-interactive) open
    */
   get hasBlockingModal(): boolean {
-    // This would need access to modal configurations
-    // For now, assume all modals are blocking unless specified otherwise
     return this.activeModals.length > 0;
   }
 
   get modalEvents$() {
     return this.modals$.asObservable();
+  }
+
+  get modalFocusEvents$() {
+    return this.modalFocus$.asObservable();
   }
 }

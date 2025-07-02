@@ -6,8 +6,9 @@
     min-height: 100px;
     display: flex;
     flex-direction: column;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, opacity 0.2s ease;
     opacity: 1;
+    cursor: pointer; // Indicate clickable when background interaction allowed
 
     // Auto-size specific styles
     &.auto-size {
@@ -22,15 +23,51 @@
         }
     }
 
+    // Enhanced visual feedback for modal layering
+    &:not(.modal-top) {
+        opacity: 0.92;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+        
+        // Subtle overlay to indicate it's not the top modal
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.03);
+            z-index: 1;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+    }
+
+    &.modal-top {
+        opacity: 1;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+    }
+
     // Smooth dragging performance
     &.dragging {
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-        z-index: 9999 !important;
         transition: none; // Disable transitions during drag
+        opacity: 1 !important; // Ensure full opacity during drag
 
         .custom-modal-header {
             cursor: grabbing !important;
         }
+
+        &::before {
+            display: none; // Hide overlay during drag
+        }
+    }
+
+    // Hover effect for non-top modals when background interaction is allowed
+    &:not(.modal-top):hover {
+        opacity: 0.96;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
+        transform: translateY(-1px);
     }
 }
 
@@ -222,49 +259,14 @@
     }
 }
 
-// Global styles for body when modal is open
-:global(body.modal-open) {
-    overflow: hidden;
-
-    // Add subtle visual indicator that background is blocked
-    &::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.1);
-        z-index: 998;
-        pointer-events: none;
-    }
-}
-
-// Multiple modal support
+// Enhanced multiple modal support
 .custom-modal {
-    // Ensure each modal has proper layering
-    &:not(.minimized) {
-        // Active modal gets higher z-index
-        z-index: var(--modal-z-index);
-    }
-
-    // Visual indication of modal order
-    &:not(:last-child) {
-        // Slightly dim non-topmost modals
-        opacity: 0.95;
-
-        &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.05);
-            z-index: 1;
-            pointer-events: none;
-            border-radius: inherit;
-        }
+    // Smooth transitions for z-index changes
+    transition: box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+    
+    // Visual stacking effect
+    &.stacked {
+        transform: scale(0.98);
     }
 }
 

@@ -1,6 +1,7 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ComponentFactoryResolver, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ComponentFactoryResolver, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef, Inject } from '@angular/core';
 import { ModalConfig } from '../modal-config';
 import { ModalRef } from '../modal-ref';
+import { CustomModalService } from '../custom-modal.service';
 
 let lastZIndex = 1000;
 @Component({
@@ -29,7 +30,8 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   constructor(
     public el: ElementRef,
     private cfr: ComponentFactoryResolver,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private modalService: CustomModalService
   ) { }
 
   ngOnInit() {
@@ -43,6 +45,11 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   ngAfterViewInit() {
     // Cache modal element reference
     this.modalElement = this.el.nativeElement.querySelector('.custom-modal');
+
+    // Add click handler to bring modal to front
+    if (this.modalElement) {
+      this.modalElement.addEventListener('mousedown', this.onModalMouseDown);
+    }
 
     // Create main component
     if (this.config.component && !this.config.template && this.dynamicContent) {
@@ -69,6 +76,39 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     
     // Center modal after content loads
     requestAnimationFrame(() => this.centerModal());
+  }
+
+  /**
+   * Handle mouse down on modal to bring it to front
+   */
+  private onModalMouseDown = (event: MouseEvent) => {
+    // Only handle if background interaction is allowed and there are multiple modals
+    if (this.config.allowBackgroundInteraction && this.modalService.activeModalCount > 1) {
+      // Don't focus if clicking on backdrop
+      if (event.target === this.el.nativeElement.querySelector('.modal-backdrop')) {
+        return;
+      }
+      
+      this.bringToFront();
+    }
+  };
+
+  /**
+   * Bring this modal to the front
+   */
+  private bringToFront() {
+    this.modalService.focusModal(this.modalRef);
+  }
+
+  /**
+   * Update z-index from external source (modal container)
+   */
+  updateZIndex(newZIndex: number) {
+    this.zIndex = newZIndex;
+    if (this.modalElement) {
+      this.modalElement.style.zIndex = newZIndex.toString();
+    }
+    this.cdr.detectChanges();
   }
 
   /**
@@ -147,8 +187,10 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
       defaultHeight = 300; // Smaller initial size for auto-size
     }
     
-    this.top = Math.max((window.innerHeight - defaultHeight) / 2, 40);
-    this.left = Math.max((window.innerWidth - defaultWidth) / 2, 0);
+    // Offset multiple modals slightly
+    const offset = (this.modalService.activeModalCount - 1) * 30;
+    this.top = Math.max((window.innerHeight - defaultHeight) / 2 + offset, 40);
+    this.left = Math.max((window.innerWidth - defaultWidth) / 2 + offset, 0);
   }
 
   centerModal() {
@@ -361,6 +403,11 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
   ngOnDestroy() {
     if (this.dragging) this.onDragEnd();
+    
+    // Remove modal-specific event listeners
+    if (this.modalElement) {
+      this.modalElement.removeEventListener('mousedown', this.onModalMouseDown);
+    }
     
     // Cleanup global event listeners
     document.removeEventListener('keydown', this.handleGlobalKeyDown);
