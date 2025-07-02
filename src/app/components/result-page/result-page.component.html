@@ -34,3 +34,7 @@
         </div>
     </div>
 </div>
+
+<ng-template #myFooterTemplate let-data="data" let-modalRef="modalRef">
+  <button (click)="modalRef.close()">Close</button>
+</ng-template>

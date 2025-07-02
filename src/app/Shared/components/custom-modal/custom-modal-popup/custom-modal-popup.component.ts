@@ -15,6 +15,7 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   @Input() modalRef!: ModalRef;
 
   @ViewChild('dynamicContent', { read: ViewContainerRef }) dynamicContent!: ViewContainerRef;
+  @ViewChild('dynamicFooter', { read: ViewContainerRef }) dynamicFooter!: ViewContainerRef;
 
   isMinimized = false;
   zIndex = 0;
@@ -37,6 +38,7 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   ngAfterViewInit() {
+    // Create main component
     if (this.config.component && !this.config.template && this.dynamicContent) {
       const compFactory = this.cfr.resolveComponentFactory(this.config.component);
       const compRef = this.dynamicContent.createComponent(compFactory);
@@ -45,10 +47,30 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
         (compRef.instance as any).modalRef = this.modalRef;
       }
     }
+
+    // Create footer component if specified
+    if (this.config.footerComponent && this.dynamicFooter) {
+      const footerFactory = this.cfr.resolveComponentFactory(this.config.footerComponent);
+      const footerRef = this.dynamicFooter.createComponent(footerFactory);
+      Object.assign(footerRef.instance, this.config.footerData || {});
+      if ('modalRef' in footerRef.instance) {
+        (footerRef.instance as any).modalRef = this.modalRef;
+      }
+    }
+
     this.setupFocusTrap();
     
     // Ensure proper centering after view is initialized
     setTimeout(() => this.centerModal(), 0);
+  }
+
+  /**
+   * Determines if the footer should be shown
+   */
+  shouldShowFooter(): boolean {
+    return this.config.showFooter === true || 
+           !!this.config.footerTemplate || 
+           !!this.config.footerComponent;
   }
 
   initializePosition() {

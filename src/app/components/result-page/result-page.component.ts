@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ColDef, GridApi } from 'ag-grid-community';
 import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { CustomButtonsComponent } from '../../Shared/components/custom-buttons/custom-buttons.component';
@@ -10,6 +10,7 @@ import { PaginationControlComponent } from '../../Shared/components/pagination/p
 import { NotFoundComponent } from '../not-found/not-found.component';
 import { text } from 'express';
 import { TextsurveyComponent } from '../../Shared/components/textsurvey/textsurvey.component';
+import { CustomFooterComponentComponent } from '../../custom-footer-component/custom-footer-component.component';
 
 @Component({
   selector: 'app-result-page',
@@ -19,6 +20,7 @@ import { TextsurveyComponent } from '../../Shared/components/textsurvey/textsurv
 })
 export class ResultPageComponent implements OnInit {
 
+  @ViewChild('myFooterTemplate') footerTemplate!: TemplateRef<any>;
   //Ag-Grid Fields
   public columnDefs: ColDef[] = [];
   public rowData: any;
@@ -195,6 +197,8 @@ export class ResultPageComponent implements OnInit {
       preActionText: 'Saved',
       headerColor: '#2c3e50',
       draggable: true,
+      footerTemplate: this.footerTemplate,
+      footerData: { saveEnabled: true }
     });
     modalRef.afterClosed().subscribe(result => {
       console.log('Modal closed with result:', result);

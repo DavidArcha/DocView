@@ -8,6 +8,9 @@ export interface ModalConfig {
   draggable?: boolean;
   headerColor?: string;
   showFooter?: boolean;
+  footerTemplate?: TemplateRef<any>;
+  footerComponent?: Type<any>;
+  footerData?: any;
   destroyOnClose?: boolean;
   closeChildrenOnParentClose?: boolean;
   title?: string;

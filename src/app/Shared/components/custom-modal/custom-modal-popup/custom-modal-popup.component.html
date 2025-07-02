@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <!-- Changed: Use [style.display] instead of *ngIf to preserve component -->
+    <!-- Modal body - preserve component when minimized -->
     <div class="custom-modal-body" [style.display]="isMinimized ? 'none' : 'block'">
         <ng-container *ngIf="config.template" [ngTemplateOutlet]="config.template"
             [ngTemplateOutletContext]="{ data: config.data, modalRef: modalRef }">
@@ -52,8 +52,20 @@
         <ng-container *ngIf="config.component && !config.template" #dynamicContent></ng-container>
     </div>
 
-    <!-- Changed: Use [style.display] instead of *ngIf to preserve footer -->
-    <div class="custom-modal-footer" [style.display]="(config.showFooter !== false && !isMinimized) ? 'block' : 'none'">
-        <ng-content select="[footer]"></ng-content>
+    <!-- Enhanced Footer: Only show if explicitly enabled and content exists -->
+    <div class="custom-modal-footer" 
+         *ngIf="shouldShowFooter() && !isMinimized">
+        
+        <!-- Footer template content -->
+        <ng-container *ngIf="config.footerTemplate" 
+                      [ngTemplateOutlet]="config.footerTemplate"
+                      [ngTemplateOutletContext]="{ data: config.footerData, modalRef: modalRef }">
+        </ng-container>
+        
+        <!-- Footer component content -->
+        <ng-container *ngIf="config.footerComponent && !config.footerTemplate" #dynamicFooter></ng-container>
+        
+        <!-- Projected footer content (ng-content) -->
+        <ng-content select="[footer]" *ngIf="!config.footerTemplate && !config.footerComponent"></ng-content>
     </div>
 </div>
