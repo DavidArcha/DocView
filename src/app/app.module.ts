@@ -41,6 +41,7 @@ import { RelationTableComponent } from './Shared/components/relation-table/relat
 import { PaginationControlComponent } from './Shared/components/pagination/pagination-control/pagination-control.component';
 import { CustomModalContainerComponent } from './Shared/components/custom-modal/custom-modal-container/custom-modal-container.component';
 import { CustomModalPopupComponent } from './Shared/components/custom-modal/custom-modal-popup/custom-modal-popup.component';
+import { CustomFooterComponentComponent } from './custom-footer-component/custom-footer-component.component';
 
 @NgModule({
   declarations: [
@@ -68,7 +69,8 @@ import { CustomModalPopupComponent } from './Shared/components/custom-modal/cust
     RelationTableComponent,
     PaginationControlComponent,
     CustomModalContainerComponent,
-    CustomModalPopupComponent
+    CustomModalPopupComponent,
+    CustomFooterComponentComponent
   ],
   imports: [
     BrowserModule,

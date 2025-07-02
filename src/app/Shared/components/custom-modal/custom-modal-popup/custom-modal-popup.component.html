@@ -1,23 +1,69 @@
-<div class="modal-backdrop"></div>
-<div class="custom-modal" [ngStyle]="{
-    width: config.width,
-    height: config.height,
-    top: top + 'px',
-    left: left + 'px',
-    position: 'fixed'
-  }" [class.draggable]="config.draggable">
-    <div class="custom-modal-header" [ngStyle]="{ backgroundColor: config.headerColor || '#222' }"
-        (mousedown)="onDragStart($event)" [style.cursor]="config.draggable ? 'move' : 'default'">
-        <span>{{ config.title || 'Modal Title' }}</span>
-        <button (click)="close()">×</button>
+<div class="modal-backdrop" [class.bg-interactive]="config.allowBackgroundInteraction"
+    [ngStyle]="{ zIndex: zIndex - 1 }" (click)="onBackdropClick($event)">
+</div>
+
+<div class="custom-modal" 
+     [ngStyle]="getModalStyles()" 
+     [class.minimized]="isMinimized" 
+     [class.auto-size]="isAutoSize()"
+     [attr.role]="'dialog'" 
+     aria-modal="true" 
+     tabindex="-1">
+
+    <div class="custom-modal-header" [ngStyle]="{ background: config.headerColor || '#2c3e50' }"
+        [class.draggable]="config.draggable" (mousedown)="onDragStart($event)">
+
+        <!-- Left-aligned title -->
+        <div class="header-left">
+            <span class="modal-title">{{ config.title || 'Modal' }}</span>
+        </div>
+
+        <!-- Middle text area -->
+        <div class="header-middle" *ngIf="config.middleText">
+            <span class="middle-text">{{ config.middleText }}</span>
+        </div>
+
+        <!-- Right side with pre-action text and action buttons -->
+        <div class="header-right">
+            <!-- Text before action buttons -->
+            <span class="pre-action-text" *ngIf="config.preActionText">{{ config.preActionText }}</span>
+
+            <!-- Action buttons -->
+            <div class="header-actions">
+                <button class="action-btn minimize-btn" (click)="toggleMinimize()"
+                    [attr.aria-label]="isMinimized ? 'Restore' : 'Minimize'"
+                    [title]="isMinimized ? 'Restore' : 'Minimize'">
+                    {{ isMinimized ? '□' : '_' }}
+                </button>
+                <button class="action-btn close-btn" (click)="close()" aria-label="Close" title="Close Modal">
+                    &times;
+                </button>
+            </div>
+        </div>
     </div>
-    <div class="custom-modal-body">
-        <ng-template #dynamicContent></ng-template>
-        <ng-container *ngIf="config.template">
-            <ng-container *ngTemplateOutlet="config.template; context: { modal: modalRef }"></ng-container>
+
+    <!-- Modal body - preserve component when minimized -->
+    <div class="custom-modal-body" [style.display]="isMinimized ? 'none' : 'block'">
+        <ng-container *ngIf="config.template" [ngTemplateOutlet]="config.template"
+            [ngTemplateOutletContext]="{ data: config.data, modalRef: modalRef }">
         </ng-container>
+        <ng-container *ngIf="config.component && !config.template" #dynamicContent></ng-container>
     </div>
-    <div *ngIf="config.showFooter !== false" class="custom-modal-footer">
-        <ng-content select="[footer]"></ng-content>
+
+    <!-- Enhanced Footer: Only show if explicitly enabled and content exists -->
+    <div class="custom-modal-footer" 
+         *ngIf="shouldShowFooter() && !isMinimized">
+        
+        <!-- Footer template content -->
+        <ng-container *ngIf="config.footerTemplate" 
+                      [ngTemplateOutlet]="config.footerTemplate"
+                      [ngTemplateOutletContext]="{ data: config.footerData, modalRef: modalRef }">
+        </ng-container>
+        
+        <!-- Footer component content -->
+        <ng-container *ngIf="config.footerComponent && !config.footerTemplate" #dynamicFooter></ng-container>
+        
+        <!-- Projected footer content (ng-content) -->
+        <ng-content select="[footer]" *ngIf="!config.footerTemplate && !config.footerComponent"></ng-content>
     </div>
 </div>
