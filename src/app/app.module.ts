@@ -39,6 +39,8 @@ import { TableDropdownComponent } from './Shared/components/dropdownControl/tabl
 import { SelectSearchComponent } from './Shared/components/side-components/select-search/select-search.component';
 import { RelationTableComponent } from './Shared/components/relation-table/relation-table.component';
 import { PaginationControlComponent } from './Shared/components/pagination/pagination-control/pagination-control.component';
+import { CustomModalContainerComponent } from './Shared/components/custom-modal/custom-modal-container/custom-modal-container.component';
+import { CustomModalPopupComponent } from './Shared/components/custom-modal/custom-modal-popup/custom-modal-popup.component';
 
 @NgModule({
   declarations: [
@@ -64,7 +66,9 @@ import { PaginationControlComponent } from './Shared/components/pagination/pagin
     TestingAccordionComponent,
     SelectSearchComponent,
     RelationTableComponent,
-    PaginationControlComponent
+    PaginationControlComponent,
+    CustomModalContainerComponent,
+    CustomModalPopupComponent
   ],
   imports: [
     BrowserModule,
