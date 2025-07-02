@@ -35,6 +35,9 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   ngOnInit() {
     this.zIndex = ++lastZIndex;
     this.initializePosition();
+    
+    // Set up keyboard handlers for the document
+    this.setupGlobalKeyboardHandlers();
   }
 
   ngAfterViewInit() {
@@ -61,12 +64,11 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
       }
     }
 
+    // Set up focus management
     this.setupFocusTrap();
     
-    // Wait for content to render, then center
-    setTimeout(() => {
-      this.centerModal();
-    }, 0);
+    // Center modal after content loads
+    requestAnimationFrame(() => this.centerModal());
   }
 
   /**
@@ -176,7 +178,10 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   onBackdropClick(event: MouseEvent) {
-    if (this.config.closeOnBackdropClick) this.close();
+    // Only close if clicked directly on backdrop (not on modal content)
+    if (event.target === event.currentTarget && this.config.closeOnBackdropClick) {
+      this.close();
+    }
   }
 
   close() {
@@ -332,10 +337,33 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     });
   }
 
+  private setupGlobalKeyboardHandlers() {
+    document.addEventListener('keydown', this.handleGlobalKeyDown);
+  }
+
+  private handleGlobalKeyDown = (event: KeyboardEvent) => {
+    // Only handle if this is the topmost modal
+    if (this.zIndex !== lastZIndex) return;
+
+    switch (event.key) {
+      case 'Escape':
+        if (this.config.closeOnEscape !== false && !this.isMinimized) {
+          event.preventDefault();
+          this.close();
+        }
+        break;
+      
+      case 'Tab':
+        // Focus trap is handled in setupFocusTrap
+        break;
+    }
+  };
+
   ngOnDestroy() {
     if (this.dragging) this.onDragEnd();
     
-    // Cleanup
+    // Cleanup global event listeners
+    document.removeEventListener('keydown', this.handleGlobalKeyDown);
     document.body.style.userSelect = '';
     document.removeEventListener('mousemove', this.onDragging, { capture: true });
     document.removeEventListener('mouseup', this.onDragEnd, { capture: true });

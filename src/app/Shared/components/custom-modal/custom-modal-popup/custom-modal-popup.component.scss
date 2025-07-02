@@ -213,28 +213,59 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
-    transition: background 0.3s;
-}
+    transition: background 0.3s ease;
 
-.modal-backdrop.bg-interactive {
-    background: transparent;
-    pointer-events: none;
-}
-
-@keyframes modalOpen {
-    from {
-        opacity: 0;
-        transform: scale(0.92);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
+    // When background interaction is allowed
+    &.bg-interactive {
+        background: rgba(0, 0, 0, 0.1); // Much lighter overlay
+        pointer-events: none; // Allow clicks through to background
     }
 }
 
+// Global styles for body when modal is open
+:global(body.modal-open) {
+    overflow: hidden;
+
+    // Add subtle visual indicator that background is blocked
+    &::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.1);
+        z-index: 998;
+        pointer-events: none;
+    }
+}
+
+// Multiple modal support
 .custom-modal {
-    animation: modalOpen 0.2s;
+    // Ensure each modal has proper layering
+    &:not(.minimized) {
+        // Active modal gets higher z-index
+        z-index: var(--modal-z-index);
+    }
+
+    // Visual indication of modal order
+    &:not(:last-child) {
+        // Slightly dim non-topmost modals
+        opacity: 0.95;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.05);
+            z-index: 1;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+    }
 }
 
 /* Responsive adjustments */

@@ -203,7 +203,33 @@ export class ResultPageComponent implements OnInit {
       minWidth: '400px',
       maxWidth: '800px',
       minHeight: '300px',
-      maxHeight: '700px'
+      maxHeight: '700px',
+      allowBackgroundInteraction: true
+    });
+    modalRef.afterClosed().subscribe(result => {
+      console.log('Modal closed with result:', result);
+    });
+  }
+
+
+  openDraggableModal1() {
+    const modalRef = this.modalService.open({
+      component: TextsurveyComponent,
+      title: 'Parent Modal',
+      closeChildrenOnParentClose: true,
+      allowBackgroundInteraction: true
+    });
+    modalRef.afterClosed().subscribe(result => {
+      console.log('Modal closed with result:', result);
+    });
+  }
+
+   openDraggableModal2() {
+    const modalRef = this.modalService.open({
+      component: TextsurveyComponent,
+      title: 'child Modal',
+      closeChildrenOnParentClose: true,
+      allowBackgroundInteraction: true
     });
     modalRef.afterClosed().subscribe(result => {
       console.log('Modal closed with result:', result);

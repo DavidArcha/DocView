@@ -29,12 +29,20 @@
                 (pageChanged)="onPageChanged($event)" (pageSizeChanged)="onPageSizeChanged($event)">
             </app-pagination-control> -->
             <button (click)="openDraggableModal()">
-            <fa-icon [icon]="faArrowRight"></fa-icon>Show
-        </button>
+                <fa-icon [icon]="faArrowRight"></fa-icon>Show
+            </button>
+
+             <button (click)="openDraggableModal1()">
+                <fa-icon [icon]="faArrowRight"></fa-icon>Show
+            </button>
+
+             <button (click)="openDraggableModal2()">
+                <fa-icon [icon]="faArrowRight"></fa-icon>Show
+            </button>
         </div>
     </div>
 </div>
 
 <ng-template #myFooterTemplate let-data="data" let-modalRef="modalRef">
-  <button (click)="modalRef.close()">Close</button>
+    <button (click)="modalRef.close()">Close</button>
 </ng-template>
