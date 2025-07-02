@@ -5,6 +5,9 @@ import { faArrowRight, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { CustomButtonsComponent } from '../../Shared/components/custom-buttons/custom-buttons.component';
 import { ResultPageService } from '../../Shared/services/result-page.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CustomModalService } from '../../Shared/components/custom-modal/custom-modal.service';
+import { PaginationControlComponent } from '../../Shared/components/pagination/pagination-control/pagination-control.component';
+import { NotFoundComponent } from '../not-found/not-found.component';
 
 @Component({
   selector: 'app-result-page',
@@ -41,7 +44,7 @@ export class ResultPageComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private resultPageService: ResultPageService, // Inject the service
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router, private modalService: CustomModalService
   ) {
     this.http
       .get('/assets/json/orders-list.json')
@@ -173,13 +176,27 @@ export class ResultPageComponent implements OnInit {
   }
 
   onPageChanged(zeroBasedPage: number) {
-    this.currentPage = zeroBasedPage + 1;    
+    this.currentPage = zeroBasedPage + 1;
     console.log(`Current page changed to: ${this.currentPage}`);
   }
 
   onPageSizeChanged(size: number) {
-    this.pageSize = size; 
-    console.log(`Page size changed to: ${this.pageSize}`);  
+    this.pageSize = size;
+    console.log(`Page size changed to: ${this.pageSize}`);
+  }
+
+  openDraggableModal() {
+    const modalRef = this.modalService.open({
+      component: NotFoundComponent,
+      data: { myMessage: 'Hello Modal!' },
+      width: '400px',
+      draggable: true,
+      title: 'Draggable Modal',
+      // ...other config
+    });
+    modalRef.afterClosed().subscribe(result => {
+      console.log('Modal closed with result:', result);
+    });
   }
 
 }
