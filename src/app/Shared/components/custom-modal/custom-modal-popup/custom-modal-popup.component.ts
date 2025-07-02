@@ -24,6 +24,7 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   private dragging = false;
   private dragOffset = { x: 0, y: 0 };
   private savedBounds: { top: number, left: number, width: string, height: string } | null = null;
+  private modalElement?: HTMLElement;
 
   constructor(
     public el: ElementRef,
@@ -33,11 +34,13 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
   ngOnInit() {
     this.zIndex = ++lastZIndex;
-    // Initialize position to center immediately
     this.initializePosition();
   }
 
   ngAfterViewInit() {
+    // Cache modal element reference
+    this.modalElement = this.el.nativeElement.querySelector('.custom-modal');
+
     // Create main component
     if (this.config.component && !this.config.template && this.dynamicContent) {
       const compFactory = this.cfr.resolveComponentFactory(this.config.component);
@@ -60,8 +63,8 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
     this.setupFocusTrap();
     
-    // Ensure proper centering after view is initialized
-    setTimeout(() => this.centerModal(), 0);
+    // Use requestAnimationFrame for smooth centering
+    requestAnimationFrame(() => this.centerModal());
   }
 
   /**
@@ -83,17 +86,15 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   centerModal() {
-    const modalEl = this.el.nativeElement.querySelector('.custom-modal');
-    if (!modalEl) return;
+    if (!this.modalElement) return;
     
-    const rect = modalEl.getBoundingClientRect();
+    const rect = this.modalElement.getBoundingClientRect();
     const w = rect.width;
     const h = rect.height;
     
     this.top = Math.max((window.innerHeight - h) / 2, 40);
     this.left = Math.max((window.innerWidth - w) / 2, 0);
     
-    // Trigger change detection to update the position
     this.cdr.detectChanges();
   }
 
@@ -107,21 +108,24 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
   minimize() {
     if (this.isMinimized) return;
-    const modalEl = this.el.nativeElement.querySelector('.custom-modal');
+    
+    // Save current bounds
     this.savedBounds = {
       top: this.top,
       left: this.left,
-      width: this.config.width || modalEl.style.width || '',
-      height: this.config.height || modalEl.style.height || ''
+      width: this.config.width || (this.modalElement?.style.width) || '',
+      height: this.config.height || (this.modalElement?.style.height) || ''
     };
+    
     this.isMinimized = true;
-    this.top = window.innerHeight - 40;
-    this.left = 0;
+    this.top = window.innerHeight - 50; // Move to bottom
+    this.left = 20; // Small left margin
     this.cdr.detectChanges();
   }
 
   restore() {
     if (!this.isMinimized || !this.savedBounds) return;
+    
     this.isMinimized = false;
     this.top = this.savedBounds.top;
     this.left = this.savedBounds.left;
@@ -147,43 +151,96 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
     event.preventDefault();
     event.stopPropagation();
-    this.dragging = true;
+    
+    // Calculate exact offset from mouse to modal's current position
     this.dragOffset.x = event.clientX - this.left;
     this.dragOffset.y = event.clientY - this.top;
-    document.addEventListener('mousemove', this.onDragging);
-    document.addEventListener('mouseup', this.onDragEnd);
+    
+    this.dragging = true;
+    
+    // Add dragging class for visual feedback
+    if (this.modalElement) {
+      this.modalElement.classList.add('dragging');
+    }
+    
+    // Use capture phase for better performance
+    document.addEventListener('mousemove', this.onDragging, { capture: true });
+    document.addEventListener('mouseup', this.onDragEnd, { capture: true });
+    
+    // Prevent text selection during drag
+    document.body.style.userSelect = 'none';
   }
 
   onDragging = (event: MouseEvent) => {
     if (!this.dragging) return;
-    this.left = event.clientX - this.dragOffset.x;
-    this.top = event.clientY - this.dragOffset.y;
-    this.cdr.detectChanges();
+    
+    event.preventDefault();
+    
+    // Calculate new position based on mouse position minus offset
+    const newLeft = event.clientX - this.dragOffset.x;
+    const newTop = event.clientY - this.dragOffset.y;
+    
+    // Apply boundaries to keep modal visible
+    const modalWidth = this.modalElement?.offsetWidth || 300;
+    const modalHeight = this.modalElement?.offsetHeight || 200;
+    
+    // Keep at least 50px of the modal visible on each side
+    const minLeft = -modalWidth + 50;
+    const maxLeft = window.innerWidth - 50;
+    const minTop = 0;
+    const maxTop = window.innerHeight - 50;
+    
+    // Update the component properties directly
+    this.left = Math.max(minLeft, Math.min(maxLeft, newLeft));
+    this.top = Math.max(minTop, Math.min(maxTop, newTop));
+    
+    // Apply position immediately using style properties instead of transform
+    if (this.modalElement) {
+      this.modalElement.style.left = this.left + 'px';
+      this.modalElement.style.top = this.top + 'px';
+    }
   };
 
   onDragEnd = () => {
+    if (!this.dragging) return;
+    
     this.dragging = false;
-    document.removeEventListener('mousemove', this.onDragging);
-    document.removeEventListener('mouseup', this.onDragEnd);
+    
+    // Remove dragging class
+    if (this.modalElement) {
+      this.modalElement.classList.remove('dragging');
+    }
+    
+    // Restore text selection
+    document.body.style.userSelect = '';
+    
+    // Remove event listeners
+    document.removeEventListener('mousemove', this.onDragging, { capture: true });
+    document.removeEventListener('mouseup', this.onDragEnd, { capture: true });
+    
+    // Final position update with change detection
+    this.cdr.detectChanges();
   };
 
   setupFocusTrap() {
     setTimeout(() => {
-      const modalEl = this.el.nativeElement.querySelector('.custom-modal');
-      const focusableEls = modalEl.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+      if (!this.modalElement) return;
+      
+      const focusableEls = this.modalElement.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
       if (focusableEls.length) (focusableEls[0] as HTMLElement).focus();
 
-      modalEl.addEventListener('keydown', (e: KeyboardEvent) => {
+      this.modalElement.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Tab') {
           const first = focusableEls[0] as HTMLElement;
           const last = focusableEls[focusableEls.length - 1] as HTMLElement;
           if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault(); last.focus();
+            e.preventDefault(); 
+            last.focus();
           } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault(); first.focus();
+            e.preventDefault(); 
+            first.focus();
           }
         }
-        // Only close on Escape if allowed
         if (e.key === 'Escape' && !this.isMinimized && this.config.closeOnEscape !== false) {
           this.close();
         }
@@ -193,5 +250,10 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
   ngOnDestroy() {
     if (this.dragging) this.onDragEnd();
+    
+    // Cleanup
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', this.onDragging, { capture: true });
+    document.removeEventListener('mouseup', this.onDragEnd, { capture: true });
   }
 }
