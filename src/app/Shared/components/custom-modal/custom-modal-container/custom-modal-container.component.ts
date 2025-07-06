@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, ComponentRef, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, OnInit, ViewChild, ViewContainerRef, OnDestroy } from '@angular/core';
 import { CustomModalService } from '../custom-modal.service';
 import { CustomModalPopupComponent } from '../custom-modal-popup/custom-modal-popup.component';
 import { ModalRef } from '../modal-ref';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-custom-modal-container',
@@ -9,30 +10,67 @@ import { ModalRef } from '../modal-ref';
   templateUrl: './custom-modal-container.component.html',
   styleUrl: './custom-modal-container.component.scss'
 })
-export class CustomModalContainerComponent implements OnInit {
+export class CustomModalContainerComponent implements OnInit, OnDestroy {
   @ViewChild('modalOutlet', { read: ViewContainerRef, static: true })
   modalOutlet!: ViewContainerRef;
 
   private activeModals = new Map<ModalRef, ComponentRef<CustomModalPopupComponent>>();
   private modalStack: ModalRef[] = [];
   private baseZIndex = 1000;
+  private subscriptions: Subscription[] = [];
 
-  constructor(private modalService: CustomModalService,private cdr: ChangeDetectorRef,) { }
+  constructor(
+    private modalService: CustomModalService,
+    private cdr: ChangeDetectorRef,
+  ) { }
 
   ngOnInit() {
-    this.modalService.modalEvents$.subscribe(({ config, modalRef }) => {
-      this.openModal(config, modalRef);
-    });
+    // Subscribe to modal creation events
+    this.subscriptions.push(
+      this.modalService.modalEvents$.subscribe(({ config, modalRef }) => {
+        this.openModal(config, modalRef);
+      })
+    );
 
     // Subscribe to modal focus events from the service
-    this.modalService.modalFocusEvents$.subscribe((modalRef: ModalRef) => {
-      this.bringModalToFront(modalRef);
-    });
+    this.subscriptions.push(
+      this.modalService.modalFocusEvents$.subscribe((modalRef: ModalRef) => {
+        this.bringModalToFront(modalRef);
+      })
+    );
 
     // Subscribe to minimized modal updates
-    this.modalService.minimizedUpdates$.subscribe(() => {
-      this.repositionMinimizedModals();
-    });
+    this.subscriptions.push(
+      this.modalService.minimizedUpdates$.subscribe(() => {
+        this.repositionMinimizedModals();
+      })
+    );
+
+    // Subscribe to navigation close events
+    this.subscriptions.push(
+      this.modalService.navigationCloseEvents$.subscribe(() => {
+        this.handleNavigationClose();
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    // Clean up all subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  /**
+   * Handle navigation close events
+   */
+  private handleNavigationClose(): void {
+    // This method can be used to perform additional cleanup
+    // when modals are closed due to navigation/refresh
+    console.log('Navigation event detected - closing configured modals');
+    
+    // Optional: Update body state after navigation closes
+    setTimeout(() => {
+      this.updateBodyState();
+    }, 0);
   }
 
   private openModal(config: any, modalRef: ModalRef) {

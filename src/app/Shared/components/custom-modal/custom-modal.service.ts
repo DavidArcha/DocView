@@ -10,12 +10,84 @@ export class CustomModalService {
   private activeModals: ModalRef[] = [];
   private minimizedModals: ModalRef[] = []; // Track minimized modals
   private minimizedUpdate$ = new Subject<void>(); // Notify when minimized list changes
+  private navigationCloseEvent$ = new Subject<void>(); // New subject for navigation events
+
+  constructor() {
+    this.setupNavigationHandlers();
+  }
+
+  /**
+   * Set up handlers for page navigation and refresh events
+   */
+  private setupNavigationHandlers(): void {
+    // Handle beforeunload event (page refresh/close)
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
+    
+    // Handle popstate event (browser navigation)
+    window.addEventListener('popstate', this.handlePopState);
+    
+    // Handle pagehide event (page navigation away)
+    window.addEventListener('pagehide', this.handlePageHide);
+  }
+
+  /**
+   * Handle before page unload (refresh/close)
+   */
+  private handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    this.handleNavigationOrRefresh();
+  };
+
+  /**
+   * Handle browser back/forward navigation
+   */
+  private handlePopState = (event: PopStateEvent) => {
+    this.handleNavigationOrRefresh();
+  };
+
+  /**
+   * Handle page hide event (navigation away)
+   */
+  private handlePageHide = (event: PageTransitionEvent) => {
+    this.handleNavigationOrRefresh();
+  };
+
+  /**
+   * Handle navigation or refresh - close modals that are configured to close
+   */
+  private handleNavigationOrRefresh(): void {
+    // Emit navigation event first
+    this.navigationCloseEvent$.next();
+    
+    // Close modals that are configured to close on navigation/refresh
+    const modalsToClose = this.activeModals.filter(modalRef => {
+      // Find the modal configuration
+      const modalConfig = this.getModalConfig(modalRef);
+      return modalConfig?.closeOnNavigationOrRefresh === true;
+    });
+
+    modalsToClose.forEach(modalRef => {
+      modalRef.close();
+    });
+  }
+
+  /**
+   * Get modal configuration for a given modal reference
+   * This is a helper method - you might need to adjust based on how you store configs
+   */
+  private getModalConfig(modalRef: ModalRef): ModalConfig | undefined {
+    // This method assumes you have a way to get the config for a modal
+    // You might need to store the config when creating the modal or pass it differently
+    return (modalRef as any).config;
+  }
 
   /**
    * Opens a modal with the given config. If a parent is provided, links parent-child.
    */
   open(config: ModalConfig, parentRef?: ModalRef): ModalRef {
     const modalRef = new ModalRef();
+    
+    // Store config reference in modalRef for later access
+    (modalRef as any).config = config;
     
     // Set up parent-child relationship
     if (parentRef) {
@@ -146,6 +218,13 @@ export class CustomModalService {
   }
 
   /**
+   * Get observable for navigation close events
+   */
+  get navigationCloseEvents$() {
+    return this.navigationCloseEvent$.asObservable();
+  }
+
+  /**
    * Reposition all minimized modals to fill gaps
    */
   private repositionMinimizedModals(): void {
@@ -159,5 +238,14 @@ export class CustomModalService {
 
   get modalFocusEvents$() {
     return this.modalFocus$.asObservable();
+  }
+
+  /**
+   * Cleanup method to remove event listeners
+   */
+  ngOnDestroy(): void {
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
+    window.removeEventListener('popstate', this.handlePopState);
+    window.removeEventListener('pagehide', this.handlePageHide);
   }
 }
