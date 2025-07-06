@@ -332,6 +332,10 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
       return;
     }
 
+    // Allow dragging when clicking on header background or text elements
+    const headerElement = target.closest('.custom-modal-header');
+    if (!headerElement) return;
+
     event.preventDefault();
     event.stopPropagation();
     
@@ -467,4 +471,26 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     document.removeEventListener('mousemove', this.onDragging, { capture: true });
     document.removeEventListener('mouseup', this.onDragEnd, { capture: true });
   }
+
+  /**
+   * Get tooltip text for title - always show full text on hover
+   */
+  getTitleTooltip(): string {
+    return this.config.title || 'Modal';
+  }
+
+  /**
+   * Get tooltip text for middle text - always show full text on hover
+   */
+  getMiddleTextTooltip(): string {
+    return this.config.middleText || '';
+  }
+
+  /**
+   * Get tooltip text for pre-action text - always show full text on hover
+   */
+  getPreActionTextTooltip(): string {
+    return this.config.preActionText || '';
+  }
+
 }
