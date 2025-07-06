@@ -1,5 +1,9 @@
-<div class="modal-backdrop" [class.bg-interactive]="config.allowBackgroundInteraction"
-    [ngStyle]="{ zIndex: zIndex - 1 }" (click)="onBackdropClick($event)">
+<!-- Only show backdrop when modal is not minimized -->
+<div class="modal-backdrop" 
+     *ngIf="!isMinimized"
+     [class.bg-interactive]="config.allowBackgroundInteraction"
+     [ngStyle]="{ zIndex: zIndex - 1 }" 
+     (click)="onBackdropClick($event)">
 </div>
 
 <div class="custom-modal" 

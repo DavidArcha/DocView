@@ -160,21 +160,30 @@ export class CustomModalContainerComponent implements OnInit {
   }
 
   private updateBodyState() {
+    // Only consider non-minimized modals for background blocking
     const hasBlockingModal = this.modalStack.some(modalRef => {
       const cmpRef = this.activeModals.get(modalRef);
-      return cmpRef && !cmpRef.instance.config.allowBackgroundInteraction;
+      return cmpRef && 
+             !cmpRef.instance.config.allowBackgroundInteraction && 
+             !cmpRef.instance.isMinimized; // Don't block if minimized
+    });
+
+    // Check if there are any non-minimized modals
+    const hasActiveNonMinimizedModals = this.modalStack.some(modalRef => {
+      const cmpRef = this.activeModals.get(modalRef);
+      return cmpRef && !cmpRef.instance.isMinimized;
     });
 
     if (hasBlockingModal) {
-      // At least one modal blocks background interaction
+      // At least one non-minimized modal blocks background interaction
       document.body.style.overflow = 'hidden';
       document.body.classList.add('modal-open');
-    } else if (this.modalStack.length === 0) {
-      // No modals open
+    } else if (!hasActiveNonMinimizedModals) {
+      // No non-minimized modals open (all are minimized or closed)
       document.body.style.overflow = '';
       document.body.classList.remove('modal-open');
     } else {
-      // Only interactive modals open
+      // Only interactive non-minimized modals open
       document.body.style.overflow = '';
       document.body.classList.remove('modal-open');
     }

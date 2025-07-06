@@ -280,11 +280,33 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     this.modalService.notifyModalRestored(this.modalRef);
     
     this.isMinimized = false;
-    this.top = this.savedBounds.top;
-    this.left = this.savedBounds.left;
     
-    // Re-center if it was an auto-size modal
-    if (this.isAutoSize()) {
+    // Check if the saved position is still valid (within viewport bounds)
+    const savedLeft = this.savedBounds.left;
+    const savedTop = this.savedBounds.top;
+    
+    // Get approximate modal dimensions (use saved or default)
+    const modalWidth = parseInt(this.savedBounds.width) || 600;
+    const modalHeight = parseInt(this.savedBounds.height) || 400;
+    
+    // Check if saved position is within current viewport
+    const isValidPosition = savedLeft >= 0 && 
+                         savedTop >= 0 && 
+                         savedLeft + modalWidth <= window.innerWidth && 
+                         savedTop + modalHeight <= window.innerHeight;
+  
+    if (isValidPosition) {
+      // Restore to saved position
+      this.top = savedTop;
+      this.left = savedLeft;
+    } else {
+      // Center the modal if saved position is invalid
+      this.top = Math.max((window.innerHeight - modalHeight) / 2, 40);
+      this.left = Math.max((window.innerWidth - modalWidth) / 2, 0);
+    }
+    
+    // Re-center if it was an auto-size modal (only if position was invalid)
+    if (this.isAutoSize() && !isValidPosition) {
       setTimeout(() => this.centerModal(), 10);
     } else {
       this.cdr.detectChanges();

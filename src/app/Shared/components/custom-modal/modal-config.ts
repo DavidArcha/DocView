@@ -28,4 +28,5 @@ export interface ModalConfig {
   closeOnBackdropClick?: boolean;
   allowBackgroundInteraction?: boolean;
   closeOnEscape?: boolean;
+  showBackdrop?: boolean; 
 }

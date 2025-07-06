@@ -102,6 +102,9 @@ export class CustomModalService {
     if (!this.minimizedModals.includes(modalRef)) {
       this.minimizedModals.push(modalRef);
       this.minimizedUpdate$.next();
+      
+      // Trigger body state update in container
+      this.modalFocus$.next(modalRef); // Reuse existing observable
     }
   }
 
@@ -115,6 +118,9 @@ export class CustomModalService {
       this.minimizedUpdate$.next();
       // Reposition remaining minimized modals
       this.repositionMinimizedModals();
+      
+      // Trigger body state update in container
+      this.modalFocus$.next(modalRef); // Reuse existing observable
     }
   }
 
