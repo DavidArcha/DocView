@@ -116,11 +116,25 @@ export class CustomModalService {
     if (index > -1) {
       this.minimizedModals.splice(index, 1);
       this.minimizedUpdate$.next();
-      // Reposition remaining minimized modals
-      this.repositionMinimizedModals();
       
       // Trigger body state update in container
       this.modalFocus$.next(modalRef); // Reuse existing observable
+    }
+  }
+
+  // Add a new method to handle modal closure from minimized state
+  notifyModalClosed(modalRef: ModalRef): void {
+    // Remove from active modals tracking
+    const index = this.activeModals.indexOf(modalRef);
+    if (index > -1) {
+      this.activeModals.splice(index, 1);
+    }
+
+    // Remove from minimized tracking if it was minimized
+    const minIndex = this.minimizedModals.indexOf(modalRef);
+    if (minIndex > -1) {
+      this.minimizedModals.splice(minIndex, 1);
+      this.minimizedUpdate$.next(); // This will trigger repositioning
     }
   }
 

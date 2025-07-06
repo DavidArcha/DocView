@@ -230,7 +230,7 @@
     width: 300px !important;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: left 0.3s ease, top 0.3s ease; // Smooth repositioning
+    transition: left 0.4s ease, top 0.4s ease, box-shadow 0.2s ease, transform 0.2s ease; // Enhanced smooth repositioning
 
     .custom-modal-header {
         border-radius: 6px;
@@ -251,6 +251,12 @@
     &:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         transform: translateY(-2px);
+    }
+
+    // Smooth animation when repositioning
+    &.repositioning {
+        transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                   top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
 

@@ -226,6 +226,8 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   close() {
+    // Notify service about modal closure (important for minimized tracking)
+    this.modalService.notifyModalClosed(this.modalRef);
     this.modalRef.close();
   }
 

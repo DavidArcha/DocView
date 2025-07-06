@@ -74,6 +74,10 @@ export class CustomModalContainerComponent implements OnInit {
       modalRef.children.forEach(child => child.close());
     }
 
+    // Check if the modal being closed was minimized
+    const closingComponent = this.activeModals.get(modalRef);
+    const wasMinimized = closingComponent?.instance.isMinimized || false;
+
     // Notify service about modal closure (will handle minimized tracking)
     this.modalService.notifyModalRestored(modalRef);
 
@@ -89,6 +93,13 @@ export class CustomModalContainerComponent implements OnInit {
     
     // Update z-indexes after modal is closed
     this.updateModalZIndexes();
+
+    // If the closed modal was minimized, reposition all remaining minimized modals
+    if (wasMinimized) {
+      setTimeout(() => {
+        this.repositionMinimizedModals();
+      }, 0);
+    }
   }
 
   /**
@@ -102,31 +113,44 @@ export class CustomModalContainerComponent implements OnInit {
     const bottomMargin = 20;
     const leftMargin = 20;
 
+    // Get all minimized modals and sort them by their current left position
+    // to maintain relative order when repositioning
+    const minimizedModals: { modalRef: ModalRef, cmpRef: ComponentRef<CustomModalPopupComponent> }[] = [];
+    
     this.activeModals.forEach((cmpRef, modalRef) => {
       if (cmpRef.instance.isMinimized) {
-        // Calculate new position
-        const left = leftMargin + (minimizedWidth + spacing) * minimizedIndex;
-        let top = window.innerHeight - minimizedHeight - bottomMargin;
-
-        // Check if we need to wrap to next row
-        const maxLeft = window.innerWidth - minimizedWidth - leftMargin;
-        if (left > maxLeft) {
-          const itemsPerRow = Math.floor((window.innerWidth - leftMargin * 2) / (minimizedWidth + spacing));
-          const row = Math.floor(minimizedIndex / itemsPerRow);
-          const col = minimizedIndex % itemsPerRow;
-          
-          cmpRef.instance.left = leftMargin + (minimizedWidth + spacing) * col;
-          cmpRef.instance.top = window.innerHeight - minimizedHeight - bottomMargin - (minimizedHeight + spacing) * row;
-        } else {
-          cmpRef.instance.left = left;
-          cmpRef.instance.top = top;
-        }
-
-        // Update the component's minimized index
-        (cmpRef.instance as any).minimizedIndex = minimizedIndex;
-        cmpRef.instance.cdr.detectChanges();
-        minimizedIndex++;
+        minimizedModals.push({ modalRef, cmpRef });
       }
+    });
+
+    // Sort by current left position to maintain visual order
+    minimizedModals.sort((a, b) => a.cmpRef.instance.left - b.cmpRef.instance.left);
+
+    // Reposition each minimized modal in order
+    minimizedModals.forEach(({ cmpRef }) => {
+      // Calculate new position
+      let left = leftMargin + (minimizedWidth + spacing) * minimizedIndex;
+      let top = window.innerHeight - minimizedHeight - bottomMargin;
+
+      // Check if we need to wrap to next row
+      const maxLeft = window.innerWidth - minimizedWidth - leftMargin;
+      if (left > maxLeft) {
+        const itemsPerRow = Math.floor((window.innerWidth - leftMargin * 2) / (minimizedWidth + spacing));
+        const row = Math.floor(minimizedIndex / itemsPerRow);
+        const col = minimizedIndex % itemsPerRow;
+        
+        left = leftMargin + (minimizedWidth + spacing) * col;
+        top = window.innerHeight - minimizedHeight - bottomMargin - (minimizedHeight + spacing) * row;
+      }
+
+      // Update position with smooth transition
+      cmpRef.instance.left = left;
+      cmpRef.instance.top = top;
+
+      // Update the component's minimized index
+      (cmpRef.instance as any).minimizedIndex = minimizedIndex;
+      cmpRef.instance.cdr.detectChanges();
+      minimizedIndex++;
     });
   }
 
