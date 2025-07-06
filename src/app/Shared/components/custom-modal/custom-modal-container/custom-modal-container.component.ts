@@ -1,4 +1,4 @@
-import { Component, ComponentRef, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { CustomModalService } from '../custom-modal.service';
 import { CustomModalPopupComponent } from '../custom-modal-popup/custom-modal-popup.component';
 import { ModalRef } from '../modal-ref';
@@ -17,7 +17,7 @@ export class CustomModalContainerComponent implements OnInit {
   private modalStack: ModalRef[] = [];
   private baseZIndex = 1000;
 
-  constructor(private modalService: CustomModalService) { }
+  constructor(private modalService: CustomModalService,private cdr: ChangeDetectorRef,) { }
 
   ngOnInit() {
     this.modalService.modalEvents$.subscribe(({ config, modalRef }) => {
@@ -27,6 +27,11 @@ export class CustomModalContainerComponent implements OnInit {
     // Subscribe to modal focus events from the service
     this.modalService.modalFocusEvents$.subscribe((modalRef: ModalRef) => {
       this.bringModalToFront(modalRef);
+    });
+
+    // Subscribe to minimized modal updates
+    this.modalService.minimizedUpdates$.subscribe(() => {
+      this.repositionMinimizedModals();
     });
   }
 
@@ -69,6 +74,9 @@ export class CustomModalContainerComponent implements OnInit {
       modalRef.children.forEach(child => child.close());
     }
 
+    // Notify service about modal closure (will handle minimized tracking)
+    this.modalService.notifyModalRestored(modalRef);
+
     // Destroy component
     if (config.destroyOnClose !== false) {
       const toDestroy = this.activeModals.get(modalRef);
@@ -81,6 +89,45 @@ export class CustomModalContainerComponent implements OnInit {
     
     // Update z-indexes after modal is closed
     this.updateModalZIndexes();
+  }
+
+  /**
+   * Reposition all minimized modals to fill gaps when one is restored or closed
+   */
+  private repositionMinimizedModals() {
+    let minimizedIndex = 0;
+    const minimizedWidth = 300;
+    const minimizedHeight = 40;
+    const spacing = 10;
+    const bottomMargin = 20;
+    const leftMargin = 20;
+
+    this.activeModals.forEach((cmpRef, modalRef) => {
+      if (cmpRef.instance.isMinimized) {
+        // Calculate new position
+        const left = leftMargin + (minimizedWidth + spacing) * minimizedIndex;
+        let top = window.innerHeight - minimizedHeight - bottomMargin;
+
+        // Check if we need to wrap to next row
+        const maxLeft = window.innerWidth - minimizedWidth - leftMargin;
+        if (left > maxLeft) {
+          const itemsPerRow = Math.floor((window.innerWidth - leftMargin * 2) / (minimizedWidth + spacing));
+          const row = Math.floor(minimizedIndex / itemsPerRow);
+          const col = minimizedIndex % itemsPerRow;
+          
+          cmpRef.instance.left = leftMargin + (minimizedWidth + spacing) * col;
+          cmpRef.instance.top = window.innerHeight - minimizedHeight - bottomMargin - (minimizedHeight + spacing) * row;
+        } else {
+          cmpRef.instance.left = left;
+          cmpRef.instance.top = top;
+        }
+
+        // Update the component's minimized index
+        (cmpRef.instance as any).minimizedIndex = minimizedIndex;
+        cmpRef.instance.cdr.detectChanges();
+        minimizedIndex++;
+      }
+    });
   }
 
   /**
