@@ -1,0 +1,98 @@
+<div class="dynamic-fields">
+  <form autocomplete="off">
+    <ng-container *ngFor="let row of groupedRows">
+      <div class="dynamic-row" [class.two-cols]="row.length === 2">
+        <ng-container *ngFor="let field of row">
+          <div class="field-label">
+            <label [attr.for]="field.id">{{ field.label }}</label>
+          </div>
+          <div class="field-control">
+            <!-- Multi-editor dropdown -->
+            <ng-container *ngIf="field.multiEditorFlag">
+              <select
+                class="multi-editor"
+                [(ngModel)]="field.multiEditorValue"
+                (ngModelChange)="onValueChange(field, 'multiEditorValue', $event)">
+                <option *ngFor="let opt of field.options || []" [value]="opt.value">{{ opt.label }}</option>
+              </select>
+            </ng-container>
+            <!-- Control rendering -->
+            <ng-container [ngSwitch]="field.controlType">
+              <!-- Dropdown -->
+              <select *ngSwitchCase="'dropdown'"
+                [id]="field.id"
+                [(ngModel)]="field.value"
+                (ngModelChange)="onValueChange(field, 'value', $event)">
+                <option *ngFor="let opt of field.options || []" [value]="opt.value">{{ opt.label }}</option>
+              </select>
+              <!-- Textbox (with language translator) -->
+              <ng-container *ngSwitchCase="'textbox'">
+                <div class="translator-wrap" *ngIf="field.languageTranslator; else singleTextbox">
+                  <input
+                    type="text"
+                    [id]="field.id"
+                    [(ngModel)]="field.value"
+                    (ngModelChange)="onValueChange(field, 'value', $event)"
+                    placeholder="Enter text"
+                  />
+                  <button type="button" class="translate-btn" (click)="onTranslate(field)" aria-label="Copy to English">&#8595;</button>
+                  <input
+                    type="text"
+                    [id]="field.id + '_en'"
+                    [(ngModel)]="field.valueEn"
+                    (ngModelChange)="onValueChange(field, 'valueEn', $event)"
+                    placeholder="English value"
+                  />
+                </div>
+                <ng-template #singleTextbox>
+                  <input
+                    type="text"
+                    [id]="field.id"
+                    [(ngModel)]="field.value"
+                    (ngModelChange)="onValueChange(field, 'value', $event)"
+                  />
+                </ng-template>
+              </ng-container>
+              <!-- Textarea (with language translator) -->
+              <ng-container *ngSwitchCase="'textarea'">
+                <div class="translator-wrap" *ngIf="field.languageTranslator; else singleTextarea">
+                  <textarea
+                    [id]="field.id"
+                    [(ngModel)]="field.value"
+                    (ngModelChange)="onValueChange(field, 'value', $event)"
+                  ></textarea>
+                  <button type="button" class="translate-btn" (click)="onTranslate(field)" aria-label="Copy to English">&#8595;</button>
+                  <textarea
+                    [id]="field.id + '_en'"
+                    [(ngModel)]="field.valueEn"
+                    (ngModelChange)="onValueChange(field, 'valueEn', $event)"
+                  ></textarea>
+                </div>
+                <ng-template #singleTextarea>
+                  <textarea
+                    [id]="field.id"
+                    [(ngModel)]="field.value"
+                    (ngModelChange)="onValueChange(field, 'value', $event)"
+                  ></textarea>
+                </ng-template>
+              </ng-container>
+              <!-- Datepicker -->
+              <input *ngSwitchCase="'datePicker'"
+                type="date"
+                [id]="field.id"
+                [(ngModel)]="field.value"
+                (ngModelChange)="onValueChange(field, 'value', $event)"
+              />
+              <!-- Button -->
+              <button *ngSwitchCase="'button'"
+                type="button"
+                [id]="field.id"
+                (click)="onValueChange(field, 'value', 'Button Clicked!')"
+              >{{ field.label }}</button>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </ng-container>
+  </form>
+</div>

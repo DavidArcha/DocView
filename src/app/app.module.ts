@@ -42,6 +42,8 @@ import { PaginationControlComponent } from './Shared/components/pagination/pagin
 import { CustomModalContainerComponent } from './Shared/components/custom-modal/custom-modal-container/custom-modal-container.component';
 import { CustomModalPopupComponent } from './Shared/components/custom-modal/custom-modal-popup/custom-modal-popup.component';
 import { CustomFooterComponentComponent } from './custom-footer-component/custom-footer-component.component';
+import { DynamicFieldsComponent } from './Shared/components/Custom-field/dynamic-fields/dynamic-fields.component';
+import { CreateItemsComponent } from './components/create-items/create-items.component';
 
 @NgModule({
   declarations: [
@@ -70,7 +72,9 @@ import { CustomFooterComponentComponent } from './custom-footer-component/custom
     PaginationControlComponent,
     CustomModalContainerComponent,
     CustomModalPopupComponent,
-    CustomFooterComponentComponent
+    CustomFooterComponentComponent,
+    DynamicFieldsComponent,
+    CreateItemsComponent
   ],
   imports: [
     BrowserModule,
