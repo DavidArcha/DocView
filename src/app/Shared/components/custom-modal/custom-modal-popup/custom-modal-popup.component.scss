@@ -86,12 +86,43 @@
     z-index: 10;
     gap: 1rem;
     flex-shrink: 0; // Prevent header from shrinking
+    cursor: default; // Default cursor instead of grab
 
+    // Only show grab cursor when draggable is enabled
     &.draggable {
         cursor: grab;
 
         &:active {
             cursor: grabbing;
+        }
+
+        // Ensure action buttons still show pointer cursor
+        .action-btn {
+            cursor: pointer;
+        }
+
+        // Ensure text areas don't interfere with dragging
+        .modal-title,
+        .middle-text,
+        .pre-action-text {
+            cursor: grab;
+            
+            &:hover {
+                cursor: grab; // Override help cursor when draggable
+            }
+        }
+    }
+
+    // When not draggable, text should show help cursor on hover
+    &:not(.draggable) {
+        .modal-title,
+        .middle-text,
+        .pre-action-text {
+            cursor: default;
+            
+            &:hover {
+                cursor: help; // Show help cursor for tooltip
+            }
         }
     }
 }
@@ -111,6 +142,12 @@
     text-overflow: ellipsis;
     max-width: 200px;
     pointer-events: none; // Prevent text selection during drag
+    
+    // Responsive max-width adjustments
+    .custom-modal.minimized & {
+        max-width: 140px;
+        font-size: 0.9rem;
+    }
 }
 
 .header-middle {
@@ -119,6 +156,7 @@
     justify-content: center;
     align-items: center;
     text-align: center;
+    min-width: 0; // Allow flex item to shrink below content size
 }
 
 .middle-text {
@@ -129,6 +167,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     pointer-events: none; // Prevent text selection during drag
+    max-width: 100%; // Use full available width
 }
 
 .header-right {
@@ -143,7 +182,15 @@
     font-weight: 400;
     color: rgba(255, 255, 255, 0.8);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     pointer-events: none; // Prevent text selection during drag
+    max-width: 120px; // Fixed max width for pre-action text
+    
+    // Hover effect for better tooltip UX
+    &:hover {
+        cursor: help;
+    }
 }
 
 .header-actions {
@@ -222,26 +269,41 @@
 
 /* Minimized style */
 .custom-modal.minimized {
-    min-width: 200px !important;
-    max-width: 350px !important;
+    min-width: 300px !important; // Fixed width for consistent spacing
+    max-width: 300px !important;
     min-height: 40px !important;
     max-height: 40px !important;
     height: 40px !important;
     width: 300px !important;
     overflow: hidden;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: left 0.4s ease, top 0.4s ease, box-shadow 0.2s ease, transform 0.2s ease; // Enhanced smooth repositioning
 
     .custom-modal-header {
         border-radius: 6px;
+        padding: 0.5rem 0.75rem; // Slightly smaller padding
 
         .modal-title {
-            max-width: 150px;
+            max-width: 180px; // Adjust for action buttons
+            font-size: 0.9rem;
         }
 
         .header-middle,
         .pre-action-text {
             display: none;
         }
+    }
+
+    // Add hover effect for better UX
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
+    // Smooth animation when repositioning
+    &.repositioning {
+        transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                   top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
 
@@ -287,19 +349,110 @@
     .modal-title {
         max-width: 120px;
         font-size: 0.9rem;
+        
+        .custom-modal.minimized & {
+            max-width: 100px;
+            font-size: 0.85rem;
+        }
     }
 
     .middle-text {
         font-size: 0.8rem;
+        max-width: 100px; // Reduced for mobile
     }
 
     .pre-action-text {
-        display: none;
+        max-width: 80px; // Reduced for mobile
+        font-size: 0.8rem;
     }
 
     .action-btn {
         min-width: 28px;
         min-height: 28px;
         font-size: 1em;
+    }
+}
+
+/* Enhanced responsive adjustments for minimized modals */
+@media (max-width: 768px) {
+    .custom-modal.minimized {
+        min-width: 250px !important;
+        max-width: 250px !important;
+        width: 250px !important;
+
+        .modal-title {
+            max-width: 120px;
+            font-size: 0.85rem;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .custom-modal.minimized {
+        min-width: 200px !important;
+        max-width: 200px !important;
+        width: 200px !important;
+
+        .modal-title {
+            max-width: 80px;
+            font-size: 0.8rem;
+        }
+
+        .action-btn {
+            min-width: 24px;
+            min-height: 24px;
+            font-size: 0.9em;
+        }
+    }
+}
+
+/* Enhanced tooltip styling for better visibility */
+.modal-title,
+.middle-text,
+.pre-action-text {
+    // Add smooth transition for hover effects
+    transition: color 0.2s ease;
+    
+    // Better tooltip indication
+    &:hover {
+        // Slight color change on hover to indicate tooltip availability
+        .custom-modal-header:not(.draggable) & {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+    }
+}
+
+// Special handling for draggable headers
+.custom-modal-header.draggable {
+    .modal-title,
+    .middle-text,
+    .pre-action-text {
+        // When draggable, these elements should participate in dragging
+        pointer-events: auto;
+        
+        &:hover {
+            // No color change when draggable (focus on drag behavior)
+            color: inherit;
+        }
+    }
+    
+    // Ensure action buttons are above drag layer
+    .action-btn {
+        z-index: 12;
+        pointer-events: auto;
+        
+        &:hover {
+            cursor: pointer !important;
+        }
+    }
+}
+
+// Non-draggable headers
+.custom-modal-header:not(.draggable) {
+    .modal-title,
+    .middle-text,
+    .pre-action-text {
+        // Enable pointer events for tooltip interaction
+        pointer-events: auto;
     }
 }

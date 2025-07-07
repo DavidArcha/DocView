@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ComponentFactoryResolver, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef, Inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ComponentRef, ElementRef, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef, Inject } from '@angular/core';
 import { ModalConfig } from '../modal-config';
 import { ModalRef } from '../modal-ref';
 import { CustomModalService } from '../custom-modal.service';
@@ -26,11 +26,12 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   private dragOffset = { x: 0, y: 0 };
   private savedBounds: { top: number, left: number, width: string, height: string } | null = null;
   private modalElement?: HTMLElement;
+  // Add property to track minimized position
+  private minimizedIndex = 0;
 
   constructor(
     public el: ElementRef,
-    private cfr: ComponentFactoryResolver,
-    private cdr: ChangeDetectorRef,
+    public cdr: ChangeDetectorRef,
     private modalService: CustomModalService
   ) { }
 
@@ -51,20 +52,18 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
       this.modalElement.addEventListener('mousedown', this.onModalMouseDown);
     }
 
-    // Create main component
+    // Create main component - Updated to use modern Angular approach
     if (this.config.component && !this.config.template && this.dynamicContent) {
-      const compFactory = this.cfr.resolveComponentFactory(this.config.component);
-      const compRef = this.dynamicContent.createComponent(compFactory);
+      const compRef = this.dynamicContent.createComponent(this.config.component);
       Object.assign(compRef.instance, this.config.data || {});
       if ('modalRef' in compRef.instance) {
         (compRef.instance as any).modalRef = this.modalRef;
       }
     }
 
-    // Create footer component if specified
+    // Create footer component if specified - Updated to use modern Angular approach
     if (this.config.footerComponent && this.dynamicFooter) {
-      const footerFactory = this.cfr.resolveComponentFactory(this.config.footerComponent);
-      const footerRef = this.dynamicFooter.createComponent(footerFactory);
+      const footerRef = this.dynamicFooter.createComponent(this.config.footerComponent);
       Object.assign(footerRef.instance, this.config.footerData || {});
       if ('modalRef' in footerRef.instance) {
         (footerRef.instance as any).modalRef = this.modalRef;
@@ -227,6 +226,8 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   }
 
   close() {
+    // Notify service about modal closure (important for minimized tracking)
+    this.modalService.notifyModalClosed(this.modalRef);
     this.modalRef.close();
   }
 
@@ -243,20 +244,71 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     };
     
     this.isMinimized = true;
-    this.top = window.innerHeight - 50;
-    this.left = 20;
+    
+    // Calculate minimized position based on number of minimized modals
+    this.minimizedIndex = this.modalService.getMinimizedModalCount();
+    const minimizedWidth = 300; // Width of minimized modal
+    const minimizedHeight = 40; // Height of minimized modal
+    const spacing = 10; // Space between minimized modals
+    const bottomMargin = 20; // Margin from bottom of screen
+    const leftMargin = 20; // Margin from left of screen
+    
+    // Calculate position: left margin + (width + spacing) * index
+    this.left = leftMargin + (minimizedWidth + spacing) * this.minimizedIndex;
+    this.top = window.innerHeight - minimizedHeight - bottomMargin;
+    
+    // Ensure we don't go off screen horizontally
+    const maxLeft = window.innerWidth - minimizedWidth - leftMargin;
+    if (this.left > maxLeft) {
+      // If we exceed screen width, wrap to next row
+      const itemsPerRow = Math.floor((window.innerWidth - leftMargin * 2) / (minimizedWidth + spacing));
+      const row = Math.floor(this.minimizedIndex / itemsPerRow);
+      const col = this.minimizedIndex % itemsPerRow;
+      
+      this.left = leftMargin + (minimizedWidth + spacing) * col;
+      this.top = window.innerHeight - minimizedHeight - bottomMargin - (minimizedHeight + spacing) * row;
+    }
+    
+    // Notify service about minimization
+    this.modalService.notifyModalMinimized(this.modalRef);
+    
     this.cdr.detectChanges();
   }
 
   restore() {
     if (!this.isMinimized || !this.savedBounds) return;
     
-    this.isMinimized = false;
-    this.top = this.savedBounds.top;
-    this.left = this.savedBounds.left;
+    // Notify service about restoration
+    this.modalService.notifyModalRestored(this.modalRef);
     
-    // Re-center if it was an auto-size modal
-    if (this.isAutoSize()) {
+    this.isMinimized = false;
+    
+    // Check if the saved position is still valid (within viewport bounds)
+    const savedLeft = this.savedBounds.left;
+    const savedTop = this.savedBounds.top;
+    
+    // Get approximate modal dimensions (use saved or default)
+    const modalWidth = parseInt(this.savedBounds.width) || 600;
+    const modalHeight = parseInt(this.savedBounds.height) || 400;
+    
+    // Check if saved position is within current viewport
+    const isValidPosition = savedLeft >= 0 && 
+                         savedTop >= 0 && 
+                         savedLeft + modalWidth <= window.innerWidth && 
+                         savedTop + modalHeight <= window.innerHeight;
+  
+    if (isValidPosition) {
+      // Restore to saved position
+      this.top = savedTop;
+      this.left = savedLeft;
+    } else {
+      // Center the modal if saved position is invalid
+      this.top = Math.max((window.innerHeight - modalHeight) / 2, 40);
+      this.left = Math.max((window.innerWidth - modalWidth) / 2, 0);
+    }
+    
+    // Re-center if it was an auto-size modal (only if position was invalid)
+    if (this.isAutoSize() && !isValidPosition) {
       setTimeout(() => this.centerModal(), 10);
     } else {
       this.cdr.detectChanges();
@@ -279,6 +331,10 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     if (target.classList.contains('action-btn') || target.closest('.action-btn')) {
       return;
     }
+
+    // Allow dragging when clicking on header background or text elements
+    const headerElement = target.closest('.custom-modal-header');
+    if (!headerElement) return;
 
     event.preventDefault();
     event.stopPropagation();
@@ -415,4 +471,26 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     document.removeEventListener('mousemove', this.onDragging, { capture: true });
     document.removeEventListener('mouseup', this.onDragEnd, { capture: true });
   }
+
+  /**
+   * Get tooltip text for title - always show full text on hover
+   */
+  getTitleTooltip(): string {
+    return this.config.title || 'Modal';
+  }
+
+  /**
+   * Get tooltip text for middle text - always show full text on hover
+   */
+  getMiddleTextTooltip(): string {
+    return this.config.middleText || '';
+  }
+
+  /**
+   * Get tooltip text for pre-action text - always show full text on hover
+   */
+  getPreActionTextTooltip(): string {
+    return this.config.preActionText || '';
+  }
+
 }

@@ -21,11 +21,13 @@ export interface ModalConfig {
   footerData?: any;
   destroyOnClose?: boolean;
   closeChildrenOnParentClose?: boolean;
-  childMinimizeBehavior?: ChildMinimizeBehavior; // New property
+  childMinimizeBehavior?: ChildMinimizeBehavior;
   title?: string;
   middleText?: string;
   preActionText?: string;
   closeOnBackdropClick?: boolean;
   allowBackgroundInteraction?: boolean;
   closeOnEscape?: boolean;
+  showBackdrop?: boolean;
+  closeOnNavigationOrRefresh?: boolean;
 }

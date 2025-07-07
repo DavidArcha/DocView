@@ -1,7 +1,8 @@
-import { Component, ComponentRef, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, OnInit, ViewChild, ViewContainerRef, OnDestroy } from '@angular/core';
 import { CustomModalService } from '../custom-modal.service';
 import { CustomModalPopupComponent } from '../custom-modal-popup/custom-modal-popup.component';
 import { ModalRef } from '../modal-ref';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-custom-modal-container',
@@ -9,25 +10,67 @@ import { ModalRef } from '../modal-ref';
   templateUrl: './custom-modal-container.component.html',
   styleUrl: './custom-modal-container.component.scss'
 })
-export class CustomModalContainerComponent implements OnInit {
+export class CustomModalContainerComponent implements OnInit, OnDestroy {
   @ViewChild('modalOutlet', { read: ViewContainerRef, static: true })
   modalOutlet!: ViewContainerRef;
 
   private activeModals = new Map<ModalRef, ComponentRef<CustomModalPopupComponent>>();
   private modalStack: ModalRef[] = [];
   private baseZIndex = 1000;
+  private subscriptions: Subscription[] = [];
 
-  constructor(private modalService: CustomModalService) { }
+  constructor(
+    private modalService: CustomModalService,
+    private cdr: ChangeDetectorRef,
+  ) { }
 
   ngOnInit() {
-    this.modalService.modalEvents$.subscribe(({ config, modalRef }) => {
-      this.openModal(config, modalRef);
-    });
+    // Subscribe to modal creation events
+    this.subscriptions.push(
+      this.modalService.modalEvents$.subscribe(({ config, modalRef }) => {
+        this.openModal(config, modalRef);
+      })
+    );
 
     // Subscribe to modal focus events from the service
-    this.modalService.modalFocusEvents$.subscribe((modalRef: ModalRef) => {
-      this.bringModalToFront(modalRef);
-    });
+    this.subscriptions.push(
+      this.modalService.modalFocusEvents$.subscribe((modalRef: ModalRef) => {
+        this.bringModalToFront(modalRef);
+      })
+    );
+
+    // Subscribe to minimized modal updates
+    this.subscriptions.push(
+      this.modalService.minimizedUpdates$.subscribe(() => {
+        this.repositionMinimizedModals();
+      })
+    );
+
+    // Subscribe to navigation close events
+    this.subscriptions.push(
+      this.modalService.navigationCloseEvents$.subscribe(() => {
+        this.handleNavigationClose();
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    // Clean up all subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  /**
+   * Handle navigation close events
+   */
+  private handleNavigationClose(): void {
+    // This method can be used to perform additional cleanup
+    // when modals are closed due to navigation/refresh
+    console.log('Navigation event detected - closing configured modals');
+    
+    // Optional: Update body state after navigation closes
+    setTimeout(() => {
+      this.updateBodyState();
+    }, 0);
   }
 
   private openModal(config: any, modalRef: ModalRef) {
@@ -69,6 +112,13 @@ export class CustomModalContainerComponent implements OnInit {
       modalRef.children.forEach(child => child.close());
     }
 
+    // Check if the modal being closed was minimized
+    const closingComponent = this.activeModals.get(modalRef);
+    const wasMinimized = closingComponent?.instance.isMinimized || false;
+
+    // Notify service about modal closure (will handle minimized tracking)
+    this.modalService.notifyModalRestored(modalRef);
+
     // Destroy component
     if (config.destroyOnClose !== false) {
       const toDestroy = this.activeModals.get(modalRef);
@@ -81,6 +131,65 @@ export class CustomModalContainerComponent implements OnInit {
     
     // Update z-indexes after modal is closed
     this.updateModalZIndexes();
+
+    // If the closed modal was minimized, reposition all remaining minimized modals
+    if (wasMinimized) {
+      setTimeout(() => {
+        this.repositionMinimizedModals();
+      }, 0);
+    }
+  }
+
+  /**
+   * Reposition all minimized modals to fill gaps when one is restored or closed
+   */
+  private repositionMinimizedModals() {
+    let minimizedIndex = 0;
+    const minimizedWidth = 300;
+    const minimizedHeight = 40;
+    const spacing = 10;
+    const bottomMargin = 20;
+    const leftMargin = 20;
+
+    // Get all minimized modals and sort them by their current left position
+    // to maintain relative order when repositioning
+    const minimizedModals: { modalRef: ModalRef, cmpRef: ComponentRef<CustomModalPopupComponent> }[] = [];
+    
+    this.activeModals.forEach((cmpRef, modalRef) => {
+      if (cmpRef.instance.isMinimized) {
+        minimizedModals.push({ modalRef, cmpRef });
+      }
+    });
+
+    // Sort by current left position to maintain visual order
+    minimizedModals.sort((a, b) => a.cmpRef.instance.left - b.cmpRef.instance.left);
+
+    // Reposition each minimized modal in order
+    minimizedModals.forEach(({ cmpRef }) => {
+      // Calculate new position
+      let left = leftMargin + (minimizedWidth + spacing) * minimizedIndex;
+      let top = window.innerHeight - minimizedHeight - bottomMargin;
+
+      // Check if we need to wrap to next row
+      const maxLeft = window.innerWidth - minimizedWidth - leftMargin;
+      if (left > maxLeft) {
+        const itemsPerRow = Math.floor((window.innerWidth - leftMargin * 2) / (minimizedWidth + spacing));
+        const row = Math.floor(minimizedIndex / itemsPerRow);
+        const col = minimizedIndex % itemsPerRow;
+        
+        left = leftMargin + (minimizedWidth + spacing) * col;
+        top = window.innerHeight - minimizedHeight - bottomMargin - (minimizedHeight + spacing) * row;
+      }
+
+      // Update position with smooth transition
+      cmpRef.instance.left = left;
+      cmpRef.instance.top = top;
+
+      // Update the component's minimized index
+      (cmpRef.instance as any).minimizedIndex = minimizedIndex;
+      cmpRef.instance.cdr.detectChanges();
+      minimizedIndex++;
+    });
   }
 
   /**
@@ -113,21 +222,30 @@ export class CustomModalContainerComponent implements OnInit {
   }
 
   private updateBodyState() {
+    // Only consider non-minimized modals for background blocking
     const hasBlockingModal = this.modalStack.some(modalRef => {
       const cmpRef = this.activeModals.get(modalRef);
-      return cmpRef && !cmpRef.instance.config.allowBackgroundInteraction;
+      return cmpRef && 
+             !cmpRef.instance.config.allowBackgroundInteraction && 
+             !cmpRef.instance.isMinimized; // Don't block if minimized
+    });
+
+    // Check if there are any non-minimized modals
+    const hasActiveNonMinimizedModals = this.modalStack.some(modalRef => {
+      const cmpRef = this.activeModals.get(modalRef);
+      return cmpRef && !cmpRef.instance.isMinimized;
     });
 
     if (hasBlockingModal) {
-      // At least one modal blocks background interaction
+      // At least one non-minimized modal blocks background interaction
       document.body.style.overflow = 'hidden';
       document.body.classList.add('modal-open');
-    } else if (this.modalStack.length === 0) {
-      // No modals open
+    } else if (!hasActiveNonMinimizedModals) {
+      // No non-minimized modals open (all are minimized or closed)
       document.body.style.overflow = '';
       document.body.classList.remove('modal-open');
     } else {
-      // Only interactive modals open
+      // Only interactive non-minimized modals open
       document.body.style.overflow = '';
       document.body.classList.remove('modal-open');
     }
