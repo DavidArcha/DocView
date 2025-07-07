@@ -1,0 +1,48 @@
+{
+    "fields": [
+        {
+            "id": 1,
+            "label": "Name",
+            "controType": "textbox",
+            "languageTranslator": false,
+            "multiEditorFlag": false,
+            "value": "",
+            "valueEn": "",
+            "multiEditorValue": "",
+            "sortKey": "1"
+        },
+        {
+            "id": 2,
+            "label": "Email",
+            "controType": "datepicker",
+            "languageTranslator": false,
+            "multiEditorFlag": false,
+            "value": "",
+            "valueEn": "",
+            "multiEditorValue": "",
+            "sortKey": "2"
+        },
+        {
+            "id": 3,
+            "label": "Select Role",
+            "controType": "dropdown",
+            "languageTranslator": false,
+            "multiEditorFlag": false,
+            "value": "",
+            "valueEn": "",
+            "multiEditorValue": "",
+            "sortKey": "3"
+        },
+        {
+            "id": 4,
+            "label": "Select Value",
+            "controType": "Button",
+            "languageTranslator": false,
+            "multiEditorFlag": false,
+            "value": "",
+            "valueEn": "",
+            "multiEditorValue": "",
+            "sortKey": "3"
+        }
+    ]
+}

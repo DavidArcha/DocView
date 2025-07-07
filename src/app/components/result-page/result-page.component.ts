@@ -11,6 +11,7 @@ import { NotFoundComponent } from '../not-found/not-found.component';
 import { text } from 'express';
 import { TextsurveyComponent } from '../../Shared/components/textsurvey/textsurvey.component';
 import { CustomFooterComponentComponent } from '../../custom-footer-component/custom-footer-component.component';
+import { CreateItemsComponent } from '../create-items/create-items.component';
 
 @Component({
   selector: 'app-result-page',
@@ -187,8 +188,8 @@ export class ResultPageComponent implements OnInit {
   // Example 1: Auto-size modal with template footer
   openAutoSizeModal() {
     const modalRef = this.modalService.open({
-      component: TextsurveyComponent,
-      title: 'Auto-size Document Viewer',
+      component: CreateItemsComponent,
+      title: 'Auto-size Document Viewer Auto-size Document Viewer Auto-size Document Viewer',
       middleText: 'Page 1 of 10',
       preActionText: 'Saved',
       headerColor: '#2c3e50',
