@@ -13,7 +13,7 @@ export class TestingModelComponent {
 
   constructor(private modalService: CustomModalService) { }
 
-  openAutoSizeModal() {
+  openAutoSizeModal(input1?: string, input2?: string) {
     const modalRef = this.modalService.open({
       component: TestingFormComponent,
       title: 'New',
@@ -27,7 +27,11 @@ export class TestingModelComponent {
       maxHeight: '700px',
       allowBackgroundInteraction: true,
       closeOnBackdropClick: false,
-      closeOnEscape: true
+      closeOnEscape: true,
+      data: {
+        Input1: input1 || 'Default Value 1',
+        Input2: input2 || 'Default Value 2'
+      }
     });
 
     modalRef.afterClosed().subscribe(result => {
