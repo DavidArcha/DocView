@@ -2,6 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, C
 import { ModalConfig } from '../modal-config';
 import { ModalRef } from '../modal-ref';
 import { CustomModalService } from '../custom-modal.service';
+import { Subscription } from 'rxjs';
 
 let lastZIndex = 1000;
 @Component({
@@ -29,6 +30,8 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
   // Add property to track minimized position
   private minimizedIndex = 0;
 
+  private headerUpdateSubscription?: Subscription;
+
   constructor(
     public el: ElementRef,
     public cdr: ChangeDetectorRef,
@@ -41,6 +44,12 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
     
     // Set up keyboard handlers for the document
     this.setupGlobalKeyboardHandlers();
+
+    // Subscribe to header updates
+    this.headerUpdateSubscription = this.modalRef.afterHeaderUpdate().subscribe(() => {
+      // Trigger change detection when header updates
+      this.cdr.detectChanges();
+    });
   }
 
   ngAfterViewInit() {
@@ -459,6 +468,11 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
 
   ngOnDestroy() {
     if (this.dragging) this.onDragEnd();
+    
+    // Unsubscribe from header updates
+    if (this.headerUpdateSubscription) {
+      this.headerUpdateSubscription.unsubscribe();
+    }
     
     // Remove modal-specific event listeners
     if (this.modalElement) {

@@ -1,13 +1,22 @@
 import { Subject } from 'rxjs';
+import { ModalConfig } from './modal-config';
+
+export interface ModalHeaderUpdate {
+  title?: string;
+  middleText?: string;
+  preActionText?: string;
+}
 
 export class ModalRef {
   private closedSubject = new Subject<any>();
   private minimizedSubject = new Subject<boolean>();
   private restoredSubject = new Subject<void>();
+  private headerUpdateSubject = new Subject<ModalHeaderUpdate>(); // New subject for header updates
   
   public parent?: ModalRef;
   public children: ModalRef[] = [];
   public isMinimized = false;
+  public config?: ModalConfig; // Store reference to config
 
   close(result?: any): void {
     this.closedSubject.next(result);
@@ -23,6 +32,49 @@ export class ModalRef {
     this.isMinimized = false;
     this.minimizedSubject.next(false);
     this.restoredSubject.next();
+  }
+
+  /**
+   * Update modal header fields dynamically
+   */
+  updateHeader(updates: ModalHeaderUpdate): void {
+    if (this.config) {
+      // Update the config with new values
+      if (updates.title !== undefined) this.config.title = updates.title;
+      if (updates.middleText !== undefined) this.config.middleText = updates.middleText;
+      if (updates.preActionText !== undefined) this.config.preActionText = updates.preActionText;
+    }
+    
+    // Emit the update
+    this.headerUpdateSubject.next(updates);
+  }
+
+  /**
+   * Update only the title
+   */
+  updateTitle(title: string): void {
+    this.updateHeader({ title });
+  }
+
+  /**
+   * Update only the middle text
+   */
+  updateMiddleText(middleText: string): void {
+    this.updateHeader({ middleText });
+  }
+
+  /**
+   * Update only the pre-action text
+   */
+  updatePreActionText(preActionText: string): void {
+    this.updateHeader({ preActionText });
+  }
+
+  /**
+   * Get observable for header updates
+   */
+  afterHeaderUpdate() {
+    return this.headerUpdateSubject.asObservable();
   }
 
   afterClosed() {

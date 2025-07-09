@@ -86,8 +86,8 @@ export class CustomModalService {
   open(config: ModalConfig, parentRef?: ModalRef): ModalRef {
     const modalRef = new ModalRef();
     
-    // Store config reference in modalRef for later access
-    (modalRef as any).config = config;
+    // Store config reference in modalRef for dynamic updates
+    modalRef.config = config;
     
     // Set up parent-child relationship
     if (parentRef) {
@@ -103,6 +103,13 @@ export class CustomModalService {
       const index = this.activeModals.indexOf(modalRef);
       if (index > -1) {
         this.activeModals.splice(index, 1);
+      }
+      
+      // Remove from minimized tracking if it was minimized
+      const minIndex = this.minimizedModals.indexOf(modalRef);
+      if (minIndex > -1) {
+        this.minimizedModals.splice(minIndex, 1);
+        this.minimizedUpdate$.next();
       }
     });
 
