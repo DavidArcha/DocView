@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { ModalRef } from '../../Shared/components/custom-modal/modal-ref';
 
 @Component({
@@ -7,16 +7,64 @@ import { ModalRef } from '../../Shared/components/custom-modal/modal-ref';
   templateUrl: './testing-form.component.html',
   styleUrl: './testing-form.component.scss'
 })
-export class TestingFormComponent {
+export class TestingFormComponent implements OnInit, OnChanges {
   @Input() modalRef?: ModalRef; // Injected modal reference
+  @Input() Input1?: string; // First input parameter
+  @Input() Input2?: string; // Second input parameter
 
   // Properties to bind to the textboxes
   textbox1Value: string = '';
   textbox2Value: string = '';
 
   constructor() {
-    // Set initial values if modal exists
+    // Initial setup will be done in ngOnInit
+  }
+
+  ngOnInit() {
+    // Check if data was passed through modalRef (when opened via modal service)
+    if (this.modalRef && (this.modalRef as any).data) {
+      const data = (this.modalRef as any).data;
+      if (data.Input1) {
+        this.Input1 = data.Input1;
+        this.textbox1Value = data.Input1;
+      }
+      if (data.Input2) {
+        this.Input2 = data.Input2;
+        this.textbox2Value = data.Input2;
+      }
+      
+      console.log('TestingFormComponent received data via modalRef:');
+      console.log('Input1:', this.Input1);
+      console.log('Input2:', this.Input2);
+    }
+    // Also check for direct @Input properties (for standalone usage)
+    else if (this.Input1 || this.Input2) {
+      console.log('TestingFormComponent received input data via @Input:');
+      console.log('Input1:', this.Input1);
+      console.log('Input2:', this.Input2);
+      
+      if (this.Input1) {
+        this.textbox1Value = this.Input1;
+      }
+      if (this.Input2) {
+        this.textbox2Value = this.Input2;
+      }
+    }
+    
+    // Update modal header with the initial data
     this.updateModalHeader();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['Input1'] || changes['Input2']) {
+      console.log('Input parameters changed:');
+      if (changes['Input1']) {
+        console.log('Input1 changed to:', changes['Input1'].currentValue);
+      }
+      if (changes['Input2']) {
+        console.log('Input2 changed to:', changes['Input2'].currentValue);
+      }
+    }
   }
 
   // Method to handle textbox1 changes and update modal title
