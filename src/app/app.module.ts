@@ -44,6 +44,8 @@ import { CustomModalPopupComponent } from './Shared/components/custom-modal/cust
 import { CustomFooterComponentComponent } from './custom-footer-component/custom-footer-component.component';
 import { DynamicFieldsComponent } from './Shared/components/Custom-field/dynamic-fields/dynamic-fields.component';
 import { CreateItemsComponent } from './components/create-items/create-items.component';
+import { TestingModelComponent } from './components/testing-model/testing-model.component';
+import { TestingFormComponent } from './components/testing-form/testing-form.component';
 
 @NgModule({
   declarations: [
@@ -74,7 +76,9 @@ import { CreateItemsComponent } from './components/create-items/create-items.com
     CustomModalPopupComponent,
     CustomFooterComponentComponent,
     DynamicFieldsComponent,
-    CreateItemsComponent
+    CreateItemsComponent,
+    TestingModelComponent,
+    TestingFormComponent
   ],
   imports: [
     BrowserModule,

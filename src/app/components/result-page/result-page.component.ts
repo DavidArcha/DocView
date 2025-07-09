@@ -35,7 +35,7 @@ export class ResultPageComponent implements OnInit {
   public totalCount: number = 1000;
   public currentPage: number = 1;
   public pageSize: number = 25;
-  
+
   // Control container state
   isControlCollapsed: boolean = false;
 
@@ -56,7 +56,7 @@ export class ResultPageComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private resultPageService: ResultPageService,
     private route: ActivatedRoute,
-    private router: Router, 
+    private router: Router,
     private modalService: CustomModalService
   ) {
     this.http
@@ -86,6 +86,8 @@ export class ResultPageComponent implements OnInit {
         newComponent = 'TestDD';
       } else if (secondSegment === 'TestACC') {
         newComponent = 'TestACC';
+      } else if (secondSegment === 'TestModel') {
+        newComponent = 'TestModel';
       }
     }
     this.displayComponent(newComponent);
@@ -106,6 +108,8 @@ export class ResultPageComponent implements OnInit {
         updatedComponent = 'TestACC';
       } else if (pathSegment === 'SelectSearch') {
         updatedComponent = 'SelectSearch';
+      } else if (pathSegment === 'TestModel') {
+        updatedComponent = 'TestModel';
       }
       if (updatedComponent !== this.selectedComponent) {
         this.displayComponent(updatedComponent);
@@ -240,9 +244,9 @@ export class ResultPageComponent implements OnInit {
       draggable: true,
       width: '600px', // Only width specified
       footerComponent: CustomFooterComponentComponent,
-      footerData: { 
+      footerData: {
         buttons: ['Save', 'Cancel', 'Apply'],
-        showProgress: true 
+        showProgress: true
       },
       allowBackgroundInteraction: true
     });
@@ -261,9 +265,9 @@ export class ResultPageComponent implements OnInit {
       draggable: true,
       height: '500px', // Only height specified
       footerTemplate: this.customFooterTemplate,
-      footerData: { 
+      footerData: {
         message: 'Custom template footer',
-        lastSaved: this.lastSaved 
+        lastSaved: this.lastSaved
       },
       allowBackgroundInteraction: true
     });
@@ -285,9 +289,9 @@ export class ResultPageComponent implements OnInit {
       height: '400px',
       childMinimizeBehavior: 'minimize', // Children minimize with parent
       footerTemplate: this.advancedFooterTemplate,
-      footerData: { 
+      footerData: {
         type: 'parent',
-        childCount: 0 
+        childCount: 0
       }
     });
 
@@ -301,9 +305,9 @@ export class ResultPageComponent implements OnInit {
       width: '500px',
       height: '350px',
       footerTemplate: this.advancedFooterTemplate,
-      footerData: { 
+      footerData: {
         type: 'child',
-        parentTitle: 'Parent Modal' 
+        parentTitle: 'Parent Modal'
       }
     }, parentModal);
 
@@ -317,9 +321,9 @@ export class ResultPageComponent implements OnInit {
       width: '450px',
       height: '300px',
       footerTemplate: this.advancedFooterTemplate,
-      footerData: { 
+      footerData: {
         type: 'child',
-        parentTitle: 'Parent Modal' 
+        parentTitle: 'Parent Modal'
       }
     }, parentModal);
 
@@ -446,8 +450,8 @@ export class ResultPageComponent implements OnInit {
       maxHeight: '80vh',
       allowBackgroundInteraction: true,
       footerComponent: CustomFooterComponentComponent,
-      footerData: { 
-        buttons: ['Resize Content', 'Save', 'Cancel'] 
+      footerData: {
+        buttons: ['Resize Content', 'Save', 'Cancel']
       }
     });
 

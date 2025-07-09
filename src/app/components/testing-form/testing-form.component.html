@@ -1,0 +1,52 @@
+<div class="testing-form-container">
+    <h2>Testing Form</h2>
+
+    <form class="form" (ngSubmit)="onButtonClick()">
+        <div class="form-group">
+            <label for="textbox1">First Textbox (Updates Modal Title):</label>
+            <input type="text" id="textbox1" name="textbox1" class="form-control" [(ngModel)]="textbox1Value"
+                (input)="onTextbox1Change()" placeholder="Enter first value - updates title">
+        </div>
+
+        <div class="form-group">
+            <label for="textbox2">Second Textbox (Updates Pre-Action Text):</label>
+            <input type="text" id="textbox2" name="textbox2" class="form-control" [(ngModel)]="textbox2Value"
+                (input)="onTextbox2Change()" placeholder="Enter second value - updates pre-action">
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">
+                Submit
+            </button>
+
+            <button type="button" class="btn btn-secondary" (click)="onClearClick()">
+                Clear
+            </button>
+
+            <button type="button" class="btn btn-info" (click)="updateTitleOnly()">
+                Update Title Only
+            </button>
+
+            <button type="button" class="btn btn-warning" (click)="updatePreActionOnly()">
+                Update Pre-Action Only
+            </button>
+        </div>
+    </form>
+
+    <!-- Display current values -->
+    <div class="values-display" *ngIf="textbox1Value || textbox2Value">
+        <h3>Current Values:</h3>
+        <p><strong>Textbox 1 (Modal Title):</strong> {{ textbox1Value || 'Empty' }}</p>
+        <p><strong>Textbox 2 (Pre-Action):</strong> {{ textbox2Value || 'Empty' }}</p>
+        <!-- <p><strong>Middle Text:</strong> {{ getCombinedText() }}</p> -->
+    </div>
+
+    <div class="info-section">
+        <h3>Dynamic Modal Header Demo:</h3>
+        <ul>
+            <li><strong>Title:</strong> Updates as you type in the first textbox</li>
+            <li><strong>Middle Text:</strong> Shows combination of both values</li>
+            <li><strong>Pre-Action Text:</strong> Updates as you type in the second textbox</li>
+        </ul>
+    </div>
+</div>

@@ -12,7 +12,8 @@ const routes: Routes = [
   { path: 'resultpage/TextSurvey', component: ResultPageComponent },
   { path: 'resultpage/Test', component: ResultPageComponent },
   { path: 'resultpage/TestDD', component: ResultPageComponent },
-  { path: 'resultpage/TestACC', component: ResultPageComponent }
+  { path: 'resultpage/TestACC', component: ResultPageComponent },
+  { path: 'resultpage/TestModel', component: ResultPageComponent }
 ];
 
 @NgModule({
