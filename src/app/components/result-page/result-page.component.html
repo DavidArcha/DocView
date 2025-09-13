@@ -27,80 +27,22 @@
     <!-- Result Container -->
     <div class="result-container">
         <div class="grid">
-            <h3>Modal Examples</h3>
+            <h3>Document Gallery</h3>
             
-            <!-- Size & Footer Examples -->
-            <div class="button-group">
-                <h4>Size & Footer Options</h4>
-                <button class="example-btn auto-size" (click)="openAutoSizeModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Auto-size with Footer Template
-                </button>
-
-                <button class="example-btn fixed-size" (click)="openFixedSizeModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Fixed Size (No Footer)
-                </button>
-
-                <button class="example-btn width-only" (click)="openWidthOnlyModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Width Only + Footer Component
-                </button>
-
-                <button class="example-btn height-only" (click)="openHeightOnlyModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Height Only + Custom Footer
-                </button>
-
-                <button class="example-btn constrained" (click)="openConstrainedAutoSizeModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Constrained Auto-size
-                </button>
-
-                <button class="example-btn no-footer" (click)="openNoFooterModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    No Footer Modal
-                </button>
+            <!-- GridGallery Component -->
+            <div class="gallery-section">
+                <app-grid-gallery
+                    [items]="galleryItems"
+                    [selectedLanguage]="selectedLanguage"
+                    [enableDownload]="true"
+                    [enableCopyLink]="true"
+                    [enableOpenInNewTab]="true"
+                    [enableSearchBox]="true"
+                    [enableKeyboardNextPrev]="true"
+                    (linkClick)="onGalleryLinkClick($event)"
+                    (action)="onGalleryAction($event)">
+                </app-grid-gallery>
             </div>
-
-            <!-- Parent-Child Examples -->
-            <div class="button-group">
-                <h4>Parent-Child Relationships</h4>
-                <button class="example-btn parent-minimize" (click)="openParentChildMinimizeModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Parent-Child (Minimize Together)
-                </button>
-
-                <button class="example-btn parent-close" (click)="openParentChildCloseModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Parent-Child (Close Children)
-                </button>
-
-                <button class="example-btn parent-independent" (click)="openParentChildIndependentModal()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Parent-Child (Independent)
-                </button>
-            </div>
-
-            <!-- Multiple Modal Examples -->
-            <div class="button-group">
-                <h4>Multiple Modals & Controls</h4>
-                <button class="example-btn multiple" (click)="openMultipleModals()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Multiple Interactive Modals
-                </button>
-
-                <button class="example-btn close-all" (click)="closeAllModals()">
-                    <fa-icon [icon]="faArrowRight"></fa-icon>
-                    Close All Modals
-                </button>
-            </div>
-
-            <!-- Modal Count Display -->
-            <!-- <div class="modal-info">
-                <p>Active Modals: {{ modalService.activeModalCount }}</p>
-                <p>Background Blocked: {{ modalService.hasBlockingModal ? 'Yes' : 'No' }}</p>
-            </div> -->
         </div>
     </div>
 </div>

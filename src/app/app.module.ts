@@ -46,6 +46,7 @@ import { DynamicFieldsComponent } from './Shared/components/Custom-field/dynamic
 import { CreateItemsComponent } from './components/create-items/create-items.component';
 import { TestingModelComponent } from './components/testing-model/testing-model.component';
 import { TestingFormComponent } from './components/testing-form/testing-form.component';
+import { GridGalleryComponent } from './Shared/components/gridsLayout/grid-gallery/grid-gallery.component';
 
 @NgModule({
   declarations: [
@@ -78,7 +79,8 @@ import { TestingFormComponent } from './components/testing-form/testing-form.com
     DynamicFieldsComponent,
     CreateItemsComponent,
     TestingModelComponent,
-    TestingFormComponent
+    TestingFormComponent,
+    GridGalleryComponent
   ],
   imports: [
     BrowserModule,

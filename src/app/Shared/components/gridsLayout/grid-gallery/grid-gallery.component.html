@@ -1,0 +1,46 @@
+<div class="grid-gallery">
+  <div *ngIf="enableSearchBox" class="search-box">
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      (input)="filterItems()"
+      placeholder="Search by title or date"
+    />
+  </div>
+
+  <div class="card-grid">
+    <div class="gallery-card" *ngFor="let item of filteredItems; trackBy: trackByFn">
+      <div class="card-header">
+        <span class="title" [title]="item.title">{{ item.title }}</span>
+        <span class="date">{{ item.dateIso | date:'mediumDate' }}</span>
+      </div>
+
+      <div class="image-container" 
+           (mouseenter)="onImageHover(item)"
+           (mouseleave)="onImageLeave()">
+        <img [src]="item.thumbUrl || 'assets/no-image.png'" [alt]="item.alt || item.title" loading="lazy" />
+        <div class="no-image" *ngIf="!item.thumbUrl">No Image</div>
+      </div>
+
+      <div class="card-footer">
+        <button class="data-link" (click)="onLinkClick(item)">
+          {{ item.linkText || 'Data Link' }}
+        </button>
+
+        <div class="quick-actions" *ngIf="enableDownload || enableCopyLink || enableOpenInNewTab">
+          <button *ngIf="enableDownload" (click)="onQuickAction('download', item)">⬇️</button>
+          <button *ngIf="enableCopyLink" (click)="onQuickAction('copy', item)">📋</button>
+          <button *ngIf="enableOpenInNewTab" (click)="onQuickAction('open', item)">🔗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Hover Preview - Image Only -->
+  <div class="hover-preview" *ngIf="showHoverPreview && hoverItem">
+    <img 
+      [src]="hoverItem.fullUrl || hoverItem.thumbUrl" 
+      [alt]="hoverItem.alt || hoverItem.title" 
+    />
+  </div>
+</div>

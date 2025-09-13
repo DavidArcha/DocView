@@ -1,0 +1,24 @@
+<div class="grid-gallery">
+  <div class="card-grid">
+    <div class="gallery-card" *ngFor="let item of filteredItems; trackBy: trackByFn">
+      <div class="card-header">
+        <span class="title">{{ item.title }}</span>
+      </div>
+      <div class="image-container" 
+           (mouseenter)="onImageHover(item)"
+           (mouseleave)="onImageLeave()">
+        <img [src]="item.thumbUrl || 'assets/no-image.png'" [alt]="item.title" />
+      </div>
+    </div>
+  </div>
+  
+  <div class="hover-preview" *ngIf="showHoverPreview && hoverItem">
+    <img [src]="hoverItem.fullUrl || hoverItem.thumbUrl" [alt]="hoverItem.title" />
+  </div>
+  
+  <!-- Debug info -->
+  <div style="position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px;">
+    Hover: {{ showHoverPreview ? 'YES' : 'NO' }} | 
+    Item: {{ hoverItem?.title || 'NONE' }}
+  </div>
+</div>
