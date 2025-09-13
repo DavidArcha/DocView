@@ -199,7 +199,111 @@ export class CustomModalContainerComponent implements OnInit, OnDestroy {
     const modalIndex = this.modalStack.indexOf(modalRef);
     if (modalIndex === -1) return; // Modal not found
 
-    // Remove modal from current position and add to end (top)
+    // Get component reference for the clicked modal
+    const clickedModalCmp = this.activeModals.get(modalRef);
+    if (!clickedModalCmp) return;
+
+    // Get the DOM element and rect for the clicked modal
+    const clickedModalElement = clickedModalCmp.location.nativeElement.querySelector('.custom-modal');
+    if (!clickedModalElement) return;
+    
+    const clickedRect = clickedModalElement.getBoundingClientRect();
+
+    // Find modals that are visually overlapping with this one
+    const overlappingModals: { ref: ModalRef, cmp: ComponentRef<CustomModalPopupComponent>, element: HTMLElement }[] = [];
+
+    this.modalStack.forEach((ref, idx) => {
+      // Skip the clicked modal itself
+      if (ref === modalRef) return;
+      
+      // Skip minimized modals
+      const cmp = this.activeModals.get(ref);
+      if (!cmp || cmp.instance.isMinimized) return;
+
+      const modalElement = cmp.location.nativeElement.querySelector('.custom-modal');
+      if (!modalElement) return;
+      
+      const rect = modalElement.getBoundingClientRect();
+      
+      // Check if this modal visually overlaps with the clicked one
+      const overlaps = !(
+        rect.right < clickedRect.left || 
+        rect.left > clickedRect.right || 
+        rect.bottom < clickedRect.top || 
+        rect.top > clickedRect.bottom
+      );
+      
+      // Only move modals that are actually overlapping
+      if (overlaps) {
+        overlappingModals.push({ ref, cmp, element: modalElement });
+      }
+    });
+    
+    console.log(`Found ${overlappingModals.length} overlapping modals`);
+
+    // Determine direction with most space - prefer right, then left, then up
+    const rightSpace = window.innerWidth - clickedRect.right;
+    const leftSpace = clickedRect.left;
+    const topSpace = clickedRect.top;
+    
+    let moveDirection = 'right';
+    if (rightSpace < leftSpace && leftSpace > 150) moveDirection = 'left';
+    else if (rightSpace < 150 && topSpace > 150) moveDirection = 'up';
+    
+    if (overlappingModals.length > 0) {
+      overlappingModals.forEach((modal, idx) => {
+        // Calculate an appropriate offset based on direction
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        switch(moveDirection) {
+          case 'right':
+            offsetX = clickedRect.width * 0.7; // 70% of modal width
+            offsetY = 20 * (idx + 1); // Slight step down for visibility
+            break;
+          case 'left':
+            offsetX = -clickedRect.width * 0.7; // 70% of modal width to the left
+            offsetY = 20 * (idx + 1);
+            break;
+          case 'up':
+            offsetY = -clickedRect.height * 0.7; // 70% of modal height up
+            offsetX = 20 * (idx + 1); // Slight step to the right
+            break;
+        }
+        
+        // Calculate new position
+        const newLeft = modal.cmp.instance.left + offsetX;
+        const newTop = modal.cmp.instance.top + offsetY;
+        
+        // Apply max boundaries to ensure modal remains visible
+        const maxLeft = window.innerWidth - 100;
+        const maxTop = window.innerHeight - 100;
+        const minLeft = -modal.element.offsetWidth + 100; // Keep at least 100px visible
+        const minTop = 0; // Don't go above top of screen
+        
+        modal.cmp.instance.left = Math.max(minLeft, Math.min(maxLeft, newLeft));
+        modal.cmp.instance.top = Math.max(minTop, Math.min(maxTop, newTop));
+        
+        // Add animation class for smooth transition
+        modal.element.classList.add('repositioning');
+        
+        // Remove animation class after transition completes
+        setTimeout(() => {
+          modal.element.classList.remove('repositioning');
+        }, 500);
+        
+        // Mark as not top modal
+        modal.element.classList.remove('modal-top');
+        
+        // Trigger change detection
+        modal.cmp.instance.cdr.detectChanges();
+      });
+      
+      // Mark clicked modal as top modal for visual differentiation
+      clickedModalElement.classList.add('modal-top');
+    }
+
+    // Remove modal from current position and add to end (top) in the stack
     this.modalStack.splice(modalIndex, 1);
     this.modalStack.push(modalRef);
 

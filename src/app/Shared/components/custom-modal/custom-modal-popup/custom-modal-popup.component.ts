@@ -90,14 +90,28 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
    * Handle mouse down on modal to bring it to front
    */
   private onModalMouseDown = (event: MouseEvent) => {
-    // Only handle if background interaction is allowed and there are multiple modals
-    if (this.config.allowBackgroundInteraction && this.modalService.activeModalCount > 1) {
-      // Don't focus if clicking on backdrop
-      if (event.target === this.el.nativeElement.querySelector('.modal-backdrop')) {
-        return;
-      }
+    // Don't focus if clicking on backdrop
+    if (event.target === this.el.nativeElement.querySelector('.modal-backdrop')) {
+      return;
+    }
+    
+    // Don't process if clicking on action buttons (minimize/close)
+    const target = event.target as HTMLElement;
+    if (target.classList.contains('action-btn') || target.closest('.action-btn')) {
+      return;
+    }
+    
+    // Check if this modal is not the topmost one
+    const isTopmost = this.modalElement?.classList.contains('modal-top');
+    
+    if (!isTopmost) {
+      // If not topmost, bring to front which will now reposition overlapping modals
+      event.stopPropagation(); // Stop event propagation to prevent other modals from responding
       
-      this.bringToFront();
+      // Add a small delay to ensure event propagation is properly handled
+      setTimeout(() => {
+        this.bringToFront();
+      }, 10);
     }
   };
 
@@ -105,6 +119,18 @@ export class CustomModalPopupComponent implements AfterViewInit, OnInit, OnDestr
    * Bring this modal to the front
    */
   private bringToFront() {
+    // Add repositioning class for smooth animation
+    if (this.modalElement) {
+      this.modalElement.classList.add('repositioning');
+      
+      // Remove the class after transition completes
+      setTimeout(() => {
+        this.modalElement?.classList.remove('repositioning');
+      }, 500);
+      
+      console.log('Bringing modal to front:', this.config.title || 'Untitled Modal');
+    }
+    
     this.modalService.focusModal(this.modalRef);
   }
 

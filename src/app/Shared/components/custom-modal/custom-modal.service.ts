@@ -255,4 +255,12 @@ export class CustomModalService {
     window.removeEventListener('popstate', this.handlePopState);
     window.removeEventListener('pagehide', this.handlePageHide);
   }
+
+  /**
+   * Check if a modal is the topmost one in the stack
+   */
+  isTopmostModal(modalRef: ModalRef): boolean {
+    const index = this.activeModals.indexOf(modalRef);
+    return index === this.activeModals.length - 1;
+  }
 }

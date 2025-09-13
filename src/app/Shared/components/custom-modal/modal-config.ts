@@ -30,4 +30,20 @@ export interface ModalConfig {
   closeOnEscape?: boolean;
   showBackdrop?: boolean;
   closeOnNavigationOrRefresh?: boolean;
+
+  /**
+   * Controls how modals behave when overlapping and clicked
+   * - 'reposition': Move overlapping modals aside (default)
+   * - 'stack': Just bring to front without moving others
+   */
+  overlapBehavior?: 'reposition' | 'stack';
+
+  /**
+   * Direction preference for repositioning overlapping modals
+   * - 'auto': Choose best direction based on available space (default)
+   * - 'right': Prefer moving overlapping modals to the right
+   * - 'left': Prefer moving overlapping modals to the left
+   * - 'up': Prefer moving overlapping modals upward
+   */
+  repositionDirection?: 'auto' | 'right' | 'left' | 'up';
 }

@@ -7,8 +7,8 @@
     display: flex;
     flex-direction: column;
     transition: box-shadow 0.2s ease, opacity 0.2s ease;
-    opacity: 1;
     cursor: pointer; // Indicate clickable when background interaction allowed
+    z-index: 999 !important;
 
     // Auto-size specific styles
     &.auto-size {
@@ -25,7 +25,6 @@
 
     // Enhanced visual feedback for modal layering
     &:not(.modal-top) {
-        opacity: 0.92;
         box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
         
         // Subtle overlay to indicate it's not the top modal
@@ -43,16 +42,24 @@
         }
     }
 
+    // Add repositioning animation with better easing
+    &.repositioning {
+        transition: left 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.25), 
+                   top 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.25),
+                   transform 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.25);
+    }
+    
+    // Style for the topmost modal
     &.modal-top {
-        opacity: 1;
         box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+        z-index: 9999 !important; // Ensure topmost modal gets highest z-index
+        transform: translateZ(0); // Force GPU acceleration
     }
 
     // Smooth dragging performance
     &.dragging {
         box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         transition: none; // Disable transitions during drag
-        opacity: 1 !important; // Ensure full opacity during drag
 
         .custom-modal-header {
             cursor: grabbing !important;
@@ -65,7 +72,6 @@
 
     // Hover effect for non-top modals when background interaction is allowed
     &:not(.modal-top):hover {
-        opacity: 0.96;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
         transform: translateY(-1px);
     }
@@ -254,6 +260,10 @@
         max-height: calc(90vh - 120px); // Account for header/footer
         overflow-y: auto;
     }
+
+    // Fix for content visibility
+    z-index: 2; // Ensure content is above overlay
+    position: relative; // Establish stacking context
 }
 
 .custom-modal-footer {
@@ -302,16 +312,16 @@
 
     // Smooth animation when repositioning
     &.repositioning {
-        transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-                   top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: left 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.25), 
+                   top 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.25),
+                   transform 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.25);
     }
 }
 
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    z-index: 990;
     transition: background 0.3s ease;
 
     // When background interaction is allowed
