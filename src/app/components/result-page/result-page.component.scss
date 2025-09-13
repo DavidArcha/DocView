@@ -224,3 +224,20 @@
         cursor: not-allowed;
     }
 }
+
+// Gallery section styles
+.gallery-section {
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+.grid {
+    h3 {
+        margin-bottom: 1.5rem;
+        color: #495057;
+        font-weight: 600;
+    }
+}

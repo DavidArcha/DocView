@@ -12,6 +12,7 @@ import { text } from 'express';
 import { TextsurveyComponent } from '../../Shared/components/textsurvey/textsurvey.component';
 import { CustomFooterComponentComponent } from '../../custom-footer-component/custom-footer-component.component';
 import { CreateItemsComponent } from '../create-items/create-items.component';
+import { GridGalleryComponent, ImageGridItem } from '../../Shared/components/gridsLayout/grid-gallery/grid-gallery.component';
 
 @Component({
   selector: 'app-result-page',
@@ -50,6 +51,74 @@ export class ResultPageComponent implements OnInit {
 
   // Modal tracking for examples
   public lastSaved = new Date();
+
+  // GridGallery test data
+  public galleryItems: ImageGridItem[] = [
+    {
+      id: '1',
+      title: 'Sample Document 1',
+      dateIso: '2024-01-15',
+      thumbUrl: 'assets/BackgrounfImg.png',
+      fullUrl: 'assets/BackgrounfImg.png',
+      linkText: 'View Details',
+      linkPayload: { docId: 1, type: 'pdf' },
+      alt: 'Sample document thumbnail 1',
+      mimeTypeHint: 'image/png'
+    },
+    {
+      id: '2',
+      title: 'Sample Document 2',
+      dateIso: '2024-01-20',
+      thumbUrl: 'assets/blue-sky.jpg',
+      fullUrl: 'assets/blue-sky.jpg',
+      linkText: 'Open Document',
+      linkPayload: { docId: 2, type: 'image' },
+      alt: 'Sample document thumbnail 2',
+      mimeTypeHint: 'image/jpeg'
+    },
+    {
+      id: '3',
+      title: 'Company Logo',
+      dateIso: '2024-02-01',
+      thumbUrl: 'assets/Header/logo.jpg',
+      fullUrl: 'assets/Header/logo.jpg',
+      linkText: 'View Logo',
+      linkPayload: { docId: 3, type: 'logo' },
+      alt: 'Company logo',
+      mimeTypeHint: 'image/jpeg'
+    },
+    {
+      id: '4',
+      title: 'Document Without Image',
+      dateIso: '2024-02-10',
+      linkText: 'Access Document',
+      linkPayload: { docId: 4, type: 'text' },
+      alt: 'Text document',
+      mimeTypeHint: 'text/plain'
+    },
+    {
+      id: '5',
+      title: 'Another Sample',
+      dateIso: '2024-02-15',
+      thumbUrl: 'assets/BackgrounfImg.png',
+      fullUrl: 'assets/BackgrounfImg.png',
+      linkText: 'Download',
+      linkPayload: { docId: 5, type: 'download' },
+      alt: 'Another sample document',
+      mimeTypeHint: 'image/png'
+    },
+    {
+      id: '6',
+      title: 'Blue Sky Image',
+      dateIso: '2024-02-20',
+      thumbUrl: 'assets/blue-sky.jpg',
+      fullUrl: 'assets/blue-sky.jpg',
+      linkText: 'View Image',
+      linkPayload: { docId: 6, type: 'image' },
+      alt: 'Blue sky photograph',
+      mimeTypeHint: 'image/jpeg'
+    }
+  ];
 
   constructor(
     private http: HttpClient,
@@ -495,5 +564,29 @@ export class ResultPageComponent implements OnInit {
 
   closeAllModals() {
     this.modalService.closeAll();
+  }
+
+  // GridGallery event handlers
+  onGalleryLinkClick(payload: any) {
+    console.log('Gallery link clicked:', payload);
+    // Handle navigation or action based on payload
+    if (payload.type === 'pdf') {
+      console.log('Opening PDF document with ID:', payload.docId);
+    } else if (payload.type === 'download') {
+      console.log('Downloading document with ID:', payload.docId);
+    }
+  }
+
+  onGalleryAction(action: { type: 'download' | 'copy' | 'open'; item: ImageGridItem }) {
+    console.log('Gallery action performed:', action);
+    const { type, item } = action;
+    
+    if (type === 'download') {
+      console.log(`Downloading ${item.title}`);
+    } else if (type === 'copy') {
+      console.log(`Copied link for ${item.title} to clipboard`);
+    } else if (type === 'open') {
+      console.log(`Opening ${item.title} in new tab`);
+    }
   }
 }
